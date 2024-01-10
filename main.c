@@ -9,17 +9,20 @@
 
 #define _XOPEN_SOURCE 700
 
-#include <stdio.h>
-
 #include <ctype.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 char version[] = "xxd 2023-10-25 by Juergen Weigert et al.";
 char osver[] = "";
+char hexxa[] = "0123456789abcdef0123456789ABCDEF";
+char* hexx = hexxa;
+
+static char* pname;
 
 #define BIN_READ(dummy) "r"
 #define BIN_WRITE(dummy) "w"
@@ -31,8 +34,6 @@ char osver[] = "";
 #define COLS 256 /* change here, if you ever need more columns */
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
-char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
-
 /* the different hextypes known by this program: */
 #define HEX_NORMAL 0
 #define HEX_POSTSCRIPT 1
@@ -41,6 +42,12 @@ char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
 #define HEX_LITTLEENDIAN 4
 
 #define CONDITIONAL_CAPITALIZE(c) (capitalize ? toupper((unsigned char)(c)) : (c))
+
+#define COLOR_RED '1'
+#define COLOR_GREEN '2'
+#define COLOR_YELLOW '3'
+#define COLOR_BLUE '4'
+#define COLOR_WHITE '7'
 
 #define COLOR_PROLOGUE \
     l[c++] = '\033';   \
@@ -54,14 +61,6 @@ char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
     l[c++] = '[';      \
     l[c++] = '0';      \
     l[c++] = 'm';
-
-#define COLOR_RED '1'
-#define COLOR_GREEN '2'
-#define COLOR_YELLOW '3'
-#define COLOR_BLUE '4'
-#define COLOR_WHITE '7'
-
-static char* pname;
 
 static void exit_with_usage(void)
 {
@@ -87,7 +86,7 @@ static void exit_with_usage(void)
     fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n", "[+][-]", "(or +: rel.) ");
     fprintf(stderr, "    -u          use upper case hex letters.\n");
     fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"),
-    fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
+        fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
     exit(1);
 }
 
@@ -183,7 +182,7 @@ static int skip_to_eol(FILE* fpi, int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
+static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
 {
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
@@ -209,7 +208,7 @@ static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ign_garb)
                 continue;
-        } else {/* HEX_BITS */
+        } else { /* HEX_BITS */
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ign_garb)
                 continue;
@@ -265,8 +264,7 @@ static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
             } else if (n1 < 0 && n2 < 0 && n3 < 0)
                 /* already stumbled into garbage, skip line, wait and see */
                 c = skip_to_eol(fpi, c);
-        } else /* HEX_BITS */
-        {
+        } else { /* HEX_BITS */
             if (bcnt == 8) {
                 putc_or_die(b, fpo);
                 have_off++;
@@ -280,14 +278,16 @@ static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
         }
 
         if (c == '\n') {
-            if (hextype == HEX_NORMAL || hextype == HEX_BITS)
+            if (hextype == HEX_NORMAL || hextype == HEX_BITS) {
                 want_off = 0;
+            }
             p = cols;
             ign_garb = 1;
         }
     }
-    if (fflush(fpo) != 0)
+    if (fflush(fpo) != 0) {
         perror_exit(3);
+    }
     fseek(fpo, 0L, SEEK_END);
     fclose_or_die(fpi, fpo);
     return 0;
@@ -305,28 +305,31 @@ static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
  *
  * If nz is always positive, lines are never suppressed.
  */
-static void
-xxdline(FILE* fp, char* l, int nz)
+static void xxdline(FILE* fp, char* l, int nz)
 {
     static char z[LLEN + 1];
     static int zero_seen = 0;
 
-    if (!nz && zero_seen == 1)
+    if (!nz && zero_seen == 1) {
         strcpy(z, l);
+    }
 
     if (nz || !zero_seen++) {
         if (nz) {
-            if (nz < 0)
+            if (nz < 0) {
                 zero_seen--;
-            if (zero_seen == 2)
+            }
+            if (zero_seen == 2) {
                 fputs_or_die(z, fp);
-            if (zero_seen > 2)
+            } else if (zero_seen > 2) {
                 fputs_or_die("*\n", fp);
+            }
         }
-        if (nz >= 0 || zero_seen > 0)
+        if (nz >= 0 || zero_seen > 0) {
             fputs_or_die(l, fp);
-        if (nz)
+        } else if (nz) {
             zero_seen = 0;
+        }
     }
 }
 
@@ -359,13 +362,11 @@ static unsigned char etoa64[] = {
     0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-static void
-begin_coloring_char(char* l, int* c, int e, int ebcdic)
+static void begin_coloring_char(char* l, int* c, int e, int ebcdic)
 {
     if (ebcdic) {
         if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249) || (e == 189) || (e == 64) || (e == 173) || (e == 224))
             l[(*c)++] = COLOR_GREEN;
-
         else if (e == 37 || e == 13 || e == 5)
             l[(*c)++] = COLOR_YELLOW;
         else if (e == 0)
@@ -374,16 +375,9 @@ begin_coloring_char(char* l, int* c, int e, int ebcdic)
             l[(*c)++] = COLOR_BLUE;
         else
             l[(*c)++] = COLOR_RED;
-    } else /* ASCII */
-    {
-#ifdef __MVS__
-        if (e >= 64)
-            l[(*c)++] = COLOR_GREEN;
-#else
+    } else { /* ASCII */
         if (e > 31 && e < 127)
             l[(*c)++] = COLOR_GREEN;
-#endif
-
         else if (e == 9 || e == 10 || e == 13)
             l[(*c)++] = COLOR_YELLOW;
         else if (e == 0)
@@ -396,8 +390,7 @@ begin_coloring_char(char* l, int* c, int e, int ebcdic)
     l[(*c)++] = 'm';
 }
 
-static int
-enable_color(void)
+static int enable_color(void)
 {
     return isatty(STDOUT_FILENO);
 }
@@ -421,20 +414,16 @@ int main(int argc, char* argv[])
     char* no_color;
 
     no_color = getenv("NO_COLOR");
-    if (no_color == NULL || no_color[0] == '\0')
+    if (no_color == NULL || no_color[0] == '\0') {
         color = enable_color();
+    }
 
     pname = argv[0];
-    for (pp = pname; *pp;)
-        if (*pp++ == PATH_SEP)
+    for (pp = pname; *pp;) {
+        if (*pp++ == PATH_SEP) {
             pname = pp;
-#ifdef FILE_SEP
-    for (pp = pname; *pp; pp++)
-        if (*pp == FILE_SEP) {
-            *pp = '\0';
-            break;
         }
-#endif
+    }
 
     while (argc >= 2) {
         pp = argv[1] + (!STRNCMP(argv[1], "--", 2) && argv[1][2]);
@@ -488,22 +477,23 @@ int main(int argc, char* argv[])
         } else if (!STRNCMP(pp, "-o", 2)) {
             int reloffset = 0;
             int negoffset = 0;
-            if (pp[2] && STRNCMP("ffset", pp + 2, 5))
+            if (pp[2] && STRNCMP("ffset", pp + 2, 5)) {
                 displayoff = strtoul(pp + 2, NULL, 0);
-            else {
-                if (!argv[2])
+            } else {
+                if (!argv[2]) {
                     exit_with_usage();
-
-                if (argv[2][0] == '+')
+                }
+                if (argv[2][0] == '+') {
                     reloffset++;
-                if (argv[2][reloffset] == '-')
+                }
+                if (argv[2][reloffset] == '-') {
                     negoffset++;
-
-                if (negoffset)
+                }
+                if (negoffset) {
                     displayoff = ULONG_MAX - strtoul(argv[2] + reloffset + negoffset, NULL, 0) + 1;
-                else
+                } else {
                     displayoff = strtoul(argv[2] + reloffset + negoffset, NULL, 0);
-
+                }
                 argv++;
                 argc--;
             }
@@ -511,38 +501,45 @@ int main(int argc, char* argv[])
             relseek = 0;
             negseek = 0;
             if (pp[2] && STRNCMP("kip", pp + 2, 3) && STRNCMP("eek", pp + 2, 3)) {
-                if (pp[2] == '+')
+                if (pp[2] == '+') {
                     relseek++;
-                if (pp[2 + relseek] == '-')
+                }
+                if (pp[2 + relseek] == '-') {
                     negseek++;
+                }
                 seekoff = strtol(pp + 2 + relseek + negseek, (char**)NULL, 0);
             } else {
-                if (!argv[2])
+                if (!argv[2]) {
                     exit_with_usage();
-                if (argv[2][0] == '+')
+                }
+                if (argv[2][0] == '+') {
                     relseek++;
-                if (argv[2][relseek] == '-')
+                }
+                if (argv[2][relseek] == '-') {
                     negseek++;
+                }
                 seekoff = strtol(argv[2] + relseek + negseek, (char**)NULL, 0);
                 argv++;
                 argc--;
             }
         } else if (!STRNCMP(pp, "-l", 2)) {
-            if (pp[2] && STRNCMP("en", pp + 2, 2))
+            if (pp[2] && STRNCMP("en", pp + 2, 2)) {
                 length = strtol(pp + 2, (char**)NULL, 0);
-            else {
-                if (!argv[2])
+            } else {
+                if (!argv[2]) {
                     exit_with_usage();
+                }
                 length = strtol(argv[2], (char**)NULL, 0);
                 argv++;
                 argc--;
             }
         } else if (!STRNCMP(pp, "-n", 2)) {
-            if (pp[2] && STRNCMP("ame", pp + 2, 3))
+            if (pp[2] && STRNCMP("ame", pp + 2, 3)) {
                 varname = pp + 2;
-            else {
-                if (!argv[2])
+            } else {
+                if (!argv[2]) {
                     exit_with_usage();
+                }
                 varname = argv[2];
                 argv++;
                 argc--;
@@ -554,26 +551,28 @@ int main(int argc, char* argv[])
                 argv++;
                 argc--;
             }
-            if (!pw)
+            if (!pw) {
                 exit_with_usage();
+            }
             if (!STRNCMP(pw, "always", 6)) {
                 (void)enable_color();
                 color = 1;
-            } else if (!STRNCMP(pw, "never", 5))
+            } else if (!STRNCMP(pw, "never", 5)) {
                 color = 0;
-            else if (!STRNCMP(pw, "auto", 4))
+            } else if (!STRNCMP(pw, "auto", 4)) {
                 color = enable_color();
-            else
+            } else {
                 exit_with_usage();
-        } else if (!strcmp(pp, "--")) /* end of options */
-        {
+            }
+        } else if (!strcmp(pp, "--")) { /* end of options */
             argv++;
             argc--;
             break;
-        } else if (pp[0] == '-' && pp[1]) /* unknown option */
+        } else if (pp[0] == '-' && pp[1]) { /* unknown option */
             exit_with_usage();
-        else
+        } else {
             break; /* not an option */
+        }
 
         argv++; /* advance to next argument */
         argc--;
@@ -620,17 +619,19 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    if (octspergrp < 1 || octspergrp > cols)
+    if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
-    else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1)))
+    } else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1))) {
         error_exit(1, "number of octets per group must be a power of 2 with -e.");
+    }
 
-    if (argc > 3)
+    if (argc > 3) {
         exit_with_usage();
+    }
 
-    if (argc == 1 || (argv[1][0] == '-' && !argv[1][1]))
+    if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         BIN_ASSIGN(fp = stdin, !revert);
-    else {
+    } else {
         if ((fp = fopen(argv[1], BIN_READ(!revert))) == NULL) {
             fprintf(stderr, "%s: ", pname);
             perror(argv[1]);
@@ -638,9 +639,9 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (argc < 3 || (argv[2][0] == '-' && !argv[2][1]))
+    if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         BIN_ASSIGN(fpo = stdout, revert);
-    else {
+    } else {
         int fd;
         int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
 
@@ -665,53 +666,56 @@ int main(int argc, char* argv[])
         }
 
     if (seekoff || negseek || !relseek) {
-        if (relseek)
+        if (relseek) {
             e = fseek(fp, negseek ? -seekoff : seekoff, SEEK_CUR);
-        else
-            e = fseek(fp, negseek ? -seekoff : seekoff,
-                negseek ? SEEK_END : SEEK_SET);
-        if (e < 0 && negseek)
+        } else {
+            e = fseek(fp, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
+        }
+        if (e < 0 && negseek) {
             error_exit(4, "Sorry, cannot seek.");
-        if (e >= 0)
+        }
+        if (e >= 0) {
             seekoff = ftell(fp);
-        else
-        {
+        } else {
             long s = seekoff;
-
-            while (s--)
+            while (s--) {
                 if (getc_or_die(fp) == EOF) {
                     error_exit(4, "Sorry, cannot seek.");
                 }
+            }
         }
     }
 
     if (hextype == HEX_CINCLUDE) {
         /* A user-set variable name overrides fp == stdin */
-        if (varname == NULL && fp != stdin)
+        if (varname == NULL && fp != stdin) {
             varname = argv[1];
+        }
 
         if (varname != NULL) {
             FPRINTF_OR_DIE((fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : ""));
-            for (e = 0; (c = varname[e]) != 0; e++)
+            for (e = 0; (c = varname[e]) != 0; e++) {
                 putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
+            }
             fputs_or_die("[] = {\n", fpo);
         }
 
         p = 0;
         while ((length < 0 || p < length) && (c = getc_or_die(fp)) != EOF) {
-            FPRINTF_OR_DIE((fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X",
-                (p % cols) ? ", " : (!p ? "  " : ",\n  "), c));
+            FPRINTF_OR_DIE((fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c));
             p++;
         }
 
-        if (p)
+        if (p) {
             fputs_or_die("\n", fpo);
+        }
 
         if (varname != NULL) {
             fputs_or_die("};\n", fpo);
             FPRINTF_OR_DIE((fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : ""));
-            for (e = 0; (c = varname[e]) != 0; e++)
+            for (e = 0; (c = varname[e]) != 0; e++) {
                 putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
+            }
             FPRINTF_OR_DIE((fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p));
         }
 
@@ -730,8 +734,9 @@ int main(int argc, char* argv[])
                 p = cols;
             }
         }
-        if (cols == 0 || p < cols)
+        if (cols == 0 || p < cols) {
             putc_or_die('\n', fpo);
+        }
         fclose_or_die(fp, fpo);
         return 0;
     }
@@ -740,10 +745,12 @@ int main(int argc, char* argv[])
 
     if (hextype != HEX_BITS) {
         grplen = octspergrp + octspergrp + 1; /* chars per octet group */
-        if (color)
+        if (color) {
             grplen += 11 * octspergrp; /* color-code needs 11 extra characters */
-    } else /* hextype == HEX_BITS */
+        }
+    } else { /* hextype == HEX_BITS */
         grplen = 8 * octspergrp + 1;
+    }
 
     while ((length < 0 || n < length) && (e = getc_or_die(fp)) != EOF) {
         if (p == 0) {
@@ -761,46 +768,42 @@ int main(int argc, char* argv[])
                 l[c++] = hexx[(e >> 4) & 0xf];
                 l[c++] = hexx[e & 0xf];
                 COLOR_EPILOGUE
-            } else /*No colors*/
-            {
+            } else { /*No colors*/
                 l[c] = hexx[(e >> 4) & 0xf];
                 l[++c] = hexx[e & 0xf];
             }
-        } else /* hextype == HEX_BITS */
-        {
-            for (i = 7; i >= 0; i--)
+        } else { /* hextype == HEX_BITS */
+            for (i = 7; i >= 0; i--) {
                 l[c++] = (e & (1 << i)) ? '1' : '0';
+            }
         }
-        if (e)
+        if (e) {
             nonzero++;
+        }
         /* When changing this update definition of LLEN above. */
-        if (hextype == HEX_LITTLEENDIAN)
+        if (hextype == HEX_LITTLEENDIAN) {
             /* last group will be fully used, round up */
             c = grplen * ((cols + octspergrp - 1) / octspergrp);
-        else
+        } else {
             c = (grplen * cols - 1) / octspergrp;
+        }
 
         if (color) {
-            if (hextype == HEX_BITS)
+            if (hextype == HEX_BITS) {
                 c += addrlen + 3 + p * 12;
-            else
+            } else {
                 c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-
-            if (hextype == HEX_LITTLEENDIAN)
+            }
+            if (hextype == HEX_LITTLEENDIAN) {
                 c += 1;
+            }
 
             COLOR_PROLOGUE
             begin_coloring_char(l, &c, e, ebcdic);
-#ifdef __MVS__
-            if (e >= 64)
-                l[c++] = e;
-            else
-                l[c++] = '.';
-#else
-            if (ebcdic)
+            if (ebcdic) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
+            }
             l[c++] = (e > 31 && e < 127) ? e : '.';
-#endif
             COLOR_EPILOGUE
             n++;
             if (++p == cols) {
@@ -810,20 +813,12 @@ int main(int argc, char* argv[])
                 nonzero = 0;
                 p = 0;
             }
-        } else /*no colors*/
-        {
-            if (ebcdic)
+        } else { /*no colors*/
+            if (ebcdic) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
-
+            }
             c += addrlen + 3 + p;
-            l[c++] =
-#ifdef __MVS__
-                (e >= 64)
-#else
-                (e > 31 && e < 127)
-#endif
-                ? e
-                : '.';
+            l[c++] = (e > 31 && e < 127) ? e : '.';
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
@@ -843,8 +838,9 @@ int main(int argc, char* argv[])
             x = p;
             if (hextype == HEX_LITTLEENDIAN) {
                 int fill = octspergrp - (p % octspergrp);
-                if (fill == octspergrp)
+                if (fill == octspergrp) {
                     fill = 0;
+                }
 
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
 
@@ -874,11 +870,9 @@ int main(int argc, char* argv[])
             }
         }
         xxdline(fpo, l, 1);
-    } else if (autoskip)
+    } else if (autoskip) {
         xxdline(fpo, l, -1); /* last chance to flush out suppressed lines */
-
+    }
     fclose_or_die(fp, fpo);
     return 0;
 }
-
-/* vi:set ts=8 sw=4 sts=2 cino+={2 cino+=n-2 : */
