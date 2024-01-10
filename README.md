@@ -1,7 +1,8 @@
 # tinyxxd
 
-Standalone `xxd` for Linux.
+`xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, and a drop-in replacement that only targets Linux.
 
-`xxd` is a utility that comes with ViM and is dual licensed under GPL-2 and MIT-X11.
+### General info
 
-This is a fork of `xxd`, and a drop-in replacement.
+* License: GPL2
+* Version: 1.0.0
