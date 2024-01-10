@@ -12,28 +12,22 @@
 # define _CRT_SECURE_NO_DEPRECATE
 # define _CRT_NONSTDC_NO_DEPRECATE
 #endif
-#if !defined(CYGWIN) && defined(__CYGWIN__)
-# define CYGWIN
-#endif
 
-#if (defined(__linux__) && !defined(__ANDROID__)) || defined(__CYGWIN__)
-# define _XOPEN_SOURCE 700   /* for fdopen() */
-#endif
+#define _XOPEN_SOURCE 700
 
 #include <stdio.h>
+
 #ifdef VAXC
-# include <file.h>
+#include <file.h>
 #else
-# include <fcntl.h>
+#include <fcntl.h>
 #endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-#if __MWERKS__ && !defined(BEBOX)
-# include <unix.h>	/* for fdopen() on MAC */
-#endif
 
 
 /*  This corrects the problem of missing prototypes for certain functions
@@ -46,69 +40,16 @@
 # endif
 #endif
 
-#ifndef __USE_FIXED_PROTOTYPES__
-/*
- * This is historic and works only if the compiler really has no prototypes:
- *
- * Include prototypes for Sun OS 4.x, when using an ANSI compiler.
- * FILE is defined on OS 4.x, not on 5.x (Solaris).
- * if __SVR4 is defined (some Solaris versions), don't include this.
- */
-#if defined(sun) && defined(FILE) && !defined(__SVR4) && defined(__STDC__)
-#  define __P(a) a
-/* excerpt from my sun_stdlib.h */
-extern int fprintf __P((FILE *, char *, ...));
-extern int fputs   __P((char *, FILE *));
-extern int _flsbuf __P((unsigned char, FILE *));
-extern int _filbuf __P((FILE *));
-extern int fflush  __P((FILE *));
-extern int fclose  __P((FILE *));
-extern int fseek   __P((FILE *, long, int));
-extern int rewind  __P((FILE *));
-
-extern void perror __P((char *));
-# endif
-#endif
-
 char version[] = "xxd 2023-10-25 by Juergen Weigert et al.";
 char osver[] = "";
 
-# ifdef VMS
-#  define BIN_READ(dummy)  "r"
-#  define BIN_WRITE(dummy) "w"
-#  define BIN_CREAT(dummy) O_CREAT
-#  define BIN_ASSIGN(fp, dummy) fp
-#  define PATH_SEP ']'
-#  define FILE_SEP '.'
-# else
-#  define BIN_READ(dummy)  "r"
-#  define BIN_WRITE(dummy) "w"
-#  define BIN_CREAT(dummy) O_CREAT
-#  define BIN_ASSIGN(fp, dummy) fp
-#  define PATH_SEP '/'
-# endif
-
-/* open has only to arguments on the Mac */
-#if __MWERKS__
-# define OPEN(name, mode, umask) open(name, mode)
-#else
-# define OPEN(name, mode, umask) open(name, mode, umask)
-#endif
-
-#ifdef AMIGA
-# define STRNCMP(s1, s2, l) strncmp(s1, s2, (size_t)l)
-#else
-# define STRNCMP(s1, s2, l) strncmp(s1, s2, l)
-#endif
-
-#ifndef __P
-# if defined(__STDC__)
-#  define __P(a) a
-# else
-#  define __P(a) ()
-# endif
-#endif
-
+#define BIN_READ(dummy)  "r"
+#define BIN_WRITE(dummy) "w"
+#define BIN_CREAT(dummy) O_CREAT
+#define BIN_ASSIGN(fp, dummy) fp
+#define PATH_SEP '/'
+#define OPEN(name, mode, umask) open(name, mode, umask)
+#define STRNCMP(s1, s2, l) strncmp(s1, s2, l)
 #define TRY_SEEK	/* attempt to use lseek, or skip forward by reading */
 #define COLS 256	/* change here, if you ever need more columns */
 #define LLEN ((2*(int)sizeof(unsigned long)) + 4 + (9*COLS-1) + COLS + 2)
@@ -550,11 +491,6 @@ main(int argc, char *argv[])
   if (no_color == NULL || no_color[0] == '\0')
     color = enable_color();
 
-#ifdef AMIGA
-  /* This program doesn't work when started from the Workbench */
-  if (argc == 0)
-    exit(1);
-#endif
 
   pname = argv[0];
   for (pp = pname; *pp; )
