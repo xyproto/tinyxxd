@@ -126,11 +126,6 @@ static void fputs_or_die(char* s, FILE* fpo)
     }
 }
 
-/* Use a macro to allow for different arguments. */
-#define FPRINTF_OR_DIE(args) \
-    if (fprintf args < 0)    \
-    perror_exit(3)
-
 static void fclose_or_die(FILE* fpi, FILE* fpo)
 {
     if (fclose(fpo) != 0) {
@@ -693,7 +688,9 @@ int main(int argc, char* argv[])
         }
 
         if (varname != NULL) {
-            FPRINTF_OR_DIE((fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : ""));
+            if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+                perror_exit(3);
+            }
             for (e = 0; (c = varname[e]) != 0; e++) {
                 putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
             }
@@ -702,7 +699,9 @@ int main(int argc, char* argv[])
 
         p = 0;
         while ((length < 0 || p < length) && (c = getc_or_die(fp)) != EOF) {
-            FPRINTF_OR_DIE((fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c));
+            if (fprintf(fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
+                perror_exit(3);
+            }
             p++;
         }
 
@@ -712,11 +711,15 @@ int main(int argc, char* argv[])
 
         if (varname != NULL) {
             fputs_or_die("};\n", fpo);
-            FPRINTF_OR_DIE((fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : ""));
+            if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+                perror_exit(3);
+            }
             for (e = 0; (c = varname[e]) != 0; e++) {
                 putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
             }
-            FPRINTF_OR_DIE((fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p));
+            if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
+                perror_exit(3);
+            }
         }
 
         fclose_or_die(fp, fpo);
