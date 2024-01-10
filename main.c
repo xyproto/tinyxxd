@@ -23,15 +23,18 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
-#define CONDITIONAL_CAPITALIZE(c) (capitalize ? toupper((unsigned char)(c)) : (c))
-
 const char COLOR_RED = '1';
 const char COLOR_GREEN = '2';
 const char COLOR_YELLOW = '3';
 const char COLOR_BLUE = '4';
 const char COLOR_WHITE = '7';
 
-void colorPrologue(char* l, int* c)
+inline char conditionalCapitalize(int c, int capitalize)
+{
+    return capitalize ? toupper((unsigned char)(c)) : (c);
+}
+
+static void colorPrologue(char* l, int* c)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -40,7 +43,7 @@ void colorPrologue(char* l, int* c)
     l[(*c)++] = '3';
 }
 
-void colorEpilogue(char* l, int* c)
+static void colorEpilogue(char* l, int* c)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -71,8 +74,8 @@ static void exit_with_usage(void)
     fprintf(stderr, "    -d          show offset in decimal instead of hex.\n");
     fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n", "[+][-]", "(or +: rel.) ");
     fprintf(stderr, "    -u          use upper case hex letters.\n");
-    fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"),
-        fprintf(stderr, "    -v          show version: \"%s\".\n", version);
+    fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n");
+    fprintf(stderr, "    -v          show version: \"%s\".\n", version);
     exit(1);
 }
 
@@ -685,7 +688,7 @@ int main(int argc, char* argv[])
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
+                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_', fpo);
             }
             fputs_or_die("[] = {\n", fpo);
         }
@@ -708,7 +711,7 @@ int main(int argc, char* argv[])
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? CONDITIONAL_CAPITALIZE(c) : '_', fpo);
+                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_', fpo);
             }
             if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
                 perror_exit(3);
