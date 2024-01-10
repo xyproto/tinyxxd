@@ -2,7 +2,9 @@
 
 `xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, and a drop-in replacement that only targets Linux.
 
-`tinyxxd` is faster than `xxd` and is written in C18.
+The `xxd` utility is a command-line program widely used in Unix-like systems for creating a hexadecimal dump of a given binary file. Essentially, it converts binary data into a human-readable hexadecimal format, often for the purpose of debugging or examining the underlying data structure of files. It displays each byte of the input data as a two-digit hexadecimal number, often accompanied by its ASCII equivalent, if printable. Additionally, `xxd` can reverse the process, taking a hexadecimal dump and converting it back into binary. This functionality makes `xxd` a versatile tool for both inspecting binary data and performing conversions between binary and human-readable formats.
+
+This implementation is faster than `xxd` and is written in C18.
 
 ### General info
 
