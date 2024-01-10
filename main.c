@@ -745,10 +745,11 @@ int main(int argc, char* argv[])
 
     while ((length < 0 || n < length) && (e = getc_or_die(fp)) != EOF) {
         if (p == 0) {
-            addrlen = sprintf(l, decimal_offset ? "%08ld:" : "%08lx:",
+            addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
 
-            for (c = addrlen; c < LLEN; l[c++] = ' '); // no body
+            for (c = addrlen; c < LLEN; l[c++] = ' ')
+                ; // no body
         }
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
