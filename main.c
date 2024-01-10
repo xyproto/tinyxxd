@@ -12,10 +12,7 @@ char* hexx = hexxa;
 
 static char* pname;
 
-#define BIN_READ(dummy) "r"
-#define BIN_WRITE(dummy) "w"
-#define BIN_CREAT(dummy) O_CREAT
-#define BIN_ASSIGN(fp, dummy) fp
+#define BIN_ASSIGN(fp) fp
 #define COLS 256 /* change here, if you ever need more columns */
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
@@ -616,9 +613,9 @@ int main(int argc, char* argv[])
     }
 
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
-        BIN_ASSIGN(fp = stdin, !revert);
+        BIN_ASSIGN(fp = stdin);
     } else {
-        if ((fp = fopen(argv[1], BIN_READ(!revert))) == NULL) {
+        if ((fp = fopen(argv[1], "r")) == NULL) { // for reading
             fprintf(stderr, "%s: ", pname);
             perror(argv[1]);
             return 2;
@@ -626,12 +623,12 @@ int main(int argc, char* argv[])
     }
 
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
-        BIN_ASSIGN(fpo = stdout, revert);
+        BIN_ASSIGN(fpo = stdout);
     } else {
         int fd;
         int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
 
-        if (((fd = open(argv[2], mode | BIN_CREAT(revert), 0666)) < 0) || (fpo = fdopen(fd, BIN_WRITE(revert))) == NULL) {
+        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (fpo = fdopen(fd, "w")) == NULL) {
             fprintf(stderr, "%s: ", pname);
             perror(argv[2]);
             return 3;
@@ -751,8 +748,7 @@ int main(int argc, char* argv[])
             addrlen = sprintf(l, decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
 
-            for (c = addrlen; c < LLEN; l[c++] = ' ') {
-            }
+            for (c = addrlen; c < LLEN; l[c++] = ' '); // no body
         }
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
