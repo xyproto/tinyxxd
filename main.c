@@ -6,43 +6,47 @@
 #include <string.h>
 #include <unistd.h>
 
-char version[] = "tinyxxd 1.0.0";
-char hexxa[] = "0123456789abcdef0123456789ABCDEF";
-char* hexx = hexxa;
-
+const char version[] = "tinyxxd 1.0.0";
+const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
+char* hexx = (char*)hexxa;
 static char* pname;
 
-#define BIN_ASSIGN(fp) fp
-#define COLS 256 /* change here, if you ever need more columns */
+#define COLS 256 /* change this if you ever need more columns */
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
-/* the different hextypes known by this program: */
-#define HEX_NORMAL 0
-#define HEX_POSTSCRIPT 1
-#define HEX_CINCLUDE 2
-#define HEX_BITS 3 /* not hex a dump, but bits: 01111001 */
-#define HEX_LITTLEENDIAN 4
+// The different hextypes known by this program:
+enum HexType {
+    HEX_NORMAL,
+    HEX_POSTSCRIPT,
+    HEX_CINCLUDE,
+    HEX_BITS, // not hex a dump, but bits: 01111001
+    HEX_LITTLEENDIAN
+};
 
 #define CONDITIONAL_CAPITALIZE(c) (capitalize ? toupper((unsigned char)(c)) : (c))
 
-#define COLOR_RED '1'
-#define COLOR_GREEN '2'
-#define COLOR_YELLOW '3'
-#define COLOR_BLUE '4'
-#define COLOR_WHITE '7'
+const char COLOR_RED = '1';
+const char COLOR_GREEN = '2';
+const char COLOR_YELLOW = '3';
+const char COLOR_BLUE = '4';
+const char COLOR_WHITE = '7';
 
-#define COLOR_PROLOGUE \
-    l[c++] = '\033';   \
-    l[c++] = '[';      \
-    l[c++] = '1';      \
-    l[c++] = ';';      \
-    l[c++] = '3';
+void colorPrologue(char* l, int* c)
+{
+    l[(*c)++] = '\033';
+    l[(*c)++] = '[';
+    l[(*c)++] = '1';
+    l[(*c)++] = ';';
+    l[(*c)++] = '3';
+}
 
-#define COLOR_EPILOGUE \
-    l[c++] = '\033';   \
-    l[c++] = '[';      \
-    l[c++] = '0';      \
-    l[c++] = 'm';
+void colorEpilogue(char* l, int* c)
+{
+    l[(*c)++] = '\033';
+    l[(*c)++] = '[';
+    l[(*c)++] = '0';
+    l[(*c)++] = 'm';
+}
 
 static void exit_with_usage(void)
 {
@@ -159,7 +163,7 @@ static int skip_to_eol(FILE* fpi, int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
+static int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
 {
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
@@ -382,7 +386,8 @@ int main(int argc, char* argv[])
 {
     FILE *fp, *fpo;
     int c, e, p = 0, relseek = 1, negseek = 0, revert = 0, i, x;
-    int cols = 0, colsgiven = 0, nonzero = 0, autoskip = 0, hextype = HEX_NORMAL;
+    int cols = 0, colsgiven = 0, nonzero = 0, autoskip = 0;
+    enum HexType hextype = HEX_NORMAL;
     int capitalize = 0, decimal_offset = 0;
     int ebcdic = 0;
     int octspergrp = -1; /* number of octets grouped in output */
@@ -417,7 +422,7 @@ int main(int argc, char* argv[])
         else if (!strncmp(pp, "-e", 2))
             hextype = HEX_LITTLEENDIAN;
         else if (!strncmp(pp, "-u", 2))
-            hexx = hexxa + 16;
+            hexx = (char*)hexxa + 16;
         else if (!strncmp(pp, "-p", 2))
             hextype = HEX_POSTSCRIPT;
         else if (!strncmp(pp, "-i", 2))
@@ -613,7 +618,7 @@ int main(int argc, char* argv[])
     }
 
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
-        BIN_ASSIGN(fp = stdin);
+        fp = stdin;
     } else {
         if ((fp = fopen(argv[1], "r")) == NULL) { // for reading
             fprintf(stderr, "%s: ", pname);
@@ -623,7 +628,7 @@ int main(int argc, char* argv[])
     }
 
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
-        BIN_ASSIGN(fpo = stdout);
+        fpo = stdout;
     } else {
         int fd;
         int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
@@ -732,9 +737,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    /* hextype: HEX_NORMAL or HEX_BITS or HEX_LITTLEENDIAN */
-
-    if (hextype != HEX_BITS) {
+    if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
         grplen = octspergrp + octspergrp + 1; /* chars per octet group */
         if (color) {
             grplen += 11 * octspergrp; /* color-code needs 11 extra characters */
@@ -751,11 +754,12 @@ int main(int argc, char* argv[])
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ; // no body
         }
+
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
-                COLOR_PROLOGUE
+                colorPrologue(l, &c);
                 if (ebcdic) {
                     begin_coloring_char_ebcdic(l, &c, e);
                 } else {
@@ -763,7 +767,7 @@ int main(int argc, char* argv[])
                 }
                 l[c++] = hexx[(e >> 4) & 0xf];
                 l[c++] = hexx[e & 0xf];
-                COLOR_EPILOGUE
+                colorEpilogue(l, &c);
             } else { /*No colors*/
                 l[c] = hexx[(e >> 4) & 0xf];
                 l[++c] = hexx[e & 0xf];
@@ -773,6 +777,7 @@ int main(int argc, char* argv[])
                 l[c++] = (e & (1 << i)) ? '1' : '0';
             }
         }
+
         if (e) {
             nonzero++;
         }
@@ -794,7 +799,7 @@ int main(int argc, char* argv[])
                 c += 1;
             }
 
-            COLOR_PROLOGUE
+            colorPrologue(l, &c);
             if (ebcdic) {
                 begin_coloring_char_ebcdic(l, &c, e);
                 e = (e < 64) ? '.' : etoa64[e - 64];
@@ -802,7 +807,7 @@ int main(int argc, char* argv[])
                 begin_coloring_char_ascii(l, &c, e);
             }
             l[c++] = (e > 31 && e < 127) ? e : '.';
-            COLOR_EPILOGUE
+            colorEpilogue(l, &c);
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
@@ -843,11 +848,11 @@ int main(int argc, char* argv[])
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
 
                 for (i = 0; i < fill; i++) {
-                    COLOR_PROLOGUE
+                    colorPrologue(l, &c);
                     l[c++] = COLOR_RED;
                     l[c++] = 'm';
                     l[c++] = ' '; /* empty space */
-                    COLOR_EPILOGUE
+                    colorEpilogue(l, &c);
                     x++;
                     p++;
                 }
@@ -859,11 +864,11 @@ int main(int argc, char* argv[])
                 c += (cols - p) / octspergrp;
 
                 for (i = cols - p; i > 0; i--) {
-                    COLOR_PROLOGUE
+                    colorPrologue(l, &c);
                     l[c++] = COLOR_RED;
                     l[c++] = 'm';
                     l[c++] = ' '; /* empty space */
-                    COLOR_EPILOGUE
+                    colorEpilogue(l, &c);
                 }
             }
         }
