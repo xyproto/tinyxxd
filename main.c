@@ -18,7 +18,6 @@
 #include <unistd.h>
 
 char version[] = "xxd 2023-10-25 by Juergen Weigert et al.";
-char osver[] = "";
 char hexxa[] = "0123456789abcdef0123456789ABCDEF";
 char* hexx = hexxa;
 
@@ -86,7 +85,7 @@ static void exit_with_usage(void)
     fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n", "[+][-]", "(or +: rel.) ");
     fprintf(stderr, "    -u          use upper case hex letters.\n");
     fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"),
-        fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
+        fprintf(stderr, "    -v          show version: \"%s\".\n", version);
     exit(1);
 }
 
@@ -443,7 +442,7 @@ int main(int argc, char* argv[])
         else if (!STRNCMP(pp, "-E", 2))
             ebcdic++;
         else if (!STRNCMP(pp, "-v", 2)) {
-            fprintf(stderr, "%s%s\n", version, osver);
+            fprintf(stderr, "%s\n", version);
             exit(0);
         } else if (!STRNCMP(pp, "-c", 2)) {
             if (pp[2] && !STRNCMP("apitalize", pp + 2, 9))
