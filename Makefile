@@ -1,6 +1,6 @@
 .PHONY: clean install uninstall
 
-CFLAGS ?= -std=c18 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -s -z norelro -Wall -Wextra -Wpedantic
+CFLAGS ?= -std=c18 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -s -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 DESTDIR ?=
