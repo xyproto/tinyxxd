@@ -569,7 +569,7 @@ int main(int argc, char* argv[])
         argc--;
     }
 
-    if (!colsgiven || (!cols && hextype != HEX_POSTSCRIPT))
+    if (!colsgiven || (!cols && hextype != HEX_POSTSCRIPT)) {
         switch (hextype) {
         case HEX_POSTSCRIPT:
             cols = 30;
@@ -586,8 +586,9 @@ int main(int argc, char* argv[])
             cols = 16;
             break;
         }
+    }
 
-    if (octspergrp < 0)
+    if (octspergrp < 0) {
         switch (hextype) {
         case HEX_BITS:
             octspergrp = 1;
@@ -604,6 +605,7 @@ int main(int argc, char* argv[])
             octspergrp = 0;
             break;
         }
+    }
 
     if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
         fprintf(stderr, "%s: invalid number of columns (max. %d).\n", pname, COLS);
