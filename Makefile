@@ -1,8 +1,7 @@
-CFLAGS ?= -std=c18 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -Wall -Wextra
-#CFLAGS += -D_XOPEN_SOURCE 700
+CFLAGS ?= -std=c18 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -Wall -Wextra -Wpedantic
 
-xxd: main.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o xxd main.c
+tinyxxd: main.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 clean:
-	rm -f xxd xxd.o
+	rm -f tinyxxd
