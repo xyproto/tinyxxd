@@ -1,14 +1,3 @@
-/*
- * (c) 1990-1998 by Juergen Weigert (jnweiger@gmail.com)
- *
- * I hereby grant permission to distribute and use xxd
- * under X11-MIT or GPL-2.0 (at the user's choice).
- *
- * Contributions by Bram Moolenaar et al.
- */
-
-#define _XOPEN_SOURCE 700
-
 #include <ctype.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -17,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-char version[] = "xxd 2023-10-25 by Juergen Weigert et al.";
+char version[] = "tinyxxd 1.0.0";
 char hexxa[] = "0123456789abcdef0123456789ABCDEF";
 char* hexx = hexxa;
 
@@ -96,7 +85,7 @@ static void perror_exit(int ret)
     exit(ret);
 }
 
-static void error_exit(int ret, char* msg)
+static void error_exit(int ret, const char* msg)
 {
     fprintf(stderr, "%s: %s\n", pname, msg);
     exit(ret);
@@ -118,7 +107,7 @@ static void putc_or_die(int c, FILE* fpo)
     }
 }
 
-static void fputs_or_die(char* s, FILE* fpo)
+static void fputs_or_die(const char* s, FILE* fpo)
 {
     if (fputs(s, fpo) == EOF) {
         perror_exit(3);
@@ -200,13 +189,14 @@ static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
             n2 = n1;
 
             n1 = parse_hex_digit(c);
-            if (n1 == -1 && ign_garb)
+            if (n1 == -1 && ign_garb) {
                 continue;
+            }
         } else { /* HEX_BITS */
             n1 = parse_hex_digit(c);
-            if (n1 == -1 && ign_garb)
+            if (n1 == -1 && ign_garb) {
                 continue;
-
+            }
             bt = parse_bin_digit(c);
             if (bt != -1) {
                 b = ((b << 1) | bt);
@@ -235,15 +225,18 @@ static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
         }
 
         if (base_off + want_off != have_off) {
-            if (fflush(fpo) != 0)
+            if (fflush(fpo) != 0) {
                 perror_exit(3);
-            if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0)
+            }
+            if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0) {
                 have_off = base_off + want_off;
+            }
             if (base_off + want_off < have_off) {
                 error_exit(5, "Sorry, cannot seek backwards.");
             }
-            for (; have_off < base_off + want_off; have_off++)
+            for (; have_off < base_off + want_off; have_off++) {
                 putc_or_die(0, fpo);
+            }
         }
 
         if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
@@ -252,12 +245,14 @@ static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
                 have_off++;
                 want_off++;
                 n1 = -1;
-                if (!hextype && (++p >= cols))
+                if (!hextype && (++p >= cols)) {
                     /* skip the rest of the line as garbage */
                     c = skip_to_eol(fpi, c);
-            } else if (n1 < 0 && n2 < 0 && n3 < 0)
+                }
+            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
                 /* already stumbled into garbage, skip line, wait and see */
                 c = skip_to_eol(fpi, c);
+            }
         } else { /* HEX_BITS */
             if (bcnt == 8) {
                 putc_or_die(b, fpo);
@@ -265,9 +260,10 @@ static int huntype(FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
                 want_off++;
                 b = 0;
                 bcnt = 0;
-                if (++p >= cols)
+                if (++p >= cols) {
                     /* skip the rest of the line as garbage */
                     c = skip_to_eol(fpi, c);
+                }
             }
         }
 
