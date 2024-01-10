@@ -7,37 +7,16 @@
  * Contributions by Bram Moolenaar et al.
  */
 
-/* Visual Studio 2005 has 'deprecated' many of the standard CRT functions */
-#if _MSC_VER >= 1400
-#define _CRT_SECURE_NO_DEPRECATE
-#define _CRT_NONSTDC_NO_DEPRECATE
-#endif
-
 #define _XOPEN_SOURCE 700
 
 #include <stdio.h>
 
-#ifdef VAXC
-#include <file.h>
-#else
-#include <fcntl.h>
-#endif
-
 #include <ctype.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-/*  This corrects the problem of missing prototypes for certain functions
- *  in some GNU installations (e.g. SunOS 4.1.x).
- *  Darren Hiebert <darren@hmi.com> (sparc-sun-sunos4.1.3_U1/2.7.2.2)
- */
-#if defined(__GNUC__) && defined(__STDC__)
-#ifndef __USE_FIXED_PROTOTYPES__
-#define __USE_FIXED_PROTOTYPES__
-#endif
-#endif
 
 char version[] = "xxd 2023-10-25 by Juergen Weigert et al.";
 char osver[] = "";
@@ -49,7 +28,6 @@ char osver[] = "";
 #define PATH_SEP '/'
 #define OPEN(name, mode, umask) open(name, mode, umask)
 #define STRNCMP(s1, s2, l) strncmp(s1, s2, l)
-#define TRY_SEEK /* attempt to use lseek, or skip forward by reading */
 #define COLS 256 /* change here, if you ever need more columns */
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
@@ -76,6 +54,7 @@ char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
     l[c++] = '[';      \
     l[c++] = '0';      \
     l[c++] = 'm';
+
 #define COLOR_RED '1'
 #define COLOR_GREEN '2'
 #define COLOR_YELLOW '3'
@@ -84,8 +63,7 @@ char hexxa[] = "0123456789abcdef0123456789ABCDEF", *hexx = hexxa;
 
 static char* pname;
 
-static void
-exit_with_usage(void)
+static void exit_with_usage(void)
 {
     fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n", pname);
     fprintf(stderr, "    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", pname);
@@ -106,54 +84,47 @@ exit_with_usage(void)
     fprintf(stderr, "    -r          reverse operation: convert (or patch) hexdump into binary.\n");
     fprintf(stderr, "    -r -s off   revert with <off> added to file positions found in hexdump.\n");
     fprintf(stderr, "    -d          show offset in decimal instead of hex.\n");
-    fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n",
-#ifdef TRY_SEEK
-        "[+][-]", "(or +: rel.) ");
-#else
-        "", "");
-#endif
+    fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n", "[+][-]", "(or +: rel.) ");
     fprintf(stderr, "    -u          use upper case hex letters.\n");
     fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"),
-        fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
+    fprintf(stderr, "    -v          show version: \"%s%s\".\n", version, osver);
     exit(1);
 }
 
-static void
-perror_exit(int ret)
+static void perror_exit(int ret)
 {
     fprintf(stderr, "%s: ", pname);
     perror(NULL);
     exit(ret);
 }
 
-static void
-error_exit(int ret, char* msg)
+static void error_exit(int ret, char* msg)
 {
     fprintf(stderr, "%s: %s\n", pname, msg);
     exit(ret);
 }
 
-static int
-getc_or_die(FILE* fpi)
+static int getc_or_die(FILE* fpi)
 {
     int c = getc(fpi);
-    if (c == EOF && ferror(fpi))
+    if (c == EOF && ferror(fpi)) {
         perror_exit(2);
+    }
     return c;
 }
 
-static void
-putc_or_die(int c, FILE* fpo)
+static void putc_or_die(int c, FILE* fpo)
 {
-    if (putc(c, fpo) == EOF)
+    if (putc(c, fpo) == EOF) {
         perror_exit(3);
+    }
 }
 
-static void
-fputs_or_die(char* s, FILE* fpo)
+static void fputs_or_die(char* s, FILE* fpo)
 {
-    if (fputs(s, fpo) == EOF)
+    if (fputs(s, fpo) == EOF) {
         perror_exit(3);
+    }
 }
 
 /* Use a macro to allow for different arguments. */
@@ -161,21 +132,21 @@ fputs_or_die(char* s, FILE* fpo)
     if (fprintf args < 0)    \
     perror_exit(3)
 
-static void
-fclose_or_die(FILE* fpi, FILE* fpo)
+static void fclose_or_die(FILE* fpi, FILE* fpo)
 {
-    if (fclose(fpo) != 0)
+    if (fclose(fpo) != 0) {
         perror_exit(3);
-    if (fclose(fpi) != 0)
+    }
+    if (fclose(fpi) != 0) {
         perror_exit(2);
+    }
 }
 
 /*
  * If "c" is a hex digit, return the value.
  * Otherwise return -1.
  */
-static int
-parse_hex_digit(int c)
+static int parse_hex_digit(int c)
 {
     return (c >= '0' && c <= '9') ? c - '0'
         : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
@@ -187,11 +158,9 @@ parse_hex_digit(int c)
  * If "c" is a bin digit, return the value.
  * Otherwise return -1.
  */
-static int
-parse_bin_digit(int c)
+static int parse_bin_digit(int c)
 {
-    return (c >= '0' && c <= '1') ? c - '0'
-                                  : -1;
+    return (c >= '0' && c <= '1') ? c - '0' : -1;
 }
 
 /*
@@ -199,11 +168,11 @@ parse_bin_digit(int c)
  * Return the '\n' or EOF character.
  * When an error is encountered exit with an error message.
  */
-static int
-skip_to_eol(FILE* fpi, int c)
+static int skip_to_eol(FILE* fpi, int c)
 {
-    while (c != '\n' && c != EOF)
+    while (c != '\n' && c != EOF) {
         c = getc_or_die(fpi);
+    }
     return c;
 }
 
@@ -214,13 +183,7 @@ skip_to_eol(FILE* fpi, int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-static int
-huntype(
-    FILE* fpi,
-    FILE* fpo,
-    int cols,
-    int hextype,
-    long base_off)
+static int huntype( FILE* fpi, FILE* fpo, int cols, int hextype, long base_off)
 {
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
@@ -228,14 +191,16 @@ huntype(
     rewind(fpi);
 
     while ((c = getc(fpi)) != EOF) {
-        if (c == '\r') /* Doze style input file? */
+        if (c == '\r') { /* Doze style input file? */
             continue;
+        }
 
         /* Allow multiple spaces.  This doesn't work when there is normal text
          * after the hex codes in the last line that looks like hex, thus only
          * use it for PostScript format. */
-        if (hextype == HEX_POSTSCRIPT && (c == ' ' || c == '\n' || c == '\t'))
+        if (hextype == HEX_POSTSCRIPT && (c == ' ' || c == '\n' || c == '\t')) {
             continue;
+        }
 
         if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
             n3 = n2;
@@ -244,8 +209,7 @@ huntype(
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ign_garb)
                 continue;
-        } else /* HEX_BITS */
-        {
+        } else {/* HEX_BITS */
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ign_garb)
                 continue;
@@ -266,8 +230,7 @@ huntype(
                     continue;
                 }
                 want_off = (want_off << 4) | n1;
-            } else /* HEX_BITS */
-            {
+            } else { /* HEX_BITS */
                 if (n1 < 0) {
                     p = 0;
                     bcnt = 0;
@@ -281,12 +244,11 @@ huntype(
         if (base_off + want_off != have_off) {
             if (fflush(fpo) != 0)
                 perror_exit(3);
-#ifdef TRY_SEEK
             if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0)
                 have_off = base_off + want_off;
-#endif
-            if (base_off + want_off < have_off)
+            if (base_off + want_off < have_off) {
                 error_exit(5, "Sorry, cannot seek backwards.");
+            }
             for (; have_off < base_off + want_off; have_off++)
                 putc_or_die(0, fpo);
         }
@@ -326,9 +288,7 @@ huntype(
     }
     if (fflush(fpo) != 0)
         perror_exit(3);
-#ifdef TRY_SEEK
     fseek(fpo, 0L, SEEK_END);
-#endif
     fclose_or_die(fpi, fpo);
     return 0;
 }
@@ -551,22 +511,18 @@ int main(int argc, char* argv[])
             relseek = 0;
             negseek = 0;
             if (pp[2] && STRNCMP("kip", pp + 2, 3) && STRNCMP("eek", pp + 2, 3)) {
-#ifdef TRY_SEEK
                 if (pp[2] == '+')
                     relseek++;
                 if (pp[2 + relseek] == '-')
                     negseek++;
-#endif
                 seekoff = strtol(pp + 2 + relseek + negseek, (char**)NULL, 0);
             } else {
                 if (!argv[2])
                     exit_with_usage();
-#ifdef TRY_SEEK
                 if (argv[2][0] == '+')
                     relseek++;
                 if (argv[2][relseek] == '-')
                     negseek++;
-#endif
                 seekoff = strtol(argv[2] + relseek + negseek, (char**)NULL, 0);
                 argv++;
                 argc--;
@@ -709,7 +665,6 @@ int main(int argc, char* argv[])
         }
 
     if (seekoff || negseek || !relseek) {
-#ifdef TRY_SEEK
         if (relseek)
             e = fseek(fp, negseek ? -seekoff : seekoff, SEEK_CUR);
         else
@@ -720,7 +675,6 @@ int main(int argc, char* argv[])
         if (e >= 0)
             seekoff = ftell(fp);
         else
-#endif
         {
             long s = seekoff;
 
