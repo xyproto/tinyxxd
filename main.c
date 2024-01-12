@@ -23,11 +23,7 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
-const char COLOR_RED = '1';
-const char COLOR_GREEN = '2';
-const char COLOR_YELLOW = '3';
-const char COLOR_BLUE = '4';
-const char COLOR_WHITE = '7';
+const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
 
 const char* version = "tinyxxd 1.1.0";
 static char* pname;
@@ -38,30 +34,18 @@ char* hexx = (char*)hexxa;
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
 const unsigned char etoa64[] = {
-    0040, 0240, 0241, 0242, 0243, 0244, 0245, 0246,
-    0247, 0250, 0325, 0056, 0074, 0050, 0053, 0174,
-    0046, 0251, 0252, 0253, 0254, 0255, 0256, 0257,
-    0260, 0261, 0041, 0044, 0052, 0051, 0073, 0176,
-    0055, 0057, 0262, 0263, 0264, 0265, 0266, 0267,
-    0270, 0271, 0313, 0054, 0045, 0137, 0076, 0077,
-    0272, 0273, 0274, 0275, 0276, 0277, 0300, 0301,
-    0302, 0140, 0072, 0043, 0100, 0047, 0075, 0042,
-    0303, 0141, 0142, 0143, 0144, 0145, 0146, 0147,
-    0150, 0151, 0304, 0305, 0306, 0307, 0310, 0311,
-    0312, 0152, 0153, 0154, 0155, 0156, 0157, 0160,
-    0161, 0162, 0136, 0314, 0315, 0316, 0317, 0320,
-    0321, 0345, 0163, 0164, 0165, 0166, 0167, 0170,
-    0171, 0172, 0322, 0323, 0324, 0133, 0326, 0327,
-    0330, 0331, 0332, 0333, 0334, 0335, 0336, 0337,
-    0340, 0341, 0342, 0343, 0344, 0135, 0346, 0347,
-    0173, 0101, 0102, 0103, 0104, 0105, 0106, 0107,
-    0110, 0111, 0350, 0351, 0352, 0353, 0354, 0355,
-    0175, 0112, 0113, 0114, 0115, 0116, 0117, 0120,
-    0121, 0122, 0356, 0357, 0360, 0361, 0362, 0363,
-    0134, 0237, 0123, 0124, 0125, 0126, 0127, 0130,
-    0131, 0132, 0364, 0365, 0366, 0367, 0370, 0371,
-    0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067,
-    0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
+    0040, 0240, 0241, 0242, 0243, 0244, 0245, 0246, 0247, 0250, 0325, 0056, 0074, 0050, 0053, 0174,
+    0046, 0251, 0252, 0253, 0254, 0255, 0256, 0257, 0260, 0261, 0041, 0044, 0052, 0051, 0073, 0176,
+    0055, 0057, 0262, 0263, 0264, 0265, 0266, 0267, 0270, 0271, 0313, 0054, 0045, 0137, 0076, 0077,
+    0272, 0273, 0274, 0275, 0276, 0277, 0300, 0301, 0302, 0140, 0072, 0043, 0100, 0047, 0075, 0042,
+    0303, 0141, 0142, 0143, 0144, 0145, 0146, 0147, 0150, 0151, 0304, 0305, 0306, 0307, 0310, 0311,
+    0312, 0152, 0153, 0154, 0155, 0156, 0157, 0160, 0161, 0162, 0136, 0314, 0315, 0316, 0317, 0320,
+    0321, 0345, 0163, 0164, 0165, 0166, 0167, 0170, 0171, 0172, 0322, 0323, 0324, 0133, 0326, 0327,
+    0330, 0331, 0332, 0333, 0334, 0335, 0336, 0337, 0340, 0341, 0342, 0343, 0344, 0135, 0346, 0347,
+    0173, 0101, 0102, 0103, 0104, 0105, 0106, 0107, 0110, 0111, 0350, 0351, 0352, 0353, 0354, 0355,
+    0175, 0112, 0113, 0114, 0115, 0116, 0117, 0120, 0121, 0122, 0356, 0357, 0360, 0361, 0362, 0363,
+    0134, 0237, 0123, 0124, 0125, 0126, 0127, 0130, 0131, 0132, 0364, 0365, 0366, 0367, 0370, 0371,
+    0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
 inline char conditionalCapitalize(int c, bool capitalize)
@@ -205,18 +189,15 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
         if (c == '\r') { // Doze style input file?
             continue;
         }
-
         /* Allow multiple spaces.  This doesn't work when there is normal text
          * after the hex codes in the last line that looks like hex, thus only
          * use it for PostScript format. */
         if (hextype == HEX_POSTSCRIPT && (c == ' ' || c == '\n' || c == '\t')) {
             continue;
         }
-
         if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
             n3 = n2;
             n2 = n1;
-
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ign_garb) {
                 continue;
@@ -232,9 +213,7 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
                 ++bcnt;
             }
         }
-
         ign_garb = 0;
-
         if ((hextype != HEX_POSTSCRIPT) && (p >= cols)) {
             if (hextype == HEX_NORMAL) {
                 if (n1 < 0) {
@@ -252,7 +231,6 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
             }
             continue;
         }
-
         if (base_off + want_off != have_off) {
             if (fflush(fpo) != 0) {
                 perror_exit(3);
@@ -267,7 +245,6 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
                 putc_or_die(0, fpo);
             }
         }
-
         if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
             if (n2 >= 0 && n1 >= 0) {
                 putc_or_die((n2 << 4) | n1, fpo);
@@ -295,7 +272,6 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
                 }
             }
         }
-
         if (c == '\n') {
             if (hextype == HEX_NORMAL || hextype == HEX_BITS) {
                 want_off = 0;
@@ -332,7 +308,6 @@ void xxdline(FILE* fp, char* l, int nz)
     if (!nz && zero_seen == 1) {
         strcpy(z, l);
     }
-
     if (nz || !zero_seen++) {
         if (nz) {
             if (nz < 0) {
@@ -354,14 +329,23 @@ void xxdline(FILE* fp, char* l, int nz)
 
 char get_ebcdic_char(const int e)
 {
-    if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249) || (e == 189) || (e == 64) || (e == 173) || (e == 224)) {
-        return COLOR_GREEN;
-    } else if (e == 37 || e == 13 || e == 5) {
-        return COLOR_YELLOW;
-    } else if (e == 0) {
+    switch (e) {
+    case 0:
         return COLOR_WHITE;
-    } else if (e == 255) {
+    case 37:
+    case 13:
+    case 5:
+        return COLOR_YELLOW;
+    case 255:
         return COLOR_BLUE;
+    case 189:
+    case 64:
+    case 173:
+    case 224:
+        return COLOR_GREEN;
+    }
+    if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249)) {
+        return COLOR_GREEN;
     }
     return COLOR_RED;
 }
@@ -370,11 +354,15 @@ char get_ascii_char(const int e)
 {
     if (e > 31 && e < 127) {
         return COLOR_GREEN;
-    } else if (e == 9 || e == 10 || e == 13) {
-        return COLOR_YELLOW;
-    } else if (e == 0) {
+    }
+    switch (e) {
+    case 0:
         return COLOR_WHITE;
-    } else if (e == 255) {
+    case 9:
+    case 10:
+    case 13:
+        return COLOR_YELLOW;
+    case 255:
         return COLOR_BLUE;
     }
     return COLOR_RED;
@@ -385,19 +373,15 @@ int main(int argc, char* argv[])
     FILE *fp, *fpo;
     bool revert = false, colsgiven = false, autoskip = false, color = false;
     bool capitalize = false, decimal_offset = false, ebcdic = false;
-    int negseek = 0, relseek = 0;
-    int c = 0, p = 0, i = 0, x = 0;
-    int e = 0;
-    int cols = 0, nonzero = 0;
     enum HexType hextype = HEX_NORMAL;
+    int negseek = 0, relseek = 0, c = 0, p = 0, i = 0, x = 0, e = 0, cols = 0, nonzero = 0, addrlen = 9;
     int octspergrp = -1; // number of octets grouped in output
     int grplen = 0; // total chars per octet group
     long length = -1, n = 0, seekoff = 0;
     unsigned long displayoff = 0;
+    char *varname = NULL, *pp = NULL;
+
     static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
-    char* varname = NULL;
-    int addrlen = 9;
-    char* pp;
 
     // Respect the NO_COLOR environment variable
     char* no_color = getenv("NO_COLOR");
@@ -562,11 +546,9 @@ int main(int argc, char* argv[])
         } else {
             break; // not an option
         }
-
         argv++; // advance to next argument
         argc--;
     }
-
     if (!colsgiven || (!cols && hextype != HEX_POSTSCRIPT)) {
         switch (hextype) {
         case HEX_POSTSCRIPT:
@@ -585,7 +567,6 @@ int main(int argc, char* argv[])
             break;
         }
     }
-
     if (octspergrp < 0) {
         switch (hextype) {
         case HEX_BITS:
@@ -604,22 +585,18 @@ int main(int argc, char* argv[])
             break;
         }
     }
-
     if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
         fprintf(stderr, "%s: invalid number of columns (max. %d).\n", pname, COLS);
         exit(1);
     }
-
     if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     } else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1))) {
         error_exit(1, "number of octets per group must be a power of 2 with -e.");
     }
-
     if (argc > 3) {
         exit_with_usage();
     }
-
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         fp = stdin;
     } else {
@@ -629,13 +606,10 @@ int main(int argc, char* argv[])
             return 2;
         }
     }
-
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         fpo = stdout;
     } else {
-        int fd;
-        int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
-
+        int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY), fd;
         if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (fpo = fdopen(fd, "w")) == NULL) {
             fprintf(stderr, "%s: ", pname);
             perror(argv[2]);
@@ -643,7 +617,6 @@ int main(int argc, char* argv[])
         }
         rewind(fpo);
     }
-
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
@@ -655,7 +628,6 @@ int main(int argc, char* argv[])
             error_exit(-1, "Sorry, cannot revert this type of hexdump");
         }
     }
-
     if (seekoff || negseek || !relseek) {
         if (relseek) {
             e = fseek(fp, negseek ? -seekoff : seekoff, SEEK_CUR);
@@ -677,13 +649,11 @@ int main(int argc, char* argv[])
             }
         }
     }
-
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
         if (varname == NULL && fp != stdin) {
             varname = argv[1];
         }
-
         if (varname != NULL) {
             if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
@@ -693,7 +663,6 @@ int main(int argc, char* argv[])
             }
             fputs_or_die("[] = {\n", fpo);
         }
-
         p = 0;
         getc_or_die(fp, &c);
         while ((length < 0 || p < length) && c != EOF) {
@@ -703,11 +672,9 @@ int main(int argc, char* argv[])
             p++;
             getc_or_die(fp, &c);
         }
-
         if (p) {
             fputs_or_die("\n", fpo);
         }
-
         if (varname != NULL) {
             fputs_or_die("};\n", fpo);
             if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
@@ -720,11 +687,9 @@ int main(int argc, char* argv[])
                 perror_exit(3);
             }
         }
-
         fclose_or_die(fp, fpo);
         return 0;
     }
-
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(fp, &e);
@@ -744,7 +709,6 @@ int main(int argc, char* argv[])
         fclose_or_die(fp, fpo);
         return 0;
     }
-
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
         grplen = octspergrp + octspergrp + 1; // chars per octet group
         if (color) {
@@ -753,17 +717,14 @@ int main(int argc, char* argv[])
     } else { // hextype == HEX_BITS
         grplen = 8 * octspergrp + 1;
     }
-
     getc_or_die(fp, &e);
     while ((length < 0 || n < length) && e != EOF) {
         if (p == 0) {
             addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
-
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ;
         }
-
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
@@ -788,7 +749,6 @@ int main(int argc, char* argv[])
                 l[c++] = (e & (1 << i)) ? '1' : '0';
             }
         }
-
         if (e) {
             nonzero++;
         }
@@ -799,7 +759,6 @@ int main(int argc, char* argv[])
         } else {
             c = (grplen * cols - 1) / octspergrp;
         }
-
         if (color) {
             if (hextype == HEX_BITS) {
                 c += addrlen + 3 + p * 12;
@@ -809,7 +768,6 @@ int main(int argc, char* argv[])
             if (hextype == HEX_LITTLEENDIAN) {
                 c += 1;
             }
-
             colorPrologue(l, &c);
             if (ebcdic) {
                 l[c++] = get_ebcdic_char(e);
@@ -851,16 +809,13 @@ int main(int argc, char* argv[])
         l[c] = '\0';
         if (color) {
             c++;
-
             x = p;
             if (hextype == HEX_LITTLEENDIAN) {
                 int fill = octspergrp - (p % octspergrp);
                 if (fill == octspergrp) {
                     fill = 0;
                 }
-
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
-
                 for (i = 0; i < fill; i++) {
                     colorPrologue(l, &c);
                     l[c++] = COLOR_RED;
@@ -871,12 +826,10 @@ int main(int argc, char* argv[])
                     p++;
                 }
             }
-
             if (hextype != HEX_BITS) {
                 c = addrlen + 1 + (grplen * x) / octspergrp;
                 c += cols - p;
                 c += (cols - p) / octspergrp;
-
                 for (i = cols - p; i > 0; i--) {
                     colorPrologue(l, &c);
                     l[c++] = COLOR_RED;
@@ -890,7 +843,6 @@ int main(int argc, char* argv[])
     } else if (autoskip) {
         xxdline(fpo, l, -1); // last chance to flush out suppressed lines
     }
-
     fclose_or_die(fp, fpo);
     return 0;
 }
