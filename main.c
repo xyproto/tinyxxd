@@ -29,7 +29,7 @@ const char COLOR_YELLOW = '3';
 const char COLOR_BLUE = '4';
 const char COLOR_WHITE = '7';
 
-const char* version = "tinyxxd 1.0.0";
+const char* version = "tinyxxd 1.1.0";
 static char* pname;
 
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
