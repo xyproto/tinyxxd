@@ -1,4 +1,4 @@
-# tinyxxd
+![tinyxxd](img/tinyxxd.png)
 
 `xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux.
 
