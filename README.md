@@ -1,4 +1,4 @@
-![tinyxxd](img/tinyxxd.png)
+![tinyxxd](img/tinyxxd.png) [![C/C++ CI](https://github.com/xyproto/tinyxxd/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/xyproto/tinyxxd/actions/workflows/ci.yml)
 
 `xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux.
 
