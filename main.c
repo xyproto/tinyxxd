@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-// Change this value if more columns should ever be needed
+// Change this if more columns should ever be needed
 #define COLS 256
 
 // For static declarations of buffers
@@ -380,7 +380,6 @@ int main(int argc, char* argv[])
     long length = -1, n = 0, seekoff = 0;
     unsigned long displayoff = 0;
     char *varname = NULL, *pp = NULL;
-
     static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
 
     // Respect the NO_COLOR environment variable
@@ -389,6 +388,7 @@ int main(int argc, char* argv[])
         color = isatty(STDOUT_FILENO);
     }
 
+    // The program name
     pname = argv[0];
     for (pp = pname; *pp;) {
         if (*pp++ == '/') { // path separator
