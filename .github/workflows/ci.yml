@@ -5,11 +5,18 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: archlinux:latest
+
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies
-      run: sudo apt-get install -y gcc vim
+
+    - name: Update system and Install dependencies
+      run: |
+        sudo pacman -Syu --noconfirm
+        sudo pacman -S --noconfirm gcc vim
+
     - name: Build
       run: make
+
     - name: Test
       run: make test
