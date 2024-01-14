@@ -528,7 +528,6 @@ int main(int argc, char* argv[])
                 exit_with_usage();
             }
             if (!strncmp(pw, "always", 6)) {
-                isatty(STDOUT_FILENO);
                 color = 1;
             } else if (!strncmp(pw, "never", 5)) {
                 color = 0;
