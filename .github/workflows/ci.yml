@@ -12,8 +12,8 @@ jobs:
 
     - name: Update system and Install dependencies
       run: |
-        sudo pacman -Syu --noconfirm
-        sudo pacman -S --noconfirm gcc vim
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm base-devel vim
 
     - name: Build
       run: make
