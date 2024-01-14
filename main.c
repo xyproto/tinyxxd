@@ -528,11 +528,11 @@ int main(int argc, char* argv[])
                 exit_with_usage();
             }
             if (!strncmp(pw, "always", 6)) {
-                color = 1;
+                color = true;
             } else if (!strncmp(pw, "never", 5)) {
-                color = 0;
+                color = false;
             } else if (!strncmp(pw, "auto", 4)) {
-                color = isatty(STDOUT_FILENO);
+                color = isatty(STDOUT_FILENO) != 0;
             } else {
                 exit_with_usage();
             }
