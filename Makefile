@@ -1,17 +1,31 @@
-.PHONY: clean install test uninstall
+.PHONY: clean install test uninstall run_test
 
-CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
+CC ?= gcc
+CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors -I./include
+LDFLAGS ?=
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS := -std=c11 -O2 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors
+	CFLAGS := -std=c11 -O2 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors -I./include
 endif
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 DESTDIR ?=
 
-tinyxxd: main.c
-	$(CC) $(CFLAGS) -o $@ $<
+SRC := $(wildcard src/*.c)
+OBJ := $(SRC:.c=.o)
+MAIN_OBJ := main.o
+
+all: tinyxxd
+
+tinyxxd: $(OBJ) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
@@ -20,7 +34,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f tinyxxd
+	rm -f tinyxxd *.o
 
 test: tinyxxd
 	@echo 'Running tests...'
