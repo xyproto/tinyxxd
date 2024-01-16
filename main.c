@@ -185,12 +185,12 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
     rewind(fpi);
 
     while ((c = getc(fpi)) != EOF) {
-        if (c == '\r') { // Doze style input file?
+        if (c == '\r') { // DOS style newlines?
             continue;
         }
-        /* Allow multiple spaces.  This doesn't work when there is normal text
-         * after the hex codes in the last line that looks like hex, thus only
-         * use it for PostScript format. */
+        // Allow multiple spaces. This doesn't work when there is normal text
+        // after the hex codes in the last line that looks like hex, thus only
+        // use it for PostScript format.
         if (hextype == HEX_POSTSCRIPT && (c == ' ' || c == '\n' || c == '\t')) {
             continue;
         }
