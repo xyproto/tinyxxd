@@ -29,7 +29,6 @@ const char* version = "tinyxxd 1.1.0";
 static char* pname;
 
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
-char* hexx = (char*)hexxa;
 
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
@@ -371,6 +370,7 @@ char get_ascii_char(const int e)
 int main(int argc, char* argv[])
 {
     FILE *fp, *fpo;
+    char* hexx = (char*)hexxa;
     bool revert = false, colsgiven = false, autoskip = false, color = false;
     bool capitalize = false, decimal_offset = false, ebcdic = false;
     enum HexType hextype = HEX_NORMAL;
