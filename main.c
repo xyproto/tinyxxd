@@ -9,10 +9,9 @@
 #include <unistd.h>
 #include "common.h"
 
-char* hexx = (char*)hexxa;
-
 int main(int argc, char* argv[])
 {
+    char* hexx = (char*)hexxa;
     FILE *fp, *fpo;
     bool revert = false, colsgiven = false, autoskip = false, color = false;
     bool capitalize = false, decimal_offset = false, ebcdic = false;
