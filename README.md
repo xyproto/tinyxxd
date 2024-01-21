@@ -12,7 +12,7 @@ Tested on Arch Linux and macOS, where it builds, runs and all tests pass.
 
 It is sometimes used when building or packaging software.
 
-`tinyxxd` is a drop-in replacement for `xxd` and contains the exact same logic, except that support for ie. Cygwin or VMS is not included.
+`tinyxxd` is a drop-in replacement for `xxd` and contains the exact same logic and flags.
 
 ### General info
 
