@@ -4,7 +4,7 @@
 
 `xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux.
 
-Tested on Arch Linux and macOS, where it builds, runs and all tests pass.
+Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 
 A compiler that supports C23 / `-std=c2x` is required.
 
