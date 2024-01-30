@@ -1,5 +1,6 @@
-xxd
 tinyxxd
+main
+xxd
 
 # Prerequisites
 *.d
