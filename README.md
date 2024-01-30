@@ -6,6 +6,8 @@
 
 Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 
+Requires C11.
+
 ### What is it, and what can it do?
 
 `xxd` or `tinyxxd` can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex, and also do the same thing in reverse: create files from hex codes.
