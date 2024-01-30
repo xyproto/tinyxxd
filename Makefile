@@ -1,15 +1,17 @@
 .PHONY: clean install test uninstall
 
+CFLAGS ?= -std=c2x -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	CFLAGS := -std=c2x -O2 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors
+endif
+
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 DESTDIR ?=
 
-tinyxxd: main.o main.c
-	zig build-exe -lc main.o main.c
-	mv -v main $@
-
-main.o: main.zig
-	zig build-obj main.zig
+tinyxxd: main.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
@@ -18,7 +20,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f tinyxxd *.o
+	rm -f tinyxxd
 
 test: tinyxxd
 	@echo 'Running tests...'
