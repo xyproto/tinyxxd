@@ -9,10 +9,10 @@
 #include <unistd.h>
 
 // Change this if more columns should ever be needed
-constexpr auto COLS = 256;
+#define COLS 256
 
 // For static declarations of buffers
-constexpr auto LLEN = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2);
+#define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
 // HexType is the different hextypes known by this program
 enum HexType {
