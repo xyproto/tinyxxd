@@ -6,7 +6,7 @@
 
 Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 
-It requires `zig` 0.11.0 or later.
+A compiler that supports C23 / `-std=c2x` is required.
 
 ### What is it, and what can it do?
 
