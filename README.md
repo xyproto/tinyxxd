@@ -6,7 +6,7 @@
 
 Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 
-It requires `zig` 0.11.0 or later.
+The development version (in the `main` branch) is in the process of being ported to Zig, and requires Zig 0.11.0 or later.
 
 ### What is it, and what can it do?
 
