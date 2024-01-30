@@ -31,8 +31,11 @@ extern const char COLOR_WHITE;
 extern const char* version;
 extern const unsigned char etoa64[];
 
-static char* pname;
+extern char* pname;
+
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
+
+extern void exit_with_usage(void);
 
 char conditionalCapitalize(int c, bool capitalize)
 {
@@ -54,34 +57,6 @@ void colorEpilogue(char* l, int* c)
     l[(*c)++] = '[';
     l[(*c)++] = '0';
     l[(*c)++] = 'm';
-}
-
-void exit_with_usage(void)
-{
-    fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n", pname);
-    fprintf(stderr, "    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", pname);
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n");
-    fprintf(stderr, "    -b          binary digit dump (incompatible with -ps,-i). Default hex.\n");
-    fprintf(stderr, "    -C          capitalize variable names in C include file style (-i).\n");
-    fprintf(stderr, "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n");
-    fprintf(stderr, "    -E          show characters in EBCDIC. Default ASCII.\n");
-    fprintf(stderr, "    -e          little-endian dump (incompatible with -ps,-i,-r).\n");
-    fprintf(stderr, "    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n");
-    fprintf(stderr, "    -h          print this summary.\n");
-    fprintf(stderr, "    -i          output in C include file style.\n");
-    fprintf(stderr, "    -l len      stop after <len> octets.\n");
-    fprintf(stderr, "    -n name     set the variable name used in C include output (-i).\n");
-    fprintf(stderr, "    -o off      add <off> to the displayed file position.\n");
-    fprintf(stderr, "    -ps         output in postscript plain hexdump style.\n");
-    fprintf(stderr, "    -r          reverse operation: convert (or patch) hexdump into binary.\n");
-    fprintf(stderr, "    -r -s off   revert with <off> added to file positions found in hexdump.\n");
-    fprintf(stderr, "    -d          show offset in decimal instead of hex.\n");
-    fprintf(stderr, "    -s %sseek  start at <seek> bytes abs. %sinfile offset.\n", "[+][-]", "(or +: rel.) ");
-    fprintf(stderr, "    -u          use upper case hex letters.\n");
-    fprintf(stderr, "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n");
-    fprintf(stderr, "    -v          show version: \"%s\".\n", version);
-    exit(1);
 }
 
 void error_exit(int ret, const char* msg)

@@ -8,6 +8,8 @@ export const COLOR_WHITE: u8 = '7';
 
 export const version: [*c]const u8 = "tinyxxd 1.1.0";
 
+export var pname: [*c]const u8 = "tinyxxd";
+
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
 export const etoa64: [192]u8 = .{
@@ -24,3 +26,32 @@ export const etoa64: [192]u8 = .{
     0o134, 0o237, 0o123, 0o124, 0o125, 0o126, 0o127, 0o130, 0o131, 0o132, 0o364, 0o365, 0o366, 0o367, 0o370, 0o371,
     0o060, 0o061, 0o062, 0o063, 0o064, 0o065, 0o066, 0o067, 0o070, 0o071, 0o372, 0o373, 0o374, 0o375, 0o376, 0o377
 };
+
+const print = std.debug.print;
+
+export fn exit_with_usage() void {
+    print("Usage:\n       {s} [options] [infile [outfile]]\n", .{pname});
+    print("    or\n       {s} -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n", .{pname});
+    print("Options:\n", .{});
+    print("    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n", .{});
+    print("    -b          binary digit dump (incompatible with -ps,-i). Default hex.\n", .{});
+    print("    -C          capitalize variable names in C include file style (-i).\n", .{});
+    print("    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n", .{});
+    print("    -E          show characters in EBCDIC. Default ASCII.\n", .{});
+    print("    -e          little-endian dump (incompatible with -ps,-i,-r).\n", .{});
+    print("    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n", .{});
+    print("    -h          print this summary.\n", .{});
+    print("    -i          output in C include file style.\n", .{});
+    print("    -l len      stop after <len> octets.\n", .{});
+    print("    -n name     set the variable name used in C include output (-i).\n", .{});
+    print("    -o off      add <off> to the displayed file position.\n", .{});
+    print("    -ps         output in postscript plain hexdump style.\n", .{});
+    print("    -r          reverse operation: convert (or patch) hexdump into binary.\n", .{});
+    print("    -r -s off   revert with <off> added to file positions found in hexdump.\n", .{});
+    print("    -d          show offset in decimal instead of hex.\n", .{});
+    print("    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n", .{});
+    print("    -u          use upper case hex letters.\n", .{});
+    print("    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n", .{});
+    print("    -v          show version: \"{s}\".\n", .{version});
+    @panic("Exiting with usage");
+}
