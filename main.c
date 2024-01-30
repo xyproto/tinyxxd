@@ -9,10 +9,10 @@
 #include <unistd.h>
 
 // Change this if more columns should ever be needed
-constexpr auto COLS = 256;
+#define COLS 256
 
 // For static declarations of buffers
-constexpr auto LLEN = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2);
+#define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
 // HexType is the different hextypes known by this program
 enum HexType {
@@ -23,7 +23,12 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
-const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
+// Defined in Zig
+extern const char COLOR_RED;
+extern const char COLOR_GREEN;
+extern const char COLOR_YELLOW;
+extern const char COLOR_BLUE;
+extern const char COLOR_WHITE;
 
 const char* version = "tinyxxd 1.1.0";
 static char* pname;
@@ -47,7 +52,7 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-inline char conditionalCapitalize(int c, bool capitalize)
+char conditionalCapitalize(int c, bool capitalize)
 {
     return capitalize ? toupper((unsigned char)(c)) : (c);
 }
@@ -143,7 +148,7 @@ void fclose_or_die(FILE* fpi, FILE* fpo)
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
-inline int parse_hex_digit(int c)
+int parse_hex_digit(int c)
 {
     return (c >= '0' && c <= '9') ? c - '0'
         : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
@@ -152,7 +157,7 @@ inline int parse_hex_digit(int c)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
-inline int parse_bin_digit(int c)
+int parse_bin_digit(int c)
 {
     return (c >= '0' && c <= '1') ? c - '0' : -1;
 }
