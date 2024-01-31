@@ -353,15 +353,15 @@ char get_ebcdic_char(const int e)
 
 char get_ascii_char(const int e)
 {
-    if (e > 31 && e < 127) {
+    if (e >= ' ' && e < 127) {
         return COLOR_GREEN;
     }
     switch (e) {
-    case 0:
+    case '\0':
         return COLOR_WHITE;
-    case 9:
-    case 10:
-    case 13:
+    case '\t':
+    case '\n':
+    case '\r':
         return COLOR_YELLOW;
     case 255:
         return COLOR_BLUE;
@@ -723,21 +723,15 @@ int main(int argc, char* argv[])
         if (p == 0) {
             addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c < LLEN; l[c++] = ' ')
-                ;
+            for (c = addrlen; c < LLEN; l[c++] = ' ');
         }
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
                 colorPrologue(l, &c);
-                if (ebcdic) {
-                    l[c++] = get_ebcdic_char(e);
-                    l[c++] = 'm';
-                } else {
-                    l[c++] = get_ascii_char(e);
-                    l[c++] = 'm';
-                }
+                l[c++] = (ebcdic) ? get_ebcdic_char(e) : get_ascii_char(e);
+                l[c++] = 'm';
                 l[c++] = hexx[(e >> 4) & 0xf];
                 l[c++] = hexx[e & 0xf];
                 colorEpilogue(l, &c);
@@ -778,7 +772,7 @@ int main(int argc, char* argv[])
                 l[c++] = get_ascii_char(e);
                 l[c++] = 'm';
             }
-            l[c++] = (e > 31 && e < 127) ? e : '.';
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
             colorEpilogue(l, &c);
             n++;
             if (++p == cols) {
@@ -793,7 +787,7 @@ int main(int argc, char* argv[])
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            l[c++] = (e > 31 && e < 127) ? e : '.';
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
