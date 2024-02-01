@@ -30,7 +30,8 @@ static char* pname;
 
 static FILE* fpo;
 
-const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
+const char* lower_hex_digits = "0123456789abcdef";
+const char* upper_hex_digits = "0123456789ABCDEF";
 
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
@@ -373,25 +374,20 @@ char get_ascii_char(const int e)
 int main(int argc, char* argv[])
 {
     FILE* fp;
-    char* hexx = (char*)hexxa;
-    bool revert = false, colsgiven = false, autoskip = false, color = false;
-    bool capitalize = false, decimal_offset = false, ebcdic = false;
     enum HexType hextype = HEX_NORMAL;
-    int negseek = 0, relseek = 0, c = 0, p = 0, i = 0, x = 0, e = 0, cols = 0, nonzero = 0, addrlen = 9;
-    int octspergrp = -1; // number of octets grouped in output
-    int grplen = 0; // total chars per octet group
+    static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
+    const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
+    bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
+    char* pp = NULL;
+    char* varname = NULL;
+    bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
+    bool ebcdic = false, revert = false, uppercase_hex = false;
+    int addrlen = 9, c = 0, cols = 0, e = 0, grplen = 0, i = 0, negseek = 0, nonzero = 0;
+    int octspergrp = -1, p = 0, relseek = 0, x = 0;
     long length = -1, n = 0, seekoff = 0;
     unsigned long displayoff = 0;
-    char *varname = NULL, *pp = NULL;
-    static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
 
-    // Respect the NO_COLOR environment variable
-    char* no_color = getenv("NO_COLOR");
-    if (no_color == NULL || no_color[0] == '\0') {
-        color = isatty(STDOUT_FILENO);
-    }
-
-    // The program name
+    // find the global program name
     pname = argv[0];
     for (pp = pname; *pp;) {
         if (*pp++ == '/') { // path separator
@@ -408,7 +404,7 @@ int main(int argc, char* argv[])
         } else if (!strncmp(pp, "-e", 2)) {
             hextype = HEX_LITTLEENDIAN;
         } else if (!strncmp(pp, "-u", 2)) {
-            hexx = (char*)hexxa + 16;
+            uppercase_hex = true;
         } else if (!strncmp(pp, "-p", 2)) {
             hextype = HEX_POSTSCRIPT;
         } else if (!strncmp(pp, "-i", 2)) {
@@ -673,8 +669,9 @@ int main(int argc, char* argv[])
         }
         p = 0;
         getc_or_die(fp, &c);
+        char* hex_format_string = (uppercase_hex) ? "%s0X%02X" : "%s0x%02x";
         while ((length < 0 || p < length) && c != EOF) {
-            if (fprintf(fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
+            if (fprintf(fpo, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
                 perror_exit(3);
             }
             p++;
@@ -704,12 +701,13 @@ int main(int argc, char* argv[])
         fclose_or_die(fp);
         return 0;
     }
+    char* hex_digits = (uppercase_hex) ? (char*)upper_hex_digits : (char*)lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(fp, &e);
         while ((length < 0 || n < length) && e != EOF) {
-            putc_or_die(hexx[(e >> 4) & 0xf]);
-            putc_or_die(hexx[e & 0xf]);
+            putc_or_die(hex_digits[(e >> 4) & 0xf]);
+            putc_or_die(hex_digits[e & 0xf]);
             n++;
             if (cols > 0 && !--p) {
                 putc_or_die('\n');
@@ -732,10 +730,10 @@ int main(int argc, char* argv[])
         grplen = 8 * octspergrp + 1;
     }
     getc_or_die(fp, &e);
+    char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {
         if (p == 0) {
-            addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
-                ((unsigned long)(n + seekoff + displayoff)));
+            addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ;
         }
@@ -746,12 +744,12 @@ int main(int argc, char* argv[])
                 colorPrologue(l, &c);
                 l[c++] = (ebcdic) ? get_ebcdic_char(e) : get_ascii_char(e);
                 l[c++] = 'm';
-                l[c++] = hexx[(e >> 4) & 0xf];
-                l[c++] = hexx[e & 0xf];
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
                 colorEpilogue(l, &c);
             } else { // no color
-                l[c] = hexx[(e >> 4) & 0xf];
-                l[++c] = hexx[e & 0xf];
+                l[c] = hex_digits[(e >> 4) & 0xf];
+                l[++c] = hex_digits[e & 0xf];
             }
         } else { // hextype == HEX_BITS
             for (i = 7; i >= 0; i--) {
