@@ -3,17 +3,31 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     container: archlinux:latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm base-devel vim
+
+    - name: Build
+      run: make
+
+    - name: Test
+      run: make test
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Build
       run: make
