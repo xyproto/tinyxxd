@@ -115,17 +115,17 @@ void error_exit(const int exit_code, const char* message)
     exit(exit_code);
 }
 
-void getc_or_die(int* c)
+void getc_or_die(int* ch)
 {
-    *c = getc(input_file);
-    if (*c == EOF && ferror(input_file)) {
+    *ch = getc(input_file);
+    if (*ch == EOF && ferror(input_file)) {
         error_exit(2, NULL);
     }
 }
 
-void putc_or_die(int c)
+void putc_or_die(int ch)
 {
-    if (putc(c, output_file) == EOF) {
+    if (putc(ch, output_file) == EOF) {
         error_exit(3, NULL);
     }
 }
@@ -148,7 +148,7 @@ void fclose_or_die()
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
-int parse_hex_digit(int c)
+int parse_hex_digit(const int c)
 {
     return (c >= '0' && c <= '9') ? c - '0'
         : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
@@ -157,7 +157,7 @@ int parse_hex_digit(int c)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
-int parse_bin_digit(int c)
+int parse_bin_digit(const int c)
 {
     return (c >= '0' && c <= '1') ? c - '0' : -1;
 }
@@ -167,12 +167,12 @@ int parse_bin_digit(int c)
  * Return the '\n' or EOF character.
  * When an error is encountered exit with an error message.
  */
-int skip_to_eol(int c)
+int skip_to_eol(int ch)
 {
-    while (c != '\n' && c != EOF) {
-        getc_or_die(&c);
+    while (ch != '\n' && ch != EOF) {
+        getc_or_die(&ch);
     }
-    return c;
+    return ch;
 }
 
 /*
@@ -182,9 +182,9 @@ int skip_to_eol(int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-int huntype(int cols, enum HexType hextype, long base_off)
+int huntype(const int cols, const enum HexType hextype, const long base_off)
 {
-    int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
+    int b = 0, bcnt = 0, bt = 0, c = 0, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
 
     rewind(input_file);
@@ -304,7 +304,7 @@ int huntype(int cols, enum HexType hextype, long base_off)
  *
  * If nz is always positive, lines are never suppressed.
  */
-void xxdline(char* l, int nz)
+void xxdline(const char* l, const int nz)
 {
     static char __attribute__((aligned(16))) z[LLEN + 1];
     static int zero_seen = 0;
@@ -331,7 +331,7 @@ void xxdline(char* l, int nz)
     }
 }
 
-char get_ebcdic_char(const int e)
+unsigned char get_ebcdic_char(const unsigned char e)
 {
     switch (e) {
     case 0:
@@ -354,7 +354,7 @@ char get_ebcdic_char(const int e)
     return COLOR_RED;
 }
 
-char get_ascii_char(const int e)
+unsigned char get_ascii_char(const unsigned char e)
 {
     if (e >= ' ' && e < 127) {
         return COLOR_GREEN;
