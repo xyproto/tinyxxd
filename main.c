@@ -670,7 +670,7 @@ int main(int argc, char* argv[])
         }
         p = 0;
         getc_or_die(&c);
-        char* hex_format_string = (uppercase_hex) ? "%s0X%02X" : "%s0x%02x";
+        char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
         while ((length < 0 || p < length) && c != EOF) {
             if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
                 error_exit(3, NULL);
@@ -702,7 +702,7 @@ int main(int argc, char* argv[])
         fclose_or_die();
         return 0;
     }
-    char* hex_digits = (uppercase_hex) ? (char*)upper_hex_digits : (char*)lower_hex_digits;
+    char* hex_digits = uppercase_hex ? (char*)upper_hex_digits : (char*)lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(&e);
@@ -743,7 +743,7 @@ int main(int argc, char* argv[])
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
                 colorPrologue(l, &c);
-                l[c++] = (ebcdic) ? get_ebcdic_char(e) : get_ascii_char(e);
+                l[c++] = ebcdic ? get_ebcdic_char(e) : get_ascii_char(e);
                 l[c++] = 'm';
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
