@@ -606,8 +606,9 @@ int main(int argc, char* argv[])
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         output_file = stdout;
     } else {
-        int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY), fd;
-        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (output_file = fdopen(fd, "w")) == NULL) {
+        const int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
+        const int file_descriptor = open(argv[2], mode | O_CREAT, 0666);
+        if ((file_descriptor < 0) || (output_file = fdopen(file_descriptor, "w")) == NULL) {
             fprintf(stderr, "%s: ", program_name);
             perror(argv[2]);
             return 3;
