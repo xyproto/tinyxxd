@@ -2,11 +2,11 @@
 
 [![Build](https://github.com/xyproto/tinyxxd/actions/workflows/ci.yml/badge.svg)](https://github.com/xyproto/tinyxxd/actions/workflows/ci.yml)
 
-`xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux.
+`xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux. A C-compiler that supports C11 or later is required.
 
-Requires C11.
+The source code for the program is a single `main.c` source file with less than 860 lines of C.
 
-Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
+Tested on both Arch Linux and macOS, where it builds, runs and all tests passes.
 
 ### What is it, and what can it do?
 
