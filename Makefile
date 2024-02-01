@@ -1,4 +1,4 @@
-.PHONY: clean install test uninstall
+.PHONY: clean fmt install test uninstall
 
 CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
@@ -21,6 +21,9 @@ uninstall:
 
 clean:
 	rm -f tinyxxd
+
+fmt: main.c
+	clang-format -style=WebKit -i main.c
 
 test: tinyxxd
 	@echo 'Running tests...'
