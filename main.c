@@ -28,7 +28,7 @@ const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = 
 const char* version = "tinyxxd 1.1.0";
 static char* pname;
 
-static FILE *fpo;
+static FILE* fpo;
 
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
 
@@ -371,7 +371,7 @@ char get_ascii_char(const int e)
 
 int main(int argc, char* argv[])
 {
-    FILE *fp;
+    FILE* fp;
     char* hexx = (char*)hexxa;
     bool revert = false, colsgiven = false, autoskip = false, color = false;
     bool capitalize = false, decimal_offset = false, ebcdic = false;
@@ -723,7 +723,8 @@ int main(int argc, char* argv[])
         if (p == 0) {
             addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c < LLEN; l[c++] = ' ');
+            for (c = addrlen; c < LLEN; l[c++] = ' ')
+                ;
         }
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
