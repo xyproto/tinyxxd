@@ -28,6 +28,8 @@ const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = 
 const char* version = "tinyxxd 1.1.0";
 static char* pname;
 
+static FILE *fpo;
+
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
 
 // This is an EBCDIC to ASCII conversion table
@@ -120,21 +122,21 @@ void getc_or_die(FILE* fpi, int* c)
 
 void putc_or_die(int c)
 {
-    if (putc(c, stdout) == EOF) {
+    if (putc(c, fpo) == EOF) {
         perror_exit(3);
     }
 }
 
 void fputs_or_die(const char* s)
 {
-    if (fputs(s, stdout) == EOF) {
+    if (fputs(s, fpo) == EOF) {
         perror_exit(3);
     }
 }
 
 void fclose_or_die(FILE* fpi)
 {
-    if (fclose(stdout) != 0) {
+    if (fclose(fpo) != 0) {
         perror_exit(3);
     }
     if (fclose(fpi) != 0) {
@@ -231,10 +233,10 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
             continue;
         }
         if (base_off + want_off != have_off) {
-            if (fflush(stdout) != 0) {
+            if (fflush(fpo) != 0) {
                 perror_exit(3);
             }
-            if (fseek(stdout, base_off + want_off - have_off, SEEK_CUR) >= 0) {
+            if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0) {
                 have_off = base_off + want_off;
             }
             if (base_off + want_off < have_off) {
@@ -279,10 +281,10 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
             ign_garb = 1;
         }
     }
-    if (fflush(stdout) != 0) {
+    if (fflush(fpo) != 0) {
         perror_exit(3);
     }
-    fseek(stdout, 0L, SEEK_END);
+    fseek(fpo, 0L, SEEK_END);
     fclose_or_die(fpi);
     return 0;
 }
@@ -606,14 +608,15 @@ int main(int argc, char* argv[])
         }
     }
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
+        fpo = stdout;
     } else {
         int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY), fd;
-        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (stdout = fdopen(fd, "w")) == NULL) {
+        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (fpo = fdopen(fd, "w")) == NULL) {
             fprintf(stderr, "%s: ", pname);
             perror(argv[2]);
             return 3;
         }
-        rewind(stdout);
+        rewind(fpo);
     }
     if (revert) {
         switch (hextype) {
@@ -653,7 +656,7 @@ int main(int argc, char* argv[])
             varname = argv[1];
         }
         if (varname != NULL) {
-            if (fprintf(stdout, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
@@ -664,7 +667,7 @@ int main(int argc, char* argv[])
         p = 0;
         getc_or_die(fp, &c);
         while ((length < 0 || p < length) && c != EOF) {
-            if (fprintf(stdout, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
+            if (fprintf(fpo, (hexx == hexxa) ? "%s0x%02x" : "%s0X%02X", (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
                 perror_exit(3);
             }
             p++;
@@ -675,13 +678,13 @@ int main(int argc, char* argv[])
         }
         if (varname != NULL) {
             fputs_or_die("};\n");
-            if (fprintf(stdout, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
                 putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_');
             }
-            if (fprintf(stdout, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
+            if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
                 perror_exit(3);
             }
         }
