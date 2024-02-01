@@ -288,7 +288,7 @@ int huntype(int cols, enum HexType hextype, long base_off)
         error_exit(3, NULL);
     }
     fseek(output_file, 0L, SEEK_END);
-    fclose_or_die(input_file);
+    fclose_or_die();
     return 0;
 }
 
@@ -699,7 +699,7 @@ int main(int argc, char* argv[])
                 error_exit(3, NULL);
             }
         }
-        fclose_or_die(input_file);
+        fclose_or_die();
         return 0;
     }
     char* hex_digits = (uppercase_hex) ? (char*)upper_hex_digits : (char*)lower_hex_digits;
@@ -719,7 +719,7 @@ int main(int argc, char* argv[])
         if (cols == 0 || p < cols) {
             putc_or_die('\n');
         }
-        fclose_or_die(input_file);
+        fclose_or_die();
         return 0;
     }
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
@@ -851,6 +851,6 @@ int main(int argc, char* argv[])
     } else if (autoskip) {
         xxdline(l, -1); // last chance to flush out suppressed lines
     }
-    fclose_or_die(input_file);
+    fclose_or_die();
     return 0;
 }
