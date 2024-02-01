@@ -49,7 +49,7 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-inline char conditionalCapitalize(int c, bool capitalize)
+char conditionalCapitalize(int c, bool capitalize)
 {
     return capitalize ? toupper((unsigned char)(c)) : (c);
 }
@@ -152,7 +152,7 @@ void fclose_or_die(FILE* fpi)
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
-inline int parse_hex_digit(int c)
+int parse_hex_digit(int c)
 {
     return (c >= '0' && c <= '9') ? c - '0'
         : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
@@ -161,7 +161,7 @@ inline int parse_hex_digit(int c)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
-inline int parse_bin_digit(int c)
+int parse_bin_digit(int c)
 {
     return (c >= '0' && c <= '1') ? c - '0' : -1;
 }
