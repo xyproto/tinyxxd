@@ -22,7 +22,7 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
-const char* version = "tinyxxd 1.1.0";
+const char* version = "tinyxxd 1.2.0";
 const char* lower_hex_digits = "0123456789abcdef";
 const char* upper_hex_digits = "0123456789ABCDEF";
 
