@@ -68,7 +68,7 @@ void colorEpilogue(char* l, int* c)
 
 void exit_with_usage(void)
 {
-    char usageMessage[2048];
+    char usageMessage[2048]; // must have enough space for the usage string
     snprintf(usageMessage, sizeof(usageMessage),
         "Usage:\n"
         "       %s [options] [infile [outfile]]\n"
@@ -96,7 +96,6 @@ void exit_with_usage(void)
         "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"
         "    -v          show version: \"%s\".\n",
         pname, pname, version);
-
     fprintf(stderr, "%s", usageMessage);
     exit(1);
 }
