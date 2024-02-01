@@ -731,7 +731,7 @@ int main(int argc, char* argv[])
         grplen = 8 * octspergrp + 1;
     }
     getc_or_die(&e);
-    char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
+    const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {
         if (p == 0) {
             addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
