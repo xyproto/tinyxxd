@@ -774,16 +774,16 @@ int main(int argc, char* argv[])
                 c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             }
             if (hextype == HEX_LITTLEENDIAN) {
-                c += 1;
+                c++;
             }
             colorPrologue(l, &c);
-            if (ebcdic) {
+            if (!ebcdic) {
+                l[c++] = get_ascii_char(e);
+                l[c++] = 'm';
+            } else {
                 l[c++] = get_ebcdic_char(e);
                 l[c++] = 'm';
                 e = (e < 64) ? '.' : etoa64[e - 64];
-            } else {
-                l[c++] = get_ascii_char(e);
-                l[c++] = 'm';
             }
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
             colorEpilogue(l, &c);
