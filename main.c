@@ -28,6 +28,8 @@ const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = 
 const char* version = "tinyxxd 1.1.0";
 static char* pname;
 
+static FILE *fpo;
+
 const char hexxa[] = "0123456789abcdef0123456789ABCDEF";
 
 // This is an EBCDIC to ASCII conversion table
@@ -118,21 +120,21 @@ void getc_or_die(FILE* fpi, int* c)
     }
 }
 
-void putc_or_die(int c, FILE* fpo)
+void putc_or_die(int c)
 {
     if (putc(c, fpo) == EOF) {
         perror_exit(3);
     }
 }
 
-void fputs_or_die(const char* s, FILE* fpo)
+void fputs_or_die(const char* s)
 {
     if (fputs(s, fpo) == EOF) {
         perror_exit(3);
     }
 }
 
-void fclose_or_die(FILE* fpi, FILE* fpo)
+void fclose_or_die(FILE* fpi)
 {
     if (fclose(fpo) != 0) {
         perror_exit(3);
@@ -177,7 +179,7 @@ int skip_to_eol(FILE* fpi, int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
+int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
 {
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
@@ -241,12 +243,12 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
                 error_exit(5, "Sorry, cannot seek backwards.");
             }
             for (; have_off < base_off + want_off; have_off++) {
-                putc_or_die(0, fpo);
+                putc_or_die(0);
             }
         }
         if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
             if (n2 >= 0 && n1 >= 0) {
-                putc_or_die((n2 << 4) | n1, fpo);
+                putc_or_die((n2 << 4) | n1);
                 have_off++;
                 want_off++;
                 n1 = -1;
@@ -260,7 +262,7 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
             }
         } else { // HEX_BITS
             if (bcnt == 8) {
-                putc_or_die(b, fpo);
+                putc_or_die(b);
                 have_off++;
                 want_off++;
                 b = 0;
@@ -283,7 +285,7 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
         perror_exit(3);
     }
     fseek(fpo, 0L, SEEK_END);
-    fclose_or_die(fpi, fpo);
+    fclose_or_die(fpi);
     return 0;
 }
 
@@ -299,7 +301,7 @@ int huntype(FILE* fpi, FILE* fpo, int cols, enum HexType hextype, long base_off)
  *
  * If nz is always positive, lines are never suppressed.
  */
-void xxdline(FILE* fp, char* l, int nz)
+void xxdline(char* l, int nz)
 {
     static char __attribute__((aligned(16))) z[LLEN + 1];
     static int zero_seen = 0;
@@ -313,13 +315,13 @@ void xxdline(FILE* fp, char* l, int nz)
                 zero_seen--;
             }
             if (zero_seen == 2) {
-                fputs_or_die(z, fp);
+                fputs_or_die(z);
             } else if (zero_seen > 2) {
-                fputs_or_die("*\n", fp);
+                fputs_or_die("*\n");
             }
         }
         if (nz >= 0 || zero_seen > 0) {
-            fputs_or_die(l, fp);
+            fputs_or_die(l);
         } else if (nz) {
             zero_seen = 0;
         }
@@ -351,15 +353,15 @@ char get_ebcdic_char(const int e)
 
 char get_ascii_char(const int e)
 {
-    if (e > 31 && e < 127) {
+    if (e >= ' ' && e < 127) {
         return COLOR_GREEN;
     }
     switch (e) {
-    case 0:
+    case '\0':
         return COLOR_WHITE;
-    case 9:
-    case 10:
-    case 13:
+    case '\t':
+    case '\n':
+    case '\r':
         return COLOR_YELLOW;
     case 255:
         return COLOR_BLUE;
@@ -369,7 +371,7 @@ char get_ascii_char(const int e)
 
 int main(int argc, char* argv[])
 {
-    FILE *fp, *fpo;
+    FILE *fp;
     char* hexx = (char*)hexxa;
     bool revert = false, colsgiven = false, autoskip = false, color = false;
     bool capitalize = false, decimal_offset = false, ebcdic = false;
@@ -621,7 +623,7 @@ int main(int argc, char* argv[])
         case HEX_NORMAL:
         case HEX_POSTSCRIPT:
         case HEX_BITS:
-            return huntype(fp, fpo, cols, hextype, negseek ? -seekoff : seekoff);
+            return huntype(fp, cols, hextype, negseek ? -seekoff : seekoff);
             break;
         default:
             error_exit(-1, "Sorry, cannot revert this type of hexdump");
@@ -658,9 +660,9 @@ int main(int argc, char* argv[])
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_', fpo);
+                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_');
             }
-            fputs_or_die("[] = {\n", fpo);
+            fputs_or_die("[] = {\n");
         }
         p = 0;
         getc_or_die(fp, &c);
@@ -672,40 +674,40 @@ int main(int argc, char* argv[])
             getc_or_die(fp, &c);
         }
         if (p) {
-            fputs_or_die("\n", fpo);
+            fputs_or_die("\n");
         }
         if (varname != NULL) {
-            fputs_or_die("};\n", fpo);
+            fputs_or_die("};\n");
             if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
             }
             for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_', fpo);
+                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_');
             }
             if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
                 perror_exit(3);
             }
         }
-        fclose_or_die(fp, fpo);
+        fclose_or_die(fp);
         return 0;
     }
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(fp, &e);
         while ((length < 0 || n < length) && e != EOF) {
-            putc_or_die(hexx[(e >> 4) & 0xf], fpo);
-            putc_or_die(hexx[e & 0xf], fpo);
+            putc_or_die(hexx[(e >> 4) & 0xf]);
+            putc_or_die(hexx[e & 0xf]);
             n++;
             if (cols > 0 && !--p) {
-                putc_or_die('\n', fpo);
+                putc_or_die('\n');
                 p = cols;
             }
             getc_or_die(fp, &e);
         }
         if (cols == 0 || p < cols) {
-            putc_or_die('\n', fpo);
+            putc_or_die('\n');
         }
-        fclose_or_die(fp, fpo);
+        fclose_or_die(fp);
         return 0;
     }
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
@@ -721,21 +723,15 @@ int main(int argc, char* argv[])
         if (p == 0) {
             addrlen = snprintf(l, sizeof(l), decimal_offset ? "%08ld:" : "%08lx:",
                 ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c < LLEN; l[c++] = ' ')
-                ;
+            for (c = addrlen; c < LLEN; l[c++] = ' ');
         }
         x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
                 colorPrologue(l, &c);
-                if (ebcdic) {
-                    l[c++] = get_ebcdic_char(e);
-                    l[c++] = 'm';
-                } else {
-                    l[c++] = get_ascii_char(e);
-                    l[c++] = 'm';
-                }
+                l[c++] = (ebcdic) ? get_ebcdic_char(e) : get_ascii_char(e);
+                l[c++] = 'm';
                 l[c++] = hexx[(e >> 4) & 0xf];
                 l[c++] = hexx[e & 0xf];
                 colorEpilogue(l, &c);
@@ -776,13 +772,13 @@ int main(int argc, char* argv[])
                 l[c++] = get_ascii_char(e);
                 l[c++] = 'm';
             }
-            l[c++] = (e > 31 && e < 127) ? e : '.';
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
             colorEpilogue(l, &c);
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
                 l[c++] = '\0';
-                xxdline(fpo, l, autoskip ? nonzero : 1);
+                xxdline(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
             }
@@ -791,12 +787,12 @@ int main(int argc, char* argv[])
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            l[c++] = (e > 31 && e < 127) ? e : '.';
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
                 l[c] = '\0';
-                xxdline(fpo, l, autoskip ? nonzero : 1);
+                xxdline(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
             }
@@ -838,10 +834,10 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        xxdline(fpo, l, 1);
+        xxdline(l, 1);
     } else if (autoskip) {
-        xxdline(fpo, l, -1); // last chance to flush out suppressed lines
+        xxdline(l, -1); // last chance to flush out suppressed lines
     }
-    fclose_or_die(fp, fpo);
+    fclose_or_die(fp);
     return 0;
 }
