@@ -49,11 +49,6 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-char conditionalCapitalize(int c, bool capitalize)
-{
-    return capitalize ? toupper((unsigned char)(c)) : (c);
-}
-
 void colorPrologue(char* l, int* c)
 {
     l[(*c)++] = '\033';
@@ -666,8 +661,14 @@ int main(int argc, char* argv[])
             if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
             }
-            for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_');
+            if (capitalize) {
+                for (e = 0; (c = varname[e]) != 0; e++) {
+                    putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
+                }
+            } else {
+                for (e = 0; (c = varname[e]) != 0; e++) {
+                    putc_or_die(isalnum((unsigned char)c) ? c : '_');
+                }
             }
             fputs_or_die("[] = {\n");
         }
@@ -688,8 +689,14 @@ int main(int argc, char* argv[])
             if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 perror_exit(3);
             }
-            for (e = 0; (c = varname[e]) != 0; e++) {
-                putc_or_die(isalnum((unsigned char)c) ? conditionalCapitalize(c, capitalize) : '_');
+            if (capitalize) {
+                for (e = 0; (c = varname[e]) != 0; e++) {
+                    putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
+                }
+            } else {
+                for (e = 0; (c = varname[e]) != 0; e++) {
+                    putc_or_die(isalnum((unsigned char)c) ? c : '_');
+                }
             }
             if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
                 perror_exit(3);
