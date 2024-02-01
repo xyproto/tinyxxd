@@ -26,9 +26,9 @@ const char* version = "tinyxxd 1.1.0";
 const char* lower_hex_digits = "0123456789abcdef";
 const char* upper_hex_digits = "0123456789ABCDEF";
 
-static char* pname;
-static FILE* fpo;
-static FILE* fpi;
+static char* program_name;
+static FILE* output_file;
+static FILE* input_file;
 
 const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
 
@@ -95,7 +95,7 @@ void exit_with_usage(void)
         "    -u          use upper case hex letters.\n"
         "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"
         "    -v          show version: \"%s\".\n",
-        pname, pname, version);
+        program_name, program_name, version);
     fprintf(stderr, "%s", usageMessage);
     exit(1);
 }
@@ -106,9 +106,9 @@ void exit_with_usage(void)
 void error_exit(int ret, const char* message)
 {
     if (message != NULL) {
-        fprintf(stderr, "%s: %s\n", pname, message);
+        fprintf(stderr, "%s: %s\n", program_name, message);
     } else {
-        fprintf(stderr, "%s: ", pname);
+        fprintf(stderr, "%s: ", program_name);
         perror(NULL);
     }
     exit(ret);
@@ -116,32 +116,32 @@ void error_exit(int ret, const char* message)
 
 void getc_or_die(int* c)
 {
-    *c = getc(fpi);
-    if (*c == EOF && ferror(fpi)) {
+    *c = getc(input_file);
+    if (*c == EOF && ferror(input_file)) {
         error_exit(2, NULL);
     }
 }
 
 void putc_or_die(int c)
 {
-    if (putc(c, fpo) == EOF) {
+    if (putc(c, output_file) == EOF) {
         error_exit(3, NULL);
     }
 }
 
 void fputs_or_die(const char* s)
 {
-    if (fputs(s, fpo) == EOF) {
+    if (fputs(s, output_file) == EOF) {
         error_exit(3, NULL);
     }
 }
 
 void fclose_or_die()
 {
-    if (fclose(fpo) != 0) {
+    if (fclose(output_file) != 0) {
         error_exit(3, NULL);
     }
-    if (fclose(fpi) != 0) {
+    if (fclose(input_file) != 0) {
         error_exit(2, NULL);
     }
 }
@@ -162,7 +162,7 @@ int parse_bin_digit(int c)
 }
 
 /*
- * Ignore text on "fpi" until end-of-line or end-of-file.
+ * Ignore text on "input_file" until end-of-line or end-of-file.
  * Return the '\n' or EOF character.
  * When an error is encountered exit with an error message.
  */
@@ -186,9 +186,9 @@ int huntype(int cols, enum HexType hextype, long base_off)
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
 
-    rewind(fpi);
+    rewind(input_file);
 
-    while ((c = getc(fpi)) != EOF) {
+    while ((c = getc(input_file)) != EOF) {
         if (c == '\r') { // DOS style newlines?
             continue;
         }
@@ -235,10 +235,10 @@ int huntype(int cols, enum HexType hextype, long base_off)
             continue;
         }
         if (base_off + want_off != have_off) {
-            if (fflush(fpo) != 0) {
+            if (fflush(output_file) != 0) {
                 error_exit(3, NULL);
             }
-            if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0) {
+            if (fseek(output_file, base_off + want_off - have_off, SEEK_CUR) >= 0) {
                 have_off = base_off + want_off;
             }
             if (base_off + want_off < have_off) {
@@ -283,11 +283,11 @@ int huntype(int cols, enum HexType hextype, long base_off)
             ign_garb = 1;
         }
     }
-    if (fflush(fpo) != 0) {
+    if (fflush(output_file) != 0) {
         error_exit(3, NULL);
     }
-    fseek(fpo, 0L, SEEK_END);
-    fclose_or_die(fpi);
+    fseek(output_file, 0L, SEEK_END);
+    fclose_or_die(input_file);
     return 0;
 }
 
@@ -387,10 +387,10 @@ int main(int argc, char* argv[])
     unsigned long displayoff = 0;
 
     // find the global program name
-    pname = argv[0];
-    for (pp = pname; *pp;) {
+    program_name = argv[0];
+    for (pp = program_name; *pp;) {
         if (*pp++ == '/') { // path separator
-            pname = pp;
+            program_name = pp;
         }
     }
 
@@ -583,7 +583,7 @@ int main(int argc, char* argv[])
         }
     }
     if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", pname, COLS);
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
         exit(1);
     }
     if (octspergrp < 1 || octspergrp > cols) {
@@ -595,24 +595,24 @@ int main(int argc, char* argv[])
         exit_with_usage();
     }
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
-        fpi = stdin;
+        input_file = stdin;
     } else {
-        if ((fpi = fopen(argv[1], "r")) == NULL) { // for reading
-            fprintf(stderr, "%s: ", pname);
+        if ((input_file = fopen(argv[1], "r")) == NULL) { // for reading
+            fprintf(stderr, "%s: ", program_name);
             perror(argv[1]);
             return 2;
         }
     }
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
-        fpo = stdout;
+        output_file = stdout;
     } else {
         int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY), fd;
-        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (fpo = fdopen(fd, "w")) == NULL) {
-            fprintf(stderr, "%s: ", pname);
+        if (((fd = open(argv[2], mode | O_CREAT, 0666)) < 0) || (output_file = fdopen(fd, "w")) == NULL) {
+            fprintf(stderr, "%s: ", program_name);
             perror(argv[2]);
             return 3;
         }
-        rewind(fpo);
+        rewind(output_file);
     }
     if (revert) {
         switch (hextype) {
@@ -627,15 +627,15 @@ int main(int argc, char* argv[])
     }
     if (seekoff || negseek || !relseek) {
         if (relseek) {
-            e = fseek(fpi, negseek ? -seekoff : seekoff, SEEK_CUR);
+            e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
         } else {
-            e = fseek(fpi, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
+            e = fseek(input_file, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
         }
         if (e < 0 && negseek) {
             error_exit(4, "Sorry, cannot seek.");
         }
         if (e >= 0) {
-            seekoff = ftell(fpi);
+            seekoff = ftell(input_file);
         } else {
             long s = seekoff;
             while (s--) {
@@ -648,11 +648,11 @@ int main(int argc, char* argv[])
     }
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
-        if (varname == NULL && fpi != stdin) {
+        if (varname == NULL && input_file != stdin) {
             varname = argv[1];
         }
         if (varname != NULL) {
-            if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 error_exit(3, NULL);
             }
             if (capitalize) {
@@ -670,7 +670,7 @@ int main(int argc, char* argv[])
         getc_or_die(&c);
         char* hex_format_string = (uppercase_hex) ? "%s0X%02X" : "%s0x%02x";
         while ((length < 0 || p < length) && c != EOF) {
-            if (fprintf(fpo, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
+            if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
                 error_exit(3, NULL);
             }
             p++;
@@ -681,7 +681,7 @@ int main(int argc, char* argv[])
         }
         if (varname != NULL) {
             fputs_or_die("};\n");
-            if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 error_exit(3, NULL);
             }
             if (capitalize) {
@@ -693,11 +693,11 @@ int main(int argc, char* argv[])
                     putc_or_die(isalnum((unsigned char)c) ? c : '_');
                 }
             }
-            if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
+            if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
                 error_exit(3, NULL);
             }
         }
-        fclose_or_die(fpi);
+        fclose_or_die(input_file);
         return 0;
     }
     char* hex_digits = (uppercase_hex) ? (char*)upper_hex_digits : (char*)lower_hex_digits;
@@ -717,7 +717,7 @@ int main(int argc, char* argv[])
         if (cols == 0 || p < cols) {
             putc_or_die('\n');
         }
-        fclose_or_die(fpi);
+        fclose_or_die(input_file);
         return 0;
     }
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
@@ -849,6 +849,6 @@ int main(int argc, char* argv[])
     } else if (autoskip) {
         xxdline(l, -1); // last chance to flush out suppressed lines
     }
-    fclose_or_die(fpi);
+    fclose_or_die(input_file);
     return 0;
 }
