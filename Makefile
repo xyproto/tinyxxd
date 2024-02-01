@@ -13,15 +13,6 @@ DESTDIR ?=
 tinyxxd: main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-install: tinyxxd
-	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
-
-uninstall:
-	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
-
-clean:
-	rm -f tinyxxd
-
 fmt: main.c
 	clang-format -style=WebKit -i main.c
 
@@ -48,3 +39,12 @@ run_test:
 		echo 'Test failed'; \
 		diff tinyxxd_output.txt xxd_output.txt; \
 	fi
+
+install: tinyxxd
+	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
+
+uninstall:
+	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
+
+clean:
+	rm -f tinyxxd *.o
