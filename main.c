@@ -14,7 +14,6 @@
 // For static declarations of buffers
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
-// HexType is the different hextypes known by this program
 enum HexType {
     HEX_NORMAL,
     HEX_POSTSCRIPT,
@@ -23,15 +22,15 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
-const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
-
 const char* version = "tinyxxd 1.1.0";
-static char* pname;
-
-static FILE* fpo;
-
 const char* lower_hex_digits = "0123456789abcdef";
 const char* upper_hex_digits = "0123456789ABCDEF";
+
+static char* pname;
+static FILE* fpo;
+static FILE* fpi;
+
+const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
 
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
@@ -101,48 +100,49 @@ void exit_with_usage(void)
     exit(1);
 }
 
-void error_exit(int ret, const char* msg)
+/* error_exit will exit with the given return code.
+ * pass in NULL as the message to print the current perror instead of the message.
+ */
+void error_exit(int ret, const char* message)
 {
-    fprintf(stderr, "%s: %s\n", pname, msg);
+    if (message != NULL) {
+        fprintf(stderr, "%s: %s\n", pname, message);
+    } else {
+        fprintf(stderr, "%s: ", pname);
+        perror(NULL);
+    }
     exit(ret);
 }
 
-void perror_exit(int ret)
-{
-    fprintf(stderr, "%s: ", pname);
-    perror(NULL);
-    exit(ret);
-}
-
-void getc_or_die(FILE* fpi, int* c)
+void getc_or_die(int* c)
 {
     *c = getc(fpi);
     if (*c == EOF && ferror(fpi)) {
-        perror_exit(2);
+        error_exit(2, NULL);
     }
 }
 
 void putc_or_die(int c)
 {
     if (putc(c, fpo) == EOF) {
-        perror_exit(3);
+        error_exit(3, NULL);
     }
 }
 
 void fputs_or_die(const char* s)
 {
     if (fputs(s, fpo) == EOF) {
-        perror_exit(3);
+        error_exit(3, NULL);
     }
 }
 
-void fclose_or_die(FILE* fpi)
+void fclose_or_die()
 {
     if (fclose(fpo) != 0) {
-        perror_exit(3);
+        error_exit(3, NULL);
     }
     if (fclose(fpi) != 0) {
-        perror_exit(2);
+        error_exit(2, NULL);
     }
 }
 
@@ -166,10 +166,10 @@ int parse_bin_digit(int c)
  * Return the '\n' or EOF character.
  * When an error is encountered exit with an error message.
  */
-int skip_to_eol(FILE* fpi, int c)
+int skip_to_eol(int c)
 {
     while (c != '\n' && c != EOF) {
-        getc_or_die(fpi, &c);
+        getc_or_die(&c);
     }
     return c;
 }
@@ -181,7 +181,7 @@ int skip_to_eol(FILE* fpi, int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
+int huntype(int cols, enum HexType hextype, long base_off)
 {
     int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
@@ -236,7 +236,7 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
         }
         if (base_off + want_off != have_off) {
             if (fflush(fpo) != 0) {
-                perror_exit(3);
+                error_exit(3, NULL);
             }
             if (fseek(fpo, base_off + want_off - have_off, SEEK_CUR) >= 0) {
                 have_off = base_off + want_off;
@@ -256,11 +256,11 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
                 n1 = -1;
                 if (!hextype && (++p >= cols)) {
                     // skip the rest of the line as garbage
-                    c = skip_to_eol(fpi, c);
+                    c = skip_to_eol(c);
                 }
             } else if (n1 < 0 && n2 < 0 && n3 < 0) {
                 // already stumbled into garbage, skip line, wait and see
-                c = skip_to_eol(fpi, c);
+                c = skip_to_eol(c);
             }
         } else { // HEX_BITS
             if (bcnt == 8) {
@@ -271,7 +271,7 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
                 bcnt = 0;
                 if (++p >= cols) {
                     // skip the rest of the line as garbage
-                    c = skip_to_eol(fpi, c);
+                    c = skip_to_eol(c);
                 }
             }
         }
@@ -284,7 +284,7 @@ int huntype(FILE* fpi, int cols, enum HexType hextype, long base_off)
         }
     }
     if (fflush(fpo) != 0) {
-        perror_exit(3);
+        error_exit(3, NULL);
     }
     fseek(fpo, 0L, SEEK_END);
     fclose_or_die(fpi);
@@ -373,7 +373,6 @@ char get_ascii_char(const int e)
 
 int main(int argc, char* argv[])
 {
-    FILE* fp;
     enum HexType hextype = HEX_NORMAL;
     static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
@@ -596,9 +595,9 @@ int main(int argc, char* argv[])
         exit_with_usage();
     }
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
-        fp = stdin;
+        fpi = stdin;
     } else {
-        if ((fp = fopen(argv[1], "r")) == NULL) { // for reading
+        if ((fpi = fopen(argv[1], "r")) == NULL) { // for reading
             fprintf(stderr, "%s: ", pname);
             perror(argv[1]);
             return 2;
@@ -620,7 +619,7 @@ int main(int argc, char* argv[])
         case HEX_NORMAL:
         case HEX_POSTSCRIPT:
         case HEX_BITS:
-            return huntype(fp, cols, hextype, negseek ? -seekoff : seekoff);
+            return huntype(cols, hextype, negseek ? -seekoff : seekoff);
             break;
         default:
             error_exit(-1, "Sorry, cannot revert this type of hexdump");
@@ -628,19 +627,19 @@ int main(int argc, char* argv[])
     }
     if (seekoff || negseek || !relseek) {
         if (relseek) {
-            e = fseek(fp, negseek ? -seekoff : seekoff, SEEK_CUR);
+            e = fseek(fpi, negseek ? -seekoff : seekoff, SEEK_CUR);
         } else {
-            e = fseek(fp, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
+            e = fseek(fpi, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
         }
         if (e < 0 && negseek) {
             error_exit(4, "Sorry, cannot seek.");
         }
         if (e >= 0) {
-            seekoff = ftell(fp);
+            seekoff = ftell(fpi);
         } else {
             long s = seekoff;
             while (s--) {
-                getc_or_die(fp, &c);
+                getc_or_die(&c);
                 if (c == EOF) {
                     error_exit(4, "Sorry, cannot seek.");
                 }
@@ -649,12 +648,12 @@ int main(int argc, char* argv[])
     }
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
-        if (varname == NULL && fp != stdin) {
+        if (varname == NULL && fpi != stdin) {
             varname = argv[1];
         }
         if (varname != NULL) {
             if (fprintf(fpo, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                perror_exit(3);
+                error_exit(3, NULL);
             }
             if (capitalize) {
                 for (e = 0; (c = varname[e]) != 0; e++) {
@@ -668,14 +667,14 @@ int main(int argc, char* argv[])
             fputs_or_die("[] = {\n");
         }
         p = 0;
-        getc_or_die(fp, &c);
+        getc_or_die(&c);
         char* hex_format_string = (uppercase_hex) ? "%s0X%02X" : "%s0x%02x";
         while ((length < 0 || p < length) && c != EOF) {
             if (fprintf(fpo, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
-                perror_exit(3);
+                error_exit(3, NULL);
             }
             p++;
-            getc_or_die(fp, &c);
+            getc_or_die(&c);
         }
         if (p) {
             fputs_or_die("\n");
@@ -683,7 +682,7 @@ int main(int argc, char* argv[])
         if (varname != NULL) {
             fputs_or_die("};\n");
             if (fprintf(fpo, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                perror_exit(3);
+                error_exit(3, NULL);
             }
             if (capitalize) {
                 for (e = 0; (c = varname[e]) != 0; e++) {
@@ -695,16 +694,16 @@ int main(int argc, char* argv[])
                 }
             }
             if (fprintf(fpo, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
-                perror_exit(3);
+                error_exit(3, NULL);
             }
         }
-        fclose_or_die(fp);
+        fclose_or_die(fpi);
         return 0;
     }
     char* hex_digits = (uppercase_hex) ? (char*)upper_hex_digits : (char*)lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
-        getc_or_die(fp, &e);
+        getc_or_die(&e);
         while ((length < 0 || n < length) && e != EOF) {
             putc_or_die(hex_digits[(e >> 4) & 0xf]);
             putc_or_die(hex_digits[e & 0xf]);
@@ -713,12 +712,12 @@ int main(int argc, char* argv[])
                 putc_or_die('\n');
                 p = cols;
             }
-            getc_or_die(fp, &e);
+            getc_or_die(&e);
         }
         if (cols == 0 || p < cols) {
             putc_or_die('\n');
         }
-        fclose_or_die(fp);
+        fclose_or_die(fpi);
         return 0;
     }
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
@@ -729,7 +728,7 @@ int main(int argc, char* argv[])
     } else { // hextype == HEX_BITS
         grplen = 8 * octspergrp + 1;
     }
-    getc_or_die(fp, &e);
+    getc_or_die(&e);
     char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {
         if (p == 0) {
@@ -809,7 +808,7 @@ int main(int argc, char* argv[])
                 p = 0;
             }
         }
-        getc_or_die(fp, &e);
+        getc_or_die(&e);
     }
     if (p) {
         l[c++] = '\n';
@@ -850,6 +849,6 @@ int main(int argc, char* argv[])
     } else if (autoskip) {
         xxdline(l, -1); // last chance to flush out suppressed lines
     }
-    fclose_or_die(fp);
+    fclose_or_die(fpi);
     return 0;
 }
