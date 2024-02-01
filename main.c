@@ -115,7 +115,7 @@ void error_exit(const int exit_code, const char* message)
     exit(exit_code);
 }
 
-void getc_or_die(int* c)
+inline static void getc_or_die(int* c)
 {
     *c = getc(input_file);
     if (*c == EOF && ferror(input_file)) {
@@ -123,14 +123,14 @@ void getc_or_die(int* c)
     }
 }
 
-void putc_or_die(int c)
+inline static void putc_or_die(int c)
 {
     if (putc(c, output_file) == EOF) {
         error_exit(3, NULL);
     }
 }
 
-void fputs_or_die(const char* s)
+inline static void fputs_or_die(const char* s)
 {
     if (fputs(s, output_file) == EOF) {
         error_exit(3, NULL);
@@ -148,7 +148,7 @@ void fclose_or_die()
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
-int parse_hex_digit(int c)
+inline static int parse_hex_digit(const int c)
 {
     return (c >= '0' && c <= '9') ? c - '0'
         : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
@@ -157,7 +157,7 @@ int parse_hex_digit(int c)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
-int parse_bin_digit(int c)
+inline static int parse_bin_digit(const int c)
 {
     return (c >= '0' && c <= '1') ? c - '0' : -1;
 }
@@ -167,7 +167,7 @@ int parse_bin_digit(int c)
  * Return the '\n' or EOF character.
  * When an error is encountered exit with an error message.
  */
-int skip_to_eol(int c)
+inline static int skip_to_eol(int c)
 {
     while (c != '\n' && c != EOF) {
         getc_or_die(&c);
@@ -182,9 +182,9 @@ int skip_to_eol(int c)
  *
  * The name is historic and came from 'undo type opt h'.
  */
-int huntype(int cols, enum HexType hextype, long base_off)
+static int huntype(const int cols, const enum HexType hextype, const long base_off)
 {
-    int c, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
+    int c = 0, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols, bt = 0, b = 0, bcnt = 0;
     long have_off = 0, want_off = 0;
 
     rewind(input_file);
@@ -304,16 +304,15 @@ int huntype(int cols, enum HexType hextype, long base_off)
  *
  * If nz is always positive, lines are never suppressed.
  */
-void xxdline(char* l, int nz)
+inline static void xxdline(const char* l, const int nz)
 {
     static char __attribute__((aligned(16))) z[LLEN + 1];
     static int zero_seen = 0;
-
-    if (!nz && zero_seen == 1) {
+    if (nz != 0 && zero_seen == 1) {
         strcpy(z, l);
     }
     if (nz || !zero_seen++) {
-        if (nz) {
+        if (nz != 0) {
             if (nz < 0) {
                 zero_seen--;
             }
@@ -331,7 +330,7 @@ void xxdline(char* l, int nz)
     }
 }
 
-char get_ebcdic_char(const int e)
+inline static char get_ebcdic_char(const int e)
 {
     switch (e) {
     case 0:
@@ -354,7 +353,7 @@ char get_ebcdic_char(const int e)
     return COLOR_RED;
 }
 
-char get_ascii_char(const int e)
+inline static char get_ascii_char(const int e)
 {
     if (e >= ' ' && e < 127) {
         return COLOR_GREEN;
@@ -547,6 +546,7 @@ int main(int argc, char* argv[])
         argv++; // advance to next argument
         argc--;
     }
+
     if (!colsgiven || (!cols && hextype != HEX_POSTSCRIPT)) {
         switch (hextype) {
         case HEX_POSTSCRIPT:
@@ -565,6 +565,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
+
     if (octspergrp < 0) {
         switch (hextype) {
         case HEX_BITS:
@@ -583,18 +584,22 @@ int main(int argc, char* argv[])
             break;
         }
     }
+
     if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
         fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
         exit(1);
     }
+
     if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     } else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1))) {
         error_exit(1, "number of octets per group must be a power of 2 with -e.");
     }
+
     if (argc > 3) {
         exit_with_usage();
     }
+
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         input_file = stdin;
     } else {
@@ -604,6 +609,7 @@ int main(int argc, char* argv[])
             return 2;
         }
     }
+
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         output_file = stdout;
     } else {
@@ -616,6 +622,7 @@ int main(int argc, char* argv[])
         }
         rewind(output_file);
     }
+
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
@@ -627,6 +634,7 @@ int main(int argc, char* argv[])
             error_exit(-1, "Sorry, cannot revert this type of hexdump");
         }
     }
+
     if (seekoff || negseek || !relseek) {
         if (relseek) {
             e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
@@ -648,6 +656,7 @@ int main(int argc, char* argv[])
             }
         }
     }
+
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
         if (varname == NULL && input_file != stdin) {
@@ -702,6 +711,7 @@ int main(int argc, char* argv[])
         fclose_or_die();
         return 0;
     }
+
     char* hex_digits = uppercase_hex ? (char*)upper_hex_digits : (char*)lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
@@ -722,6 +732,7 @@ int main(int argc, char* argv[])
         fclose_or_die();
         return 0;
     }
+
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
         grplen = octspergrp + octspergrp + 1; // chars per octet group
         if (color) {
@@ -730,6 +741,7 @@ int main(int argc, char* argv[])
     } else { // hextype == HEX_BITS
         grplen = 8 * octspergrp + 1;
     }
+
     getc_or_die(&e);
     char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {

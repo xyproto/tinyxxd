@@ -1,9 +1,9 @@
 .PHONY: clean fmt install test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -fPIC -flto -fno-plt -finline-functions -fstack-protector-strong -funroll-loops -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
+CFLAGS ?= -std=c11 -O2 -pipe -fPIC -flto -fno-plt -fstack-protector-strong -funroll-loops -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS := -std=c11 -O2 -pipe -flto -fPIC -finline-functions -fstack-protector-strong -funroll-loops -Wall -Wextra -Wpedantic -Wfatal-errors
+	CFLAGS := -std=c11 -O2 -pipe -flto -fPIC -fstack-protector-strong -funroll-loops -Wall -Wextra -Wpedantic -Wfatal-errors
 endif
 
 PREFIX ?= /usr
