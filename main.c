@@ -381,7 +381,7 @@ int main(int argc, char* argv[])
     char* pp = NULL;
     char* varname = NULL;
     bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
-    bool ebcdic = false, revert = false, uppercase_hex = false;
+    bool ascii = true, revert = false, uppercase_hex = false;
     int addrlen = 9, c = 0, cols = 0, e = 0, grplen = 0, i = 0, negseek = 0, nonzero = 0;
     int octspergrp = -1, p = 0, relseek = 0, x = 0;
     long length = -1, n = 0, seekoff = 0;
@@ -416,7 +416,7 @@ int main(int argc, char* argv[])
         } else if (!strncmp(pp, "-r", 2)) {
             revert = true;
         } else if (!strncmp(pp, "-E", 2)) {
-            ebcdic = true;
+            ascii = false;
         } else if (!strncmp(pp, "-v", 2)) {
             fprintf(stderr, "%s\n", version);
             exit(0);
@@ -616,6 +616,7 @@ int main(int argc, char* argv[])
         }
         rewind(output_file);
     }
+
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
@@ -648,6 +649,7 @@ int main(int argc, char* argv[])
             }
         }
     }
+
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
         if (varname == NULL && input_file != stdin) {
@@ -743,7 +745,7 @@ int main(int argc, char* argv[])
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
                 colorPrologue(l, &c);
-                l[c++] = ebcdic ? get_ebcdic_char(e) : get_ascii_char(e);
+                l[c++] = ascii ? get_ascii_char(e) : get_ebcdic_char(e);
                 l[c++] = 'm';
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
@@ -777,7 +779,7 @@ int main(int argc, char* argv[])
                 c++;
             }
             colorPrologue(l, &c);
-            if (!ebcdic) {
+            if (ascii) {
                 l[c++] = get_ascii_char(e);
                 l[c++] = 'm';
             } else {
@@ -796,7 +798,7 @@ int main(int argc, char* argv[])
                 p = 0;
             }
         } else { // no color
-            if (ebcdic) {
+            if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
