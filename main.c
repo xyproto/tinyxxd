@@ -101,9 +101,10 @@ void exit_with_usage(void)
 }
 
 /* error_exit will exit with the given return code.
- * pass in NULL as the message to print the current perror instead of the message.
+ * pass in either a message that will be printed to stderr,
+ * or NULL if perror should be printed instead.
  */
-void error_exit(int ret, const char* message)
+void error_exit(const int exit_code, const char* message)
 {
     if (message != NULL) {
         fprintf(stderr, "%s: %s\n", program_name, message);
@@ -111,7 +112,7 @@ void error_exit(int ret, const char* message)
         fprintf(stderr, "%s: ", program_name);
         perror(NULL);
     }
-    exit(ret);
+    exit(exit_code);
 }
 
 void getc_or_die(int* c)
