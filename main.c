@@ -771,6 +771,7 @@ int main(int argc, char* argv[])
         } else {
             c = (grplen * cols - 1) / octspergrp;
         }
+
         if (color) {
             if (hextype == HEX_BITS) {
                 c += addrlen + 3 + p * 12;
@@ -789,7 +790,7 @@ int main(int argc, char* argv[])
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
-                l[c++] = '\0';
+                l[c] = '\0';
                 xxdline(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
@@ -799,6 +800,7 @@ int main(int argc, char* argv[])
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
+
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
             n++;
             if (++p == cols) {
@@ -808,6 +810,7 @@ int main(int argc, char* argv[])
                 nonzero = 0;
                 p = 0;
             }
+
         }
         getc_or_die(&e);
     }
