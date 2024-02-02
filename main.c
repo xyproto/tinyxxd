@@ -49,16 +49,18 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-void colorPrologue(char* l, int* c)
+void setColor(char* l, int* c, const unsigned char color_digit)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
     l[(*c)++] = '1';
     l[(*c)++] = ';';
     l[(*c)++] = '3';
+    l[(*c)++] = color_digit;
+    l[(*c)++] = 'm';
 }
 
-void colorEpilogue(char* l, int* c)
+void clearColor(char* l, int* c)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -742,12 +744,10 @@ int main(int argc, char* argv[])
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
-                colorPrologue(l, &c);
-                l[c++] = ascii ? get_ascii_char(e) : get_ebcdic_char(e);
-                l[c++] = 'm';
+                setColor(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
-                colorEpilogue(l, &c);
+                clearColor(l, &c);
             } else { // no color
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
@@ -776,17 +776,12 @@ int main(int argc, char* argv[])
             if (hextype == HEX_LITTLEENDIAN) {
                 c++;
             }
-            colorPrologue(l, &c);
-            if (ascii) {
-                l[c++] = get_ascii_char(e);
-                l[c++] = 'm';
-            } else {
-                l[c++] = get_ebcdic_char(e);
-                l[c++] = 'm';
+            setColor(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
+            if (!ascii) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            colorEpilogue(l, &c);
+            clearColor(l, &c);
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
@@ -825,11 +820,7 @@ int main(int argc, char* argv[])
                 }
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
                 for (i = 0; i < fill; i++) {
-                    colorPrologue(l, &c);
-                    l[c++] = COLOR_RED;
-                    l[c++] = 'm';
                     l[c++] = ' ';
-                    colorEpilogue(l, &c);
                     x++;
                     p++;
                 }
@@ -839,11 +830,7 @@ int main(int argc, char* argv[])
                 c += cols - p;
                 c += (cols - p) / octspergrp;
                 for (i = cols - p; i > 0; i--) {
-                    colorPrologue(l, &c);
-                    l[c++] = COLOR_RED;
-                    l[c++] = 'm';
                     l[c++] = ' ';
-                    colorEpilogue(l, &c);
                 }
             }
         }
