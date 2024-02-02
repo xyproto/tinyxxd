@@ -771,7 +771,6 @@ int main(int argc, char* argv[])
         } else {
             c = (grplen * cols - 1) / octspergrp;
         }
-
         if (color) {
             if (hextype == HEX_BITS) {
                 c += addrlen + 3 + p * 12;
@@ -787,30 +786,20 @@ int main(int argc, char* argv[])
             }
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
             clear_color(l, &c);
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
         } else { // no color
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-
+        }
+        n++;
+        if (++p == cols) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            xxdline(l, autoskip ? nonzero : 1);
+            nonzero = 0;
+            p = 0;
         }
         getc_or_die(&e);
     }
