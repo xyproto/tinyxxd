@@ -4,7 +4,7 @@
 
 `xxd` is a utility that comes with ViM. This is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. The target platform is Linux. A C-compiler that supports C11 or later is required.
 
-The source code for the program is a single `main.c` source file with less than 860 lines of code.
+The source code for the program is a single `main.c` source file with less than 840 lines of code.
 
 Tested on both Arch Linux and macOS, where it builds, runs and all tests passes.
 
