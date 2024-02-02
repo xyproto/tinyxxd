@@ -194,10 +194,10 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             continue;
         }
         switch (hextype) {
-        // Allow multiple spaces. This doesn't work when there is normal text
-        // after the hex codes in the last line that looks like hex, thus only
-        // use it for PostScript format.
         case HEX_POSTSCRIPT:
+            // Allow multiple spaces. This doesn't work when there is normal text
+            // after the hex codes in the last line that looks like hex, thus only
+            // use it for PostScript format.
             if (c == ' ' || c == '\n' || c == '\t') {
                 continue;
             }
@@ -218,7 +218,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             bit = parse_bin_digit(c);
             if (bit != -1) {
                 bit_buffer = ((bit_buffer << 1) | bit);
-                ++bit_count;
+                bit_count++;
             }
         }
         ignore = 0;
