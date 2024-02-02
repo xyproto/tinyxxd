@@ -191,20 +191,24 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
         if (c == '\r') { // DOS style newlines?
             continue;
         }
+        switch (hextype) {
         // Allow multiple spaces. This doesn't work when there is normal text
         // after the hex codes in the last line that looks like hex, thus only
         // use it for PostScript format.
-        if (hextype == HEX_POSTSCRIPT && (c == ' ' || c == '\n' || c == '\t')) {
-            continue;
-        }
-        if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
+        case HEX_POSTSCRIPT:
+            if (c == ' ' || c == '\n' || c == '\t') {
+                continue;
+            }
+            // fallthrough
+        case HEX_NORMAL:
             n3 = n2;
             n2 = n1;
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ignore) {
                 continue;
             }
-        } else { // HEX_BITS
+            break;
+        default: // HEX_BITS
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ignore) {
                 continue;
@@ -617,7 +621,6 @@ int main(int argc, char* argv[])
         case HEX_POSTSCRIPT:
         case HEX_BITS:
             return huntype(cols, hextype, negseek ? -seekoff : seekoff);
-            break;
         default:
             error_exit(-1, "Sorry, cannot revert this type of hexdump");
         }
