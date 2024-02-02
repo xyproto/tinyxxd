@@ -18,7 +18,7 @@ enum HexType {
     HEX_NORMAL,
     HEX_POSTSCRIPT,
     HEX_CINCLUDE,
-    HEX_BITS, // not hex a dump, but bits, like: 01111001
+    HEX_BITS, // not a hex dump, but bits, like: 01111001
     HEX_LITTLEENDIAN
 };
 
@@ -26,9 +26,9 @@ const char* version = "tinyxxd 1.2.0";
 const char* lower_hex_digits = "0123456789abcdef";
 const char* upper_hex_digits = "0123456789ABCDEF";
 
-static char* program_name;
-static FILE* output_file;
 static FILE* input_file;
+static FILE* output_file;
+static char* program_name;
 
 const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
 
@@ -354,9 +354,6 @@ unsigned char get_ebcdic_char(const unsigned char e)
 
 unsigned char get_ascii_char(const unsigned char e)
 {
-    if (e >= ' ' && e < 127) {
-        return COLOR_GREEN;
-    }
     switch (e) {
     case '\0':
         return COLOR_WHITE;
@@ -366,6 +363,9 @@ unsigned char get_ascii_char(const unsigned char e)
         return COLOR_YELLOW;
     case 255:
         return COLOR_BLUE;
+    }
+    if (e >= ' ' && e < 127) {
+        return COLOR_GREEN;
     }
     return COLOR_RED;
 }
