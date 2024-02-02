@@ -151,6 +151,7 @@ void fflush_or_die(void)
     }
 }
 
+// fclose_or_die closes the output file and then the input file, and exists if there are errors.
 void fclose_or_die(void)
 {
     if (fclose(output_file)) {
@@ -161,7 +162,7 @@ void fclose_or_die(void)
     }
 }
 
-// parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
+// parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1.
 int parse_hex_digit(const int ch)
 {
     return (ch >= '0' && ch <= '9') ? ch - '0'
@@ -170,7 +171,7 @@ int parse_hex_digit(const int ch)
                                     : -1;
 }
 
-// parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
+// parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1.
 int parse_bin_digit(const int ch)
 {
     return (ch >= '0' && ch <= '1') ? ch - '0' : -1;
