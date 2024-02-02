@@ -100,11 +100,11 @@ void exit_with_usage(void)
     exit(1);
 }
 
-/* error_exit will exit with the given return code.
+/* exit_with_error will exit with the given exit code.
  * pass in either a message that will be printed to stderr,
  * or NULL if perror should be printed instead.
  */
-void error_exit(const int exit_code, const char* message)
+void exit_with_error(const int exit_code, const char* message)
 {
     if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
@@ -119,48 +119,48 @@ void getc_or_die(int* ch)
 {
     *ch = getc(input_file);
     if (*ch == EOF && ferror(input_file)) {
-        error_exit(2, NULL);
+        exit_with_error(2, NULL);
     }
 }
 
 void putc_or_die(int ch)
 {
     if (putc(ch, output_file) == EOF) {
-        error_exit(3, NULL);
+        exit_with_error(3, NULL);
     }
 }
 
 void fputs_or_die(const char* s)
 {
     if (fputs(s, output_file) == EOF) {
-        error_exit(3, NULL);
+        exit_with_error(3, NULL);
     }
 }
 
 void fflush_or_die(void)
 {
     if (fflush(output_file)) {
-        error_exit(3, NULL);
+        exit_with_error(3, NULL);
     }
 }
 
 void fclose_or_die(void)
 {
     if (fclose(output_file)) {
-        error_exit(3, NULL);
+        exit_with_error(3, NULL);
     }
     if (fclose(input_file)) {
-        error_exit(2, NULL);
+        exit_with_error(2, NULL);
     }
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1
-int parse_hex_digit(const int c)
+int parse_hex_digit(const int ch)
 {
-    return (c >= '0' && c <= '9') ? c - '0'
-        : (c >= 'a' && c <= 'f')  ? c - 'a' + 10
-        : (c >= 'A' && c <= 'F')  ? c - 'A' + 10
-                                  : -1;
+    return (ch >= '0' && ch <= '9') ? ch - '0'
+        : (ch >= 'a' && ch <= 'f')  ? ch - 'a' + 10
+        : (ch >= 'A' && ch <= 'F')  ? ch - 'A' + 10
+                                    : -1;
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
@@ -169,12 +169,10 @@ int parse_bin_digit(const int ch)
     return (ch >= '0' && ch <= '1') ? ch - '0' : -1;
 }
 
-/*
- * Ignore text on "input_file" until end-of-line or end-of-file.
- * Return the '\n' or EOF character.
- * When an error is encountered exit with an error message.
+/* skip_to_eol_or_die will ignore text from the input file, until EOL or EOF.
+ * Returns '\n', the EOF character or exists with an error.
  */
-int skip_to_eol(int ch)
+int skip_to_eol_or_die(int ch)
 {
     while (ch != '\n' && ch != EOF) {
         getc_or_die(&ch);
@@ -248,7 +246,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
                 have_off = base_off + want_off;
             }
             if (base_off + want_off < have_off) {
-                error_exit(5, "Sorry, cannot seek backwards.");
+                exit_with_error(5, "Sorry, cannot seek backwards.");
             }
             for (; have_off < base_off + want_off; have_off++) {
                 putc_or_die(0);
@@ -262,11 +260,11 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
                 n1 = -1;
                 if (!hextype && (++p >= cols)) {
                     // skip the rest of the line as garbage
-                    c = skip_to_eol(c);
+                    c = skip_to_eol_or_die(c);
                 }
             } else if (n1 < 0 && n2 < 0 && n3 < 0) {
                 // already stumbled into garbage, skip line, wait and see
-                c = skip_to_eol(c);
+                c = skip_to_eol_or_die(c);
             }
         } else { // HEX_BITS
             if (bit_count == 8) {
@@ -277,7 +275,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
                 bit_count = 0;
                 if (++p >= cols) {
                     // skip the rest of the line as garbage
-                    c = skip_to_eol(c);
+                    c = skip_to_eol_or_die(c);
                 }
             }
         }
@@ -589,7 +587,7 @@ int main(int argc, char* argv[])
     if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     } else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1))) {
-        error_exit(1, "number of octets per group must be a power of 2 with -e.");
+        exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
     }
     if (argc > 3) {
         exit_with_usage();
@@ -623,7 +621,7 @@ int main(int argc, char* argv[])
         case HEX_BITS:
             return huntype(cols, hextype, negseek ? -seekoff : seekoff);
         default:
-            error_exit(-1, "Sorry, cannot revert this type of hexdump");
+            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
     }
     if (seekoff || negseek || !relseek) {
@@ -633,7 +631,7 @@ int main(int argc, char* argv[])
             e = fseek(input_file, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
         }
         if (e < 0 && negseek) {
-            error_exit(4, "Sorry, cannot seek.");
+            exit_with_error(4, "Sorry, cannot seek.");
         }
         if (e >= 0) {
             seekoff = ftell(input_file);
@@ -642,7 +640,7 @@ int main(int argc, char* argv[])
             while (s--) {
                 getc_or_die(&c);
                 if (c == EOF) {
-                    error_exit(4, "Sorry, cannot seek.");
+                    exit_with_error(4, "Sorry, cannot seek.");
                 }
             }
         }
@@ -655,7 +653,7 @@ int main(int argc, char* argv[])
         }
         if (varname) {
             if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                error_exit(3, NULL);
+                exit_with_error(3, NULL);
             }
             if (capitalize) {
                 for (e = 0; (c = varname[e]); e++) {
@@ -673,7 +671,7 @@ int main(int argc, char* argv[])
         char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
         while ((length < 0 || p < length) && c != EOF) {
             if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
-                error_exit(3, NULL);
+                exit_with_error(3, NULL);
             }
             p++;
             getc_or_die(&c);
@@ -684,7 +682,7 @@ int main(int argc, char* argv[])
         if (varname) {
             fputs_or_die("};\n");
             if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                error_exit(3, NULL);
+                exit_with_error(3, NULL);
             }
             if (capitalize) {
                 for (e = 0; (c = varname[e]); e++) {
@@ -696,7 +694,7 @@ int main(int argc, char* argv[])
                 }
             }
             if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
-                error_exit(3, NULL);
+                exit_with_error(3, NULL);
             }
         }
         return 0;
