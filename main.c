@@ -708,6 +708,7 @@ int main(int argc, char* argv[])
     }
 
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
+
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(&e);
@@ -726,7 +727,6 @@ int main(int argc, char* argv[])
         }
         return 0;
     }
-
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
         grplen = octspergrp + octspergrp + 1; // chars per octet group
         if (color) {
@@ -764,30 +764,28 @@ int main(int argc, char* argv[])
         if (e) {
             nonzero++;
         }
-
         switch (hextype) {
         case HEX_LITTLEENDIAN:
-            // When changing this update definition of LLEN above
-            // last group will be fully used, round up
-            c = grplen * ((cols + octspergrp - 1) / octspergrp);
             if (color) {
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-                c++;
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
+            } else {
+                c = grplen * ((cols + octspergrp - 1) / octspergrp);
             }
             break;
         case HEX_BITS:
-            c = (grplen * cols - 1) / octspergrp;
             if (color) {
-                c += addrlen + 3 + p * 12;
+                c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
+            } else {
+                c = (grplen * cols - 1) / octspergrp;
             }
             break;
         default:
-            c = (grplen * cols - 1) / octspergrp;
             if (color) {
                 c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
+            } else {
+                c = (grplen * cols - 1) / octspergrp;
             }
         }
-
         if (color) {
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) {
