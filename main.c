@@ -821,7 +821,9 @@ int main(int argc, char* argv[])
                 const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
                 for (i = 0; i < fill; i++) {
+                    set_color(l, &c, COLOR_RED);
                     l[c++] = ' ';
+                    clear_color(l, &c);
                     x++;
                     p++;
                 }
@@ -831,7 +833,9 @@ int main(int argc, char* argv[])
                 c += cols - p;
                 c += (cols - p) / octspergrp;
                 for (i = cols - p; i > 0; i--) {
+                    set_color(l, &c, COLOR_RED);
                     l[c++] = ' ';
+                    clear_color(l, &c);
                 }
             }
         }
