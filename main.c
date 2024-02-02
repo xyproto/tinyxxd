@@ -137,6 +137,13 @@ void fputs_or_die(const char* s)
     }
 }
 
+void fflush_or_die(void)
+{
+    if (fflush(output_file)) {
+        error_exit(3, NULL);
+    }
+}
+
 void fclose_or_die(void)
 {
     if (fclose(output_file)) {
@@ -240,9 +247,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             continue;
         }
         if (base_off + want_off != have_off) {
-            if (fflush(output_file)) {
-                error_exit(3, NULL);
-            }
+            fflush_or_die();
             if (fseek(output_file, base_off + want_off - have_off, SEEK_CUR) >= 0) {
                 have_off = base_off + want_off;
             }
@@ -288,9 +293,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             ignore = 1;
         }
     }
-    if (fflush(output_file)) {
-        error_exit(3, NULL);
-    }
+    fflush_or_die();
     fseek(output_file, 0L, SEEK_END);
     fclose_or_die();
     return 0;
