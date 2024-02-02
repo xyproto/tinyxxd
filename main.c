@@ -814,10 +814,7 @@ int main(int argc, char* argv[])
             c++;
             x = p;
             if (hextype == HEX_LITTLEENDIAN) {
-                int fill = octspergrp - (p % octspergrp);
-                if (fill == octspergrp) {
-                    fill = 0;
-                }
+                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
                 for (i = 0; i < fill; i++) {
                     l[c++] = ' ';
