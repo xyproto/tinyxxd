@@ -49,7 +49,7 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-void setColor(char* l, int* c, const unsigned char color_digit)
+void set_color(char* l, int* c, const unsigned char color_digit)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -60,7 +60,7 @@ void setColor(char* l, int* c, const unsigned char color_digit)
     l[(*c)++] = 'm';
 }
 
-void clearColor(char* l, int* c)
+void clear_color(char* l, int* c)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -184,7 +184,7 @@ int skip_to_eol(int ch)
  */
 int huntype(const int cols, const enum HexType hextype, const long base_off)
 {
-    int bit_buffer = 0, bit_count = 0, bit = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
 
     rewind(input_file);
@@ -744,10 +744,10 @@ int main(int argc, char* argv[])
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
-                setColor(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
+                set_color(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
-                clearColor(l, &c);
+                clear_color(l, &c);
             } else { // no color
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
@@ -776,12 +776,12 @@ int main(int argc, char* argv[])
             if (hextype == HEX_LITTLEENDIAN) {
                 c++;
             }
-            setColor(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
+            set_color(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
             if (!ascii) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            clearColor(l, &c);
+            clear_color(l, &c);
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
