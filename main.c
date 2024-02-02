@@ -22,6 +22,15 @@ enum HexType {
     HEX_LITTLEENDIAN
 };
 
+// ColorDigit is the second digit for a terminal color code that starts with '3'
+enum ColorDigit {
+    COLOR_RED = '1',
+    COLOR_GREEN = '2',
+    COLOR_YELLOW = '3',
+    COLOR_BLUE = '4',
+    COLOR_WHITE = '7'
+};
+
 const char* version = "tinyxxd 1.2.0";
 const char* lower_hex_digits = "0123456789abcdef";
 const char* upper_hex_digits = "0123456789ABCDEF";
@@ -29,8 +38,6 @@ const char* upper_hex_digits = "0123456789ABCDEF";
 static FILE* input_file;
 static FILE* output_file;
 static char* program_name;
-
-const char COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3', COLOR_BLUE = '4', COLOR_WHITE = '7';
 
 // This is an EBCDIC to ASCII conversion table
 // from a proposed BTL standard April 16, 1979
@@ -49,7 +56,7 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-void set_color(char* l, int* c, const unsigned char color_digit)
+void set_color(char* l, int* c, const enum ColorDigit color_digit)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -332,7 +339,7 @@ void xxdline(const char* l, const int nz)
     }
 }
 
-unsigned char get_ebcdic_char(const unsigned char e)
+enum ColorDigit ebcdic_char_color(const unsigned char e)
 {
     switch (e) {
     case 0:
@@ -355,7 +362,7 @@ unsigned char get_ebcdic_char(const unsigned char e)
     return COLOR_RED;
 }
 
-unsigned char get_ascii_char(const unsigned char e)
+enum ColorDigit ascii_char_color(const unsigned char e)
 {
     switch (e) {
     case '\0':
