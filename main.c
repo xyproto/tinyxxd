@@ -706,10 +706,9 @@ int main(int argc, char* argv[])
         }
         return 0;
     }
-
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
-
-    if (hextype == HEX_POSTSCRIPT) {
+    switch (hextype) {
+    case HEX_POSTSCRIPT:
         p = cols;
         getc_or_die(&e);
         while ((length < 0 || n < length) && e != EOF) {
@@ -726,16 +725,16 @@ int main(int argc, char* argv[])
             putc_or_die('\n');
         }
         return 0;
-    }
-    if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
-        grplen = octspergrp + octspergrp + 1; // chars per octet group
-        if (color) {
-            grplen += 11 * octspergrp; // color-code needs 11 extra characters
-        }
-    } else { // hextype == HEX_BITS
+    case HEX_BITS:
         grplen = 8 * octspergrp + 1;
+        break;
+    default: // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
+        if (color) {
+            grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
+        } else {
+            grplen = octspergrp + octspergrp + 1; // chars per octet group
+        }
     }
-
     getc_or_die(&e);
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {
