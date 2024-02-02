@@ -182,20 +182,16 @@ int skip_to_eol(int ch)
     return ch;
 }
 
-/*
- * Max. cols binary characters are decoded from the input stream per line.
+/* Max. cols binary characters are decoded from the input stream per line.
  * Two adjacent garbage characters after evaluated data delimit valid data.
  * Everything up to the next newline is discarded.
- *
  * The name is historic and came from 'undo type opt h'.
  */
 int huntype(const int cols, const enum HexType hextype, const long base_off)
 {
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
-
     rewind(input_file);
-
     while ((c = getc(input_file)) != EOF) {
         if (c == '\r') { // DOS style newlines?
             continue;
