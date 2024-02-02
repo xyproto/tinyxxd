@@ -764,6 +764,7 @@ int main(int argc, char* argv[])
         if (e) {
             nonzero++;
         }
+
         // When changing this update definition of LLEN above
         if (hextype == HEX_LITTLEENDIAN) {
             // last group will be fully used, round up
@@ -771,15 +772,16 @@ int main(int argc, char* argv[])
         } else {
             c = (grplen * cols - 1) / octspergrp;
         }
+		if (color && hextype == HEX_BITS) {
+			c += addrlen + 3 + p * 12;
+		} else if (color && hextype != HEX_BITS) {
+			c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
+		}
+        if (color && hextype == HEX_LITTLEENDIAN) {
+            c++;
+        }
+
         if (color) {
-            if (hextype == HEX_BITS) {
-                c += addrlen + 3 + p * 12;
-            } else {
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            }
-            if (hextype == HEX_LITTLEENDIAN) {
-                c++;
-            }
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
