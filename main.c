@@ -748,7 +748,7 @@ int main(int argc, char* argv[])
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
             if (color) {
-                set_color(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
+                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
                 clear_color(l, &c);
@@ -780,7 +780,7 @@ int main(int argc, char* argv[])
             if (hextype == HEX_LITTLEENDIAN) {
                 c++;
             }
-            set_color(l, &c, ascii ? get_ascii_char(e) : get_ebcdic_char(e));
+            set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) {
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
