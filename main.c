@@ -188,12 +188,11 @@ int skip_to_eol_or_die(int ch)
     return ch;
 }
 
-/* Max. cols binary characters are decoded from the input stream per line.
- * Two adjacent garbage characters after evaluated data delimit valid data.
- * Everything up to the next newline is discarded.
- * The name is historic and came from 'undo type opt h'.
+/* decode_hex_stream decodes hex or binary data from an input stream within 'cols' characters per line.
+ * Supports normal, PostScript, and bits formats with format-specific rules. It aligns data in the output stream,
+ * filling with zeroes as needed to maintain the base offset.
  */
-int huntype(const int cols, const enum HexType hextype, const long base_off)
+int decode_hex_stream(const int cols, const enum HexType hextype, const long base_off)
 {
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
@@ -627,7 +626,7 @@ int main(int argc, char* argv[])
         case HEX_NORMAL:
         case HEX_POSTSCRIPT:
         case HEX_BITS:
-            return huntype(cols, hextype, negseek ? -seekoff : seekoff);
+            return decode_hex_stream(cols, hextype, negseek ? -seekoff : seekoff);
         default:
             exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
