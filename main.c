@@ -68,8 +68,7 @@ void colorEpilogue(char* l, int* c)
 
 void exit_with_usage(void)
 {
-    char usageMessage[2048]; // must have enough space for the usage string
-    snprintf(usageMessage, sizeof(usageMessage),
+    fprintf(stderr,
         "Usage:\n"
         "       %s [options] [infile [outfile]]\n"
         "    or\n"
@@ -96,7 +95,6 @@ void exit_with_usage(void)
         "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"
         "    -v          show version: \"%s\".\n",
         program_name, program_name, version);
-    fprintf(stderr, "%s", usageMessage);
     exit(1);
 }
 
@@ -106,7 +104,7 @@ void exit_with_usage(void)
  */
 void error_exit(const int exit_code, const char* message)
 {
-    if (message != NULL) {
+    if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
     } else {
         fprintf(stderr, "%s: ", program_name);
@@ -137,12 +135,12 @@ void fputs_or_die(const char* s)
     }
 }
 
-void fclose_or_die()
+void fclose_or_die(void)
 {
-    if (fclose(output_file) != 0) {
+    if (fclose(output_file)) {
         error_exit(3, NULL);
     }
-    if (fclose(input_file) != 0) {
+    if (fclose(input_file)) {
         error_exit(2, NULL);
     }
 }
@@ -184,7 +182,7 @@ int skip_to_eol(int ch)
  */
 int huntype(const int cols, const enum HexType hextype, const long base_off)
 {
-    int b = 0, bcnt = 0, bt = 0, c = 0, ign_garb = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int bit_buffer = 0, bit_count = 0, bit = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
 
     rewind(input_file);
@@ -203,21 +201,21 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             n3 = n2;
             n2 = n1;
             n1 = parse_hex_digit(c);
-            if (n1 == -1 && ign_garb) {
+            if (n1 == -1 && ignore) {
                 continue;
             }
         } else { // HEX_BITS
             n1 = parse_hex_digit(c);
-            if (n1 == -1 && ign_garb) {
+            if (n1 == -1 && ignore) {
                 continue;
             }
-            bt = parse_bin_digit(c);
-            if (bt != -1) {
-                b = ((b << 1) | bt);
-                ++bcnt;
+            bit = parse_bin_digit(c);
+            if (bit != -1) {
+                bit_buffer = ((bit_buffer << 1) | bit);
+                ++bit_count;
             }
         }
-        ign_garb = 0;
+        ignore = 0;
         if ((hextype != HEX_POSTSCRIPT) && (p >= cols)) {
             if (hextype == HEX_NORMAL) {
                 if (n1 < 0) {
@@ -228,7 +226,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             } else { // HEX_BITS
                 if (n1 < 0) {
                     p = 0;
-                    bcnt = 0;
+                    bit_count = 0;
                     continue;
                 }
                 want_off = (want_off << 4) | n1;
@@ -236,7 +234,7 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
             continue;
         }
         if (base_off + want_off != have_off) {
-            if (fflush(output_file) != 0) {
+            if (fflush(output_file)) {
                 error_exit(3, NULL);
             }
             if (fseek(output_file, base_off + want_off - have_off, SEEK_CUR) >= 0) {
@@ -264,12 +262,12 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
                 c = skip_to_eol(c);
             }
         } else { // HEX_BITS
-            if (bcnt == 8) {
-                putc_or_die(b);
+            if (bit_count == 8) {
+                putc_or_die(bit_buffer);
                 have_off++;
                 want_off++;
-                b = 0;
-                bcnt = 0;
+                bit_buffer = 0;
+                bit_count = 0;
                 if (++p >= cols) {
                     // skip the rest of the line as garbage
                     c = skip_to_eol(c);
@@ -281,10 +279,10 @@ int huntype(const int cols, const enum HexType hextype, const long base_off)
                 want_off = 0;
             }
             p = cols;
-            ign_garb = 1;
+            ignore = 1;
         }
     }
-    if (fflush(output_file) != 0) {
+    if (fflush(output_file)) {
         error_exit(3, NULL);
     }
     fseek(output_file, 0L, SEEK_END);
@@ -531,7 +529,7 @@ int main(int argc, char* argv[])
             } else if (!strncmp(pw, "never", 5)) {
                 color = false;
             } else if (!strncmp(pw, "auto", 4)) {
-                color = isatty(STDOUT_FILENO) != 0;
+                color = isatty(STDOUT_FILENO);
             } else {
                 exit_with_usage();
             }
@@ -558,8 +556,6 @@ int main(int argc, char* argv[])
         case HEX_BITS:
             cols = 6;
             break;
-        case HEX_NORMAL:
-        case HEX_LITTLEENDIAN:
         default:
             cols = 16;
             break;
@@ -576,8 +572,6 @@ int main(int argc, char* argv[])
         case HEX_LITTLEENDIAN:
             octspergrp = 4;
             break;
-        case HEX_POSTSCRIPT:
-        case HEX_CINCLUDE:
         default:
             octspergrp = 0;
             break;
@@ -598,7 +592,7 @@ int main(int argc, char* argv[])
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         input_file = stdin;
     } else {
-        if ((input_file = fopen(argv[1], "r")) == NULL) { // for reading
+        if (!(input_file = fopen(argv[1], "r"))) { // for reading
             fprintf(stderr, "%s: ", program_name);
             perror(argv[1]);
             return 2;
@@ -609,7 +603,7 @@ int main(int argc, char* argv[])
     } else {
         const int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
         const int file_descriptor = open(argv[2], mode | O_CREAT, 0666);
-        if ((file_descriptor < 0) || (output_file = fdopen(file_descriptor, "w")) == NULL) {
+        if ((file_descriptor < 0) || !(output_file = fdopen(file_descriptor, "w"))) {
             fprintf(stderr, "%s: ", program_name);
             perror(argv[2]);
             return 3;
@@ -652,19 +646,19 @@ int main(int argc, char* argv[])
 
     if (hextype == HEX_CINCLUDE) {
         // A user-set variable name overrides fp == stdin
-        if (varname == NULL && input_file != stdin) {
+        if (!varname && input_file != stdin) {
             varname = argv[1];
         }
-        if (varname != NULL) {
+        if (varname) {
             if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 error_exit(3, NULL);
             }
             if (capitalize) {
-                for (e = 0; (c = varname[e]) != 0; e++) {
+                for (e = 0; (c = varname[e]); e++) {
                     putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
                 }
             } else {
-                for (e = 0; (c = varname[e]) != 0; e++) {
+                for (e = 0; (c = varname[e]); e++) {
                     putc_or_die(isalnum((unsigned char)c) ? c : '_');
                 }
             }
@@ -683,17 +677,17 @@ int main(int argc, char* argv[])
         if (p) {
             fputs_or_die("\n");
         }
-        if (varname != NULL) {
+        if (varname) {
             fputs_or_die("};\n");
             if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
                 error_exit(3, NULL);
             }
             if (capitalize) {
-                for (e = 0; (c = varname[e]) != 0; e++) {
+                for (e = 0; (c = varname[e]); e++) {
                     putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
                 }
             } else {
-                for (e = 0; (c = varname[e]) != 0; e++) {
+                for (e = 0; (c = varname[e]); e++) {
                     putc_or_die(isalnum((unsigned char)c) ? c : '_');
                 }
             }
@@ -701,9 +695,9 @@ int main(int argc, char* argv[])
                 error_exit(3, NULL);
             }
         }
-        fclose_or_die();
         return 0;
     }
+
     char* hex_digits = uppercase_hex ? (char*)upper_hex_digits : (char*)lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
@@ -718,12 +712,12 @@ int main(int argc, char* argv[])
             }
             getc_or_die(&e);
         }
-        if (cols == 0 || p < cols) {
+        if (!cols || p < cols) {
             putc_or_die('\n');
         }
-        fclose_or_die();
         return 0;
     }
+
     if (hextype != HEX_BITS) { // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
         grplen = octspergrp + octspergrp + 1; // chars per octet group
         if (color) {
@@ -732,10 +726,11 @@ int main(int argc, char* argv[])
     } else { // hextype == HEX_BITS
         grplen = 8 * octspergrp + 1;
     }
+
     getc_or_die(&e);
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     while ((length < 0 || n < length) && e != EOF) {
-        if (p == 0) {
+        if (!p) {
             addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ;
@@ -853,6 +848,5 @@ int main(int argc, char* argv[])
     } else if (autoskip) {
         xxdline(l, -1); // last chance to flush out suppressed lines
     }
-    fclose_or_die();
     return 0;
 }
