@@ -155,9 +155,9 @@ int parse_hex_digit(const int c)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1
-int parse_bin_digit(const int c)
+int parse_bin_digit(const int ch)
 {
-    return (c >= '0' && c <= '1') ? c - '0' : -1;
+    return (ch >= '0' && ch <= '1') ? ch - '0' : -1;
 }
 
 /*
@@ -698,7 +698,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    char* hex_digits = uppercase_hex ? (char*)upper_hex_digits : (char*)lower_hex_digits;
+    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
     if (hextype == HEX_POSTSCRIPT) {
         p = cols;
         getc_or_die(&e);
