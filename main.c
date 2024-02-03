@@ -39,8 +39,7 @@ static FILE* input_file;
 static FILE* output_file;
 static char* program_name;
 
-// This is an EBCDIC to ASCII conversion table
-// from a proposed BTL standard April 16, 1979
+// This is an EBCDIC to ASCII conversion table from a proposed BTL standard, 16th of April 1979
 const unsigned char etoa64[] = {
     0040, 0240, 0241, 0242, 0243, 0244, 0245, 0246, 0247, 0250, 0325, 0056, 0074, 0050, 0053, 0174,
     0046, 0251, 0252, 0253, 0254, 0255, 0256, 0257, 0260, 0261, 0041, 0044, 0052, 0051, 0073, 0176,
@@ -240,11 +239,9 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 want_off++;
                 n1 = -1;
                 if (!hextype && (++p >= cols)) {
-                    // skip the rest of the line as garbage
                     c = skip_to_eol_or_die(c);
                 }
             } else if (n1 < 0 && n2 < 0 && n3 < 0) {
-                // already stumbled into garbage, skip line, wait and see
                 c = skip_to_eol_or_die(c);
             }
             if (c == '\n') {
@@ -274,11 +271,9 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 want_off++;
                 n1 = -1;
                 if (!hextype && (++p >= cols)) {
-                    // skip the rest of the line as garbage
                     c = skip_to_eol_or_die(c);
                 }
             } else if (n1 < 0 && n2 < 0 && n3 < 0) {
-                // already stumbled into garbage, skip line, wait and see
                 c = skip_to_eol_or_die(c);
             }
             if (c == '\n') {
@@ -329,13 +324,12 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
     return 0;
 }
 
-/*
- * Print line l. If nz is false, xxdline regards the line a line of
- * zeroes. If there are three or more consecutive lines of zeroes,
- * they are replaced by a single '*' character.
+/* xxdline prints line l. If nz is false, it regards the line as
+ * a line of zeroes. If there are three or more consecutive lines
+ * of zeroes, they are replaced by a single '*' character.
  *
- * If the output ends with more than two lines of zeroes, you
- * should call xxdline again with l being the last line and nz
+ * If the output ends with more than two lines of zeroes,
+ * you should call xxdline again with l being the last line and nz
  * negative. This ensures that the last line is shown even when
  * it is all zeroes.
  *
@@ -345,7 +339,6 @@ void xxdline(const char* l, const int nz)
 {
     static char __attribute__((aligned(16))) z[LLEN + 1];
     static int zero_seen = 0;
-
     if (!nz && zero_seen == 1) {
         strcpy(z, l);
     }
@@ -373,15 +366,15 @@ enum ColorDigit ebcdic_char_color(const unsigned char e)
     switch (e) {
     case 0:
         return COLOR_WHITE;
-    case 37:
-    case 13:
     case 5:
+    case 13:
+    case 37:
         return COLOR_YELLOW;
     case 255:
         return COLOR_BLUE;
-    case 189:
     case 64:
     case 173:
+    case 189:
     case 224:
         return COLOR_GREEN;
     }
@@ -424,14 +417,12 @@ int main(int argc, char* argv[])
     long length = -1, n = 0, seekoff = 0;
     unsigned long displayoff = 0;
 
-    // find the global program name
     program_name = argv[0];
     for (pp = program_name; *pp;) {
         if (*pp++ == '/') { // path separator
             program_name = pp;
         }
     }
-
     while (argc >= 2) {
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
@@ -630,12 +621,10 @@ int main(int argc, char* argv[])
     }
     if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         input_file = stdin;
-    } else {
-        if (!(input_file = fopen(argv[1], "r"))) { // for reading
-            fprintf(stderr, "%s: ", program_name);
-            perror(argv[1]);
-            return 2;
-        }
+    } else if (!(input_file = fopen(argv[1], "r"))) { // for reading
+        fprintf(stderr, "%s: ", program_name);
+        perror(argv[1]);
+        return 2;
     }
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         output_file = stdout;
@@ -649,7 +638,6 @@ int main(int argc, char* argv[])
         }
         rewind(output_file);
     }
-
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
@@ -681,9 +669,7 @@ int main(int argc, char* argv[])
             }
         }
     }
-
     if (hextype == HEX_CINCLUDE) {
-        // A user-set variable name overrides fp == stdin
         if (!varname && input_file != stdin) {
             varname = argv[1];
         }
