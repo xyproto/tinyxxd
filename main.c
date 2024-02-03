@@ -265,7 +265,9 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 putc_or_die(0);
             }
         }
-        if (hextype == HEX_NORMAL || hextype == HEX_POSTSCRIPT) {
+        switch (hextype) {
+        case HEX_NORMAL:
+        case HEX_POSTSCRIPT:
             if (n2 >= 0 && n1 >= 0) {
                 putc_or_die((n2 << 4) | n1);
                 have_off++;
@@ -279,7 +281,16 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 // already stumbled into garbage, skip line, wait and see
                 c = skip_to_eol_or_die(c);
             }
-        } else { // HEX_BITS
+            if (c == '\n' && HEX_NORMAL) {
+                want_off = 0;
+            }
+            break;
+        case HEX_BITS:
+            if (c == '\n') {
+                want_off = 0;
+            }
+            // fallthrough
+        default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN, HEX_BITS (fallthrough)
             if (bit_count == 8) {
                 putc_or_die(bit_buffer);
                 have_off++;
@@ -293,9 +304,6 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             }
         }
         if (c == '\n') {
-            if (hextype == HEX_NORMAL || hextype == HEX_BITS) {
-                want_off = 0;
-            }
             p = cols;
             ignore = 1;
         }
