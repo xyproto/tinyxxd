@@ -233,6 +233,23 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             }
             ignore = 0;
             fflush_fseek_and_putc(&base_off, &want_off, &have_off);
+            if (n2 >= 0 && n1 >= 0) {
+                putc_or_die((n2 << 4) | n1);
+                have_off++;
+                want_off++;
+                n1 = -1;
+                if (!hextype && (++p >= cols)) {
+                    // skip the rest of the line as garbage
+                    c = skip_to_eol_or_die(c);
+                }
+            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+                // already stumbled into garbage, skip line, wait and see
+                c = skip_to_eol_or_die(c);
+            }
+            if (c == '\n') {
+                p = cols;
+                ignore = 1;
+            }
             break;
         case HEX_NORMAL:
             n3 = n2;
@@ -250,6 +267,24 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 want_off = (want_off << 4) | n1;
             }
             fflush_fseek_and_putc(&base_off, &want_off, &have_off);
+            if (n2 >= 0 && n1 >= 0) {
+                putc_or_die((n2 << 4) | n1);
+                have_off++;
+                want_off++;
+                n1 = -1;
+                if (!hextype && (++p >= cols)) {
+                    // skip the rest of the line as garbage
+                    c = skip_to_eol_or_die(c);
+                }
+            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+                // already stumbled into garbage, skip line, wait and see
+                c = skip_to_eol_or_die(c);
+            }
+            if (c == '\n') {
+                want_off = 0;
+                p = cols;
+                ignore = 1;
+            }
             break;
         default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
             n1 = parse_hex_digit(c);
@@ -270,34 +305,9 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 }
                 want_off = (want_off << 4) | n1;
             }
-            continue;
-        }
-        switch (hextype) {
-        case HEX_NORMAL:
-        case HEX_POSTSCRIPT:
-            if (n2 >= 0 && n1 >= 0) {
-                putc_or_die((n2 << 4) | n1);
-                have_off++;
-                want_off++;
-                n1 = -1;
-                if (!hextype && (++p >= cols)) {
-                    // skip the rest of the line as garbage
-                    c = skip_to_eol_or_die(c);
-                }
-            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
-                // already stumbled into garbage, skip line, wait and see
-                c = skip_to_eol_or_die(c);
-            }
-            if (c == '\n' && HEX_NORMAL) {
+            if (hextype == HEX_BITS && c == '\n') {
                 want_off = 0;
             }
-            break;
-        case HEX_BITS:
-            if (c == '\n') {
-                want_off = 0;
-            }
-            // fallthrough
-        default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN, HEX_BITS (fallthrough)
             if (bit_count == 8) {
                 putc_or_die(bit_buffer);
                 have_off++;
@@ -309,11 +319,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                     c = skip_to_eol_or_die(c);
                 }
             }
-        }
-
-        if (c == '\n') {
-            p = cols;
-            ignore = 1;
+            break;
         }
     }
     fflush_or_die();
