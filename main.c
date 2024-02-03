@@ -787,7 +787,7 @@ int main(int argc, char* argv[])
         }
         if (color) {
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-            if (!ascii) {
+            if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
