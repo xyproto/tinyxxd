@@ -188,6 +188,22 @@ int skip_to_eol_or_die(int ch)
     return ch;
 }
 
+void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
+{
+    if (*base_off + *want_off != *have_off) {
+        fflush_or_die();
+        if (fseek(output_file, *base_off + *want_off - *have_off, SEEK_CUR) >= 0) {
+            *have_off = *base_off + *want_off;
+        }
+        if (*base_off + *want_off < *have_off) {
+            exit_with_error(5, "Sorry, cannot seek backwards.");
+        }
+        for (; *have_off < *base_off + *want_off; (*have_off)++) {
+            putc_or_die(0);
+        }
+    }
+}
+
 /* decode_hex_stream decodes hex or binary data from an input stream within 'cols' characters per line.
  * Supports normal, PostScript, and bits formats with format-specific rules. It aligns data in the output stream,
  * filling with zeroes as needed to maintain the base offset.
@@ -216,6 +232,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 continue;
             }
             ignore = 0;
+            fflush_fseek_and_putc(&base_off, &want_off, &have_off);
             break;
         case HEX_NORMAL:
             n3 = n2;
@@ -232,6 +249,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 }
                 want_off = (want_off << 4) | n1;
             }
+            fflush_fseek_and_putc(&base_off, &want_off, &have_off);
             break;
         default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
             n1 = parse_hex_digit(c);
@@ -253,18 +271,6 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 want_off = (want_off << 4) | n1;
             }
             continue;
-        }
-        if (base_off + want_off != have_off) {
-            fflush_or_die();
-            if (fseek(output_file, base_off + want_off - have_off, SEEK_CUR) >= 0) {
-                have_off = base_off + want_off;
-            }
-            if (base_off + want_off < have_off) {
-                exit_with_error(5, "Sorry, cannot seek backwards.");
-            }
-            for (; have_off < base_off + want_off; have_off++) {
-                putc_or_die(0);
-            }
         }
         switch (hextype) {
         case HEX_NORMAL:
@@ -304,6 +310,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 }
             }
         }
+
         if (c == '\n') {
             p = cols;
             ignore = 1;
