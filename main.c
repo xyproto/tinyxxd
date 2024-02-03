@@ -209,7 +209,14 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             if (c == ' ' || c == '\n' || c == '\t') {
                 continue;
             }
-            // fallthrough
+            n3 = n2;
+            n2 = n1;
+            n1 = parse_hex_digit(c);
+            if (n1 == -1 && ignore) {
+                continue;
+            }
+            ignore = 0;
+            break;
         case HEX_NORMAL:
             n3 = n2;
             n2 = n1;
@@ -217,23 +224,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             if (n1 == -1 && ignore) {
                 continue;
             }
-            break;
-        default: // HEX_BITS
-            n1 = parse_hex_digit(c);
-            if (n1 == -1 && ignore) {
-                continue;
-            }
-            bit = parse_bin_digit(c);
-            if (bit != -1) {
-                bit_buffer = ((bit_buffer << 1) | bit);
-                bit_count++;
-            }
-        }
-        ignore = 0;
-        switch (hextype) {
-        case HEX_POSTSCRIPT:
-            break;
-        case HEX_NORMAL:
+            ignore = 0;
             if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
@@ -243,6 +234,16 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             }
             break;
         default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
+            n1 = parse_hex_digit(c);
+            if (n1 == -1 && ignore) {
+                continue;
+            }
+            bit = parse_bin_digit(c);
+            if (bit != -1) {
+                bit_buffer = ((bit_buffer << 1) | bit);
+                bit_count++;
+            }
+            ignore = 0;
             if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
