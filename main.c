@@ -230,14 +230,20 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             }
         }
         ignore = 0;
-        if ((hextype != HEX_POSTSCRIPT) && (p >= cols)) {
-            if (hextype == HEX_NORMAL) {
+        switch (hextype) {
+        case HEX_POSTSCRIPT:
+            break;
+        case HEX_NORMAL:
+            if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
                     continue;
                 }
                 want_off = (want_off << 4) | n1;
-            } else { // HEX_BITS
+            }
+            break;
+        default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
+            if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
                     bit_count = 0;
