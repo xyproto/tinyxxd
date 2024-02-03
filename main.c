@@ -813,10 +813,13 @@ int main(int argc, char* argv[])
         l[c++] = '\n';
         l[c] = '\0';
         if (color) {
-            c++;
             x = p;
-            if (hextype == HEX_LITTLEENDIAN) {
-                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
+            const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
+            switch (hextype) {
+            case HEX_BITS:
+                c++;
+                break;
+            case HEX_LITTLEENDIAN:
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
                 for (i = 0; i < fill; i++) {
                     set_color(l, &c, COLOR_RED);
@@ -825,11 +828,9 @@ int main(int argc, char* argv[])
                     x++;
                     p++;
                 }
-            }
-            if (hextype != HEX_BITS) {
-                c = addrlen + 1 + (grplen * x) / octspergrp;
-                c += cols - p;
-                c += (cols - p) / octspergrp;
+                // fallthrough
+            default: // HEX_NORMAL, HEX_POSTSCRIPT, HEX_CINCLUDE, HEX_LITTLEENDIAN but not HEX_BITS
+                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
                 for (i = cols - p; i > 0; i--) {
                     set_color(l, &c, COLOR_RED);
                     l[c++] = ' ';
