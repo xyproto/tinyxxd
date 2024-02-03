@@ -210,7 +210,8 @@ void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* hav
  */
 int decode_hex_stream(const int cols, const enum HexType hextype, const long base_off)
 {
-    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, ignore = 1, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    bool ignore = true;
+    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
     rewind(input_file);
     while ((c = getc(input_file)) != EOF) {
@@ -231,7 +232,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             if (n1 == -1 && ignore) {
                 continue;
             }
-            ignore = 0;
+            ignore = false;
             fflush_fseek_and_putc(&base_off, &want_off, &have_off);
             if (n2 >= 0 && n1 >= 0) {
                 putc_or_die((n2 << 4) | n1);
@@ -248,7 +249,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             }
             if (c == '\n') {
                 p = cols;
-                ignore = 1;
+                ignore = true;
             }
             break;
         case HEX_NORMAL:
@@ -258,7 +259,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             if (n1 == -1 && ignore) {
                 continue;
             }
-            ignore = 0;
+            ignore = false;
             if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
@@ -283,7 +284,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
             if (c == '\n') {
                 want_off = 0;
                 p = cols;
-                ignore = 1;
+                ignore = true;
             }
             break;
         default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
@@ -296,7 +297,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 bit_buffer = ((bit_buffer << 1) | bit);
                 bit_count++;
             }
-            ignore = 0;
+            ignore = false;
             if (p >= cols) {
                 if (n1 < 0) {
                     p = 0;
@@ -858,7 +859,7 @@ int main(int argc, char* argv[])
                 }
             }
             // fallthrough
-            default: // HEX_NORMAL, HEX_POSTSCRIPT, HEX_CINCLUDE, HEX_LITTLEENDIAN but not HEX_BITS
+            default: // HEX_NORMAL, HEX_POSTSCRIPT, HEX_CINCLUDE or HEX_LITTLEENDIAN (fallthrough)
                 c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
                 for (i = cols - p; i > 0; i--) {
                     set_color(l, &c, COLOR_RED);
