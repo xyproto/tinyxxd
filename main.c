@@ -782,7 +782,6 @@ int main(int argc, char* argv[])
         if (!cols || p < cols) {
             putc_or_die('\n');
         }
-        getc_or_die(&e);
         return 0;
     case HEX_BITS:
         grplen = 8 * octspergrp + 1;
@@ -829,6 +828,17 @@ int main(int argc, char* argv[])
                 p = 0;
             }
             getc_or_die(&e);
+        }
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            if (color) {
+                x = p;
+                c++;
+            }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
         }
         break;
     case HEX_LITTLEENDIAN:
@@ -883,6 +893,31 @@ int main(int argc, char* argv[])
                 p = 0;
             }
             getc_or_die(&e);
+        }
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            if (color) {
+                x = p;
+                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
+                c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
+                for (i = 0; i < fill; i++) {
+                    set_color(l, &c, COLOR_RED);
+                    l[c++] = ' ';
+                    clear_color(l, &c);
+                    x++;
+                    p++;
+                }
+                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
+                for (i = cols - p; i > 0; i--) {
+                    set_color(l, &c, COLOR_RED);
+                    l[c++] = ' ';
+                    clear_color(l, &c);
+                }
+            }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
         }
         break;
     case HEX_NORMAL:
@@ -986,51 +1021,6 @@ int main(int argc, char* argv[])
                 getc_or_die(&e);
             }
         }
-        break;
-    }
-    switch (hextype) {
-    case HEX_BITS:
-        if (p) {
-            l[c++] = '\n';
-            l[c] = '\0';
-
-            if (color) {
-                x = p;
-                c++;
-            }
-            xxdline(l, 1);
-        } else if (autoskip) {
-            xxdline(l, -1); // last chance to flush out suppressed lines
-        }
-        break;
-    case HEX_LITTLEENDIAN: {
-        if (p) {
-            l[c++] = '\n';
-            l[c] = '\0';
-            if (color) {
-                x = p;
-                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
-                c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
-                for (i = 0; i < fill; i++) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                    x++;
-                    p++;
-                }
-                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
-                for (i = cols - p; i > 0; i--) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                }
-            }
-            xxdline(l, 1);
-        } else if (autoskip) {
-            xxdline(l, -1); // last chance to flush out suppressed lines
-        }
-    } break;
-    default: // HEX_NORMAL, HEX_POSTSCRIPT or HEX_LITTLEENDIAN (fallthrough)
         if (p) {
             l[c++] = '\n';
             l[c] = '\0';
@@ -1047,6 +1037,7 @@ int main(int argc, char* argv[])
         } else if (autoskip) {
             xxdline(l, -1); // last chance to flush out suppressed lines
         }
+        break;
     }
     return 0;
 }
