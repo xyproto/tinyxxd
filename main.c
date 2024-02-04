@@ -434,7 +434,7 @@ enum ColorDigit ascii_char_color(const unsigned char e)
     return COLOR_RED;
 }
 
-int hex_postscript(const bool colsgiven, int cols, int octspergrp, bool revert, int p, int e, const long length, const int negseek, const long seekoff, long n, const char* hex_digits)
+int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int e, const long length, const int negseek, const long seekoff, long n, const char* hex_digits)
 {
     if (!colsgiven) {
         cols = 30;
@@ -462,6 +462,72 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, bool revert, 
     }
     if (!cols || p < cols) {
         putc_or_die('\n');
+    }
+    return 0;
+}
+
+int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length)
+{
+    if (!colsgiven || !cols) {
+        cols = 12;
+    } else if (cols < 1) {
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+        exit(1);
+    }
+    if (revert) {
+        exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
+    }
+    if (octspergrp < 1 || octspergrp > cols) {
+        octspergrp = cols;
+    }
+    if (!varname && input_file != stdin) {
+        varname = argv1; // argv[1]
+    }
+    if (varname) {
+        if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            exit_with_error(3, NULL);
+        }
+        if (capitalize) {
+            for (e = 0; (c = varname[e]); e++) {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
+            }
+        } else {
+            for (e = 0; (c = varname[e]); e++) {
+                putc_or_die(isalnum((unsigned char)c) ? c : '_');
+            }
+        }
+        fputs_or_die("[] = {\n");
+    }
+    p = 0;
+    getc_or_die(&c);
+    char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
+    while ((length < 0 || p < length) && c != EOF) {
+        if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
+            exit_with_error(3, NULL);
+        }
+        p++;
+        getc_or_die(&c);
+    }
+    if (p) {
+        fputs_or_die("\n");
+    }
+    if (varname) {
+        fputs_or_die("};\n");
+        if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            exit_with_error(3, NULL);
+        }
+        if (capitalize) {
+            for (e = 0; (c = varname[e]); e++) {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
+            }
+        } else {
+            for (e = 0; (c = varname[e]); e++) {
+                putc_or_die(isalnum((unsigned char)c) ? c : '_');
+            }
+        }
+        if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
+            exit_with_error(3, NULL);
+        }
     }
     return 0;
 }
@@ -693,68 +759,7 @@ int main(int argc, char* argv[])
     case HEX_POSTSCRIPT:
         return hex_postscript(colsgiven, cols, octspergrp, revert, p, e, length, negseek, seekoff, n, hex_digits);
     case HEX_CINCLUDE:
-        if (!colsgiven || !cols) {
-            cols = 12;
-        } else if (cols < 1) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        }
-        if (revert) {
-            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
-        }
-        if (!varname && input_file != stdin) {
-            varname = argv[1];
-        }
-        if (varname) {
-            if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                exit_with_error(3, NULL);
-            }
-            if (capitalize) {
-                for (e = 0; (c = varname[e]); e++) {
-                    putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-                }
-            } else {
-                for (e = 0; (c = varname[e]); e++) {
-                    putc_or_die(isalnum((unsigned char)c) ? c : '_');
-                }
-            }
-            fputs_or_die("[] = {\n");
-        }
-        p = 0;
-        getc_or_die(&c);
-        char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
-        while ((length < 0 || p < length) && c != EOF) {
-            if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
-                exit_with_error(3, NULL);
-            }
-            p++;
-            getc_or_die(&c);
-        }
-        if (p) {
-            fputs_or_die("\n");
-        }
-        if (varname) {
-            fputs_or_die("};\n");
-            if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-                exit_with_error(3, NULL);
-            }
-            if (capitalize) {
-                for (e = 0; (c = varname[e]); e++) {
-                    putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-                }
-            } else {
-                for (e = 0; (c = varname[e]); e++) {
-                    putc_or_die(isalnum((unsigned char)c) ? c : '_');
-                }
-            }
-            if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
-                exit_with_error(3, NULL);
-            }
-        }
-        break; // return 0
+        return hex_cinclude(colsgiven, cols, octspergrp, revert, p, e, c, capitalize, varname, argv[1], uppercase_hex, length);
     case HEX_BITS:
         if (!colsgiven || !cols) {
             cols = 6;
