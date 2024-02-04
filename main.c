@@ -213,12 +213,12 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while ((c = getc(input_file)) != EOF) {
-        if (c == '\r') { // DOS style newlines?
-            continue;
-        }
-        switch (hextype) {
-        case HEX_POSTSCRIPT:
+    switch (hextype) {
+    case HEX_POSTSCRIPT:
+        while ((c = getc(input_file)) != EOF) {
+            if (c == '\r') { // DOS style newlines?
+                continue;
+            }
             // Allow multiple spaces. This doesn't work when there is normal text
             // after the hex codes in the last line that looks like hex, thus only
             // use it for PostScript format.
@@ -248,8 +248,13 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 p = cols;
                 ignore = true;
             }
-            break;
-        case HEX_NORMAL:
+        }
+        break;
+    case HEX_NORMAL:
+        while ((c = getc(input_file)) != EOF) {
+            if (c == '\r') { // DOS style newlines?
+                continue;
+            }
             n3 = n2;
             n2 = n1;
             n1 = parse_hex_digit(c);
@@ -282,8 +287,13 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                 p = cols;
                 ignore = true;
             }
-            break;
-        default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
+        }
+        break;
+    default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
+        while ((c = getc(input_file)) != EOF) {
+            if (c == '\r') { // DOS style newlines?
+                continue;
+            }
             n1 = parse_hex_digit(c);
             if (n1 == -1 && ignore) {
                 continue;
@@ -317,8 +327,8 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                     c = skip_to_eol_or_die(c);
                 }
             }
-            break;
         }
+        break;
     }
     fflush_or_die();
     fseek(output_file, 0L, SEEK_END);
