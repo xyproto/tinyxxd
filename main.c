@@ -203,132 +203,156 @@ void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* hav
     }
 }
 
-/* decode_hex_stream decodes hex or binary data from an input stream within 'cols' characters per line.
- * Supports normal, PostScript, and bits formats with format-specific rules. It aligns data in the output stream,
+/* decode_hex_stream_postscript decodes hex data from an input stream within 'cols' characters per line.
+ * Supports Postscript formats with format-specific rules. It aligns data in the output stream,
  * filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream(const int cols, const enum HexType hextype, const long base_off)
+int decode_hex_stream_postscript(const int cols, const enum HexType hextype, const long base_off)
 {
     bool ignore = true;
-    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    switch (hextype) {
-    case HEX_POSTSCRIPT:
-        while ((c = getc(input_file)) != EOF) {
-            if (c == '\r') { // DOS style newlines?
-                continue;
-            }
-            // Allow multiple spaces. This doesn't work when there is normal text
-            // after the hex codes in the last line that looks like hex, thus only
-            // use it for PostScript format.
-            if (c == ' ' || c == '\n' || c == '\t') {
-                continue;
-            }
-            n3 = n2;
-            n2 = n1;
-            n1 = parse_hex_digit(c);
-            if (n1 == -1 && ignore) {
-                continue;
-            }
-            ignore = false;
-            fflush_fseek_and_putc(&base_off, &want_off, &have_off);
-            if (n2 >= 0 && n1 >= 0) {
-                putc_or_die((n2 << 4) | n1);
-                have_off++;
-                want_off++;
-                n1 = -1;
-                if (!hextype && (++p >= cols)) {
-                    c = skip_to_eol_or_die(c);
-                }
-            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+    while ((c = getc(input_file)) != EOF) {
+        if (c == '\r') { // DOS style newlines?
+            continue;
+        }
+        // Allow multiple spaces. This doesn't work when there is normal text
+        // after the hex codes in the last line that looks like hex, thus only
+        // use it for PostScript format.
+        if (c == ' ' || c == '\n' || c == '\t') {
+            continue;
+        }
+        n3 = n2;
+        n2 = n1;
+        n1 = parse_hex_digit(c);
+        if (n1 == -1 && ignore) {
+            continue;
+        }
+        ignore = false;
+        fflush_fseek_and_putc(&base_off, &want_off, &have_off);
+        if (n2 >= 0 && n1 >= 0) {
+            putc_or_die((n2 << 4) | n1);
+            have_off++;
+            want_off++;
+            n1 = -1;
+            if (!hextype && (++p >= cols)) {
                 c = skip_to_eol_or_die(c);
             }
-            if (c == '\n') {
-                p = cols;
-                ignore = true;
-            }
+        } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+            c = skip_to_eol_or_die(c);
         }
-        break;
-    case HEX_NORMAL:
-        while ((c = getc(input_file)) != EOF) {
-            if (c == '\r') { // DOS style newlines?
+        if (c == '\n') {
+            p = cols;
+            ignore = true;
+        }
+    }
+    fflush_or_die();
+    fseek(output_file, 0L, SEEK_END);
+    fclose_or_die();
+    return 0;
+}
+
+/* decode_hex_stream_normal decodes hex data from an input stream within 'cols' characters per line.
+ * Supports normal formats with format-specific rules. It aligns data in the output stream,
+ * filling with zeroes as needed to maintain the base offset.
+ */
+int decode_hex_stream_normal(const int cols, const enum HexType hextype, const long base_off)
+{
+    bool ignore = true;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    long have_off = 0, want_off = 0;
+    rewind(input_file);
+    while ((c = getc(input_file)) != EOF) {
+        if (c == '\r') { // DOS style newlines?
+            continue;
+        }
+        n3 = n2;
+        n2 = n1;
+        n1 = parse_hex_digit(c);
+        if (n1 == -1 && ignore) {
+            continue;
+        }
+        ignore = false;
+        if (p >= cols) {
+            if (n1 < 0) {
+                p = 0;
                 continue;
             }
-            n3 = n2;
-            n2 = n1;
-            n1 = parse_hex_digit(c);
-            if (n1 == -1 && ignore) {
-                continue;
-            }
-            ignore = false;
-            if (p >= cols) {
-                if (n1 < 0) {
-                    p = 0;
-                    continue;
-                }
-                want_off = (want_off << 4) | n1;
-                continue;
-            }
-            fflush_fseek_and_putc(&base_off, &want_off, &have_off);
-            if (n2 >= 0 && n1 >= 0) {
-                putc_or_die((n2 << 4) | n1);
-                have_off++;
-                want_off++;
-                n1 = -1;
-                if (!hextype && (++p >= cols)) {
-                    c = skip_to_eol_or_die(c);
-                }
-            } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+            want_off = (want_off << 4) | n1;
+            continue;
+        }
+        fflush_fseek_and_putc(&base_off, &want_off, &have_off);
+        if (n2 >= 0 && n1 >= 0) {
+            putc_or_die((n2 << 4) | n1);
+            have_off++;
+            want_off++;
+            n1 = -1;
+            if (!hextype && (++p >= cols)) {
                 c = skip_to_eol_or_die(c);
             }
-            if (c == '\n') {
-                want_off = 0;
-                p = cols;
-                ignore = true;
-            }
+        } else if (n1 < 0 && n2 < 0 && n3 < 0) {
+            c = skip_to_eol_or_die(c);
         }
-        break;
-    default: // HEX_CINCLUDE, HEX_BITS, HEX_LITTLEENDIAN
-        while ((c = getc(input_file)) != EOF) {
-            if (c == '\r') { // DOS style newlines?
-                continue;
-            }
-            n1 = parse_hex_digit(c);
-            if (n1 == -1 && ignore) {
-                continue;
-            }
-            bit = parse_bin_digit(c);
-            if (bit != -1) {
-                bit_buffer = ((bit_buffer << 1) | bit);
-                bit_count++;
-            }
-            ignore = false;
-            if (p >= cols) {
-                if (n1 < 0) {
-                    p = 0;
-                    bit_count = 0;
-                    continue;
-                }
-                want_off = (want_off << 4) | n1;
-                continue;
-            }
-            if (hextype == HEX_BITS && c == '\n') {
-                want_off = 0;
-            }
-            if (bit_count == 8) {
-                putc_or_die(bit_buffer);
-                have_off++;
-                want_off++;
-                bit_buffer = 0;
+        if (c == '\n') {
+            want_off = 0;
+            p = cols;
+            ignore = true;
+        }
+    }
+    fflush_or_die();
+    fseek(output_file, 0L, SEEK_END);
+    fclose_or_die();
+    return 0;
+}
+
+/* decode_hex_stream_bits decodes binary data from an input stream within 'cols' characters per line.
+ * Supports bits formats with format-specific rules. It aligns data in the output stream,
+ * filling with zeroes as needed to maintain the base offset.
+ */
+int decode_hex_stream_bits(const int cols, const enum HexType hextype)
+{
+    bool ignore = true;
+    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
+    long have_off = 0, want_off = 0;
+    rewind(input_file);
+    while ((c = getc(input_file)) != EOF) {
+        if (c == '\r') { // DOS style newlines?
+            continue;
+        }
+        n1 = parse_hex_digit(c);
+        if (n1 == -1 && ignore) {
+            continue;
+        }
+        bit = parse_bin_digit(c);
+        if (bit != -1) {
+            bit_buffer = ((bit_buffer << 1) | bit);
+            bit_count++;
+        }
+        ignore = false;
+        if (p >= cols) {
+            if (n1 < 0) {
+                p = 0;
                 bit_count = 0;
-                if (++p >= cols) {
-                    // skip the rest of the line as garbage
-                    c = skip_to_eol_or_die(c);
-                }
+                continue;
+            }
+            want_off = (want_off << 4) | n1;
+            continue;
+        }
+        if (hextype == HEX_BITS && c == '\n') {
+            want_off = 0;
+        }
+        if (bit_count == 8) {
+            putc_or_die(bit_buffer);
+            have_off++;
+            want_off++;
+            bit_buffer = 0;
+            bit_count = 0;
+            if (++p >= cols) {
+                // skip the rest of the line as garbage
+                c = skip_to_eol_or_die(c);
             }
         }
-        break;
     }
     fflush_or_die();
     fseek(output_file, 0L, SEEK_END);
@@ -653,9 +677,11 @@ int main(int argc, char* argv[])
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
+            return decode_hex_stream_normal(cols, hextype, negseek ? -seekoff : seekoff);
         case HEX_POSTSCRIPT:
+            return decode_hex_stream_postscript(cols, hextype, negseek ? -seekoff : seekoff);
         case HEX_BITS:
-            return decode_hex_stream(cols, hextype, negseek ? -seekoff : seekoff);
+            return decode_hex_stream_bits(cols, hextype);
         default:
             exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
