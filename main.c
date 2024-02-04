@@ -612,6 +612,29 @@ int main(int argc, char* argv[])
         argc--;
     }
 
+    if (argc > 3) {
+        exit_with_usage();
+    }
+    if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
+        input_file = stdin;
+    } else if (!(input_file = fopen(argv[1], "r"))) { // for reading
+        fprintf(stderr, "%s: ", program_name);
+        perror(argv[1]);
+        return 2;
+    }
+    if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
+        output_file = stdout;
+    } else {
+        const int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
+        const int file_descriptor = open(argv[2], mode | O_CREAT, 0666);
+        if ((file_descriptor < 0) || !(output_file = fdopen(file_descriptor, "w"))) {
+            fprintf(stderr, "%s: ", program_name);
+            perror(argv[2]);
+            return 3;
+        }
+        rewind(output_file);
+    }
+
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     char color_digit = 0;
@@ -682,28 +705,6 @@ int main(int argc, char* argv[])
         break;
     }
 
-    if (argc > 3) {
-        exit_with_usage();
-    }
-    if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
-        input_file = stdin;
-    } else if (!(input_file = fopen(argv[1], "r"))) { // for reading
-        fprintf(stderr, "%s: ", program_name);
-        perror(argv[1]);
-        return 2;
-    }
-    if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
-        output_file = stdout;
-    } else {
-        const int mode = revert ? O_WRONLY : (O_TRUNC | O_WRONLY);
-        const int file_descriptor = open(argv[2], mode | O_CREAT, 0666);
-        if ((file_descriptor < 0) || !(output_file = fdopen(file_descriptor, "w"))) {
-            fprintf(stderr, "%s: ", program_name);
-            perror(argv[2]);
-            return 3;
-        }
-        rewind(output_file);
-    }
     if (revert) {
         switch (hextype) {
         case HEX_NORMAL:
