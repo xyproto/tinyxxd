@@ -812,6 +812,11 @@ int main(int argc, char* argv[])
             if (e) {
                 nonzero++;
             }
+            if (color) {
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
+            } else {
+                c = (grplen * cols - 1) / octspergrp;
+            }
             break;
         case HEX_LITTLEENDIAN:
             x = p ^ (octspergrp - 1);
@@ -828,6 +833,11 @@ int main(int argc, char* argv[])
             if (e) {
                 nonzero++;
             }
+            if (color) {
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
+            } else {
+                c = grplen * ((cols + octspergrp - 1) / octspergrp);
+            }
             break;
         case HEX_BITS:
             x = p;
@@ -837,6 +847,11 @@ int main(int argc, char* argv[])
             }
             if (e) {
                 nonzero++;
+            }
+            if (color) {
+                c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
+            } else {
+                c = (grplen * cols - 1) / octspergrp;
             }
             break;
         default: // HEX_POSTSCRIPT, HEX_CINCLUDE
@@ -848,23 +863,6 @@ int main(int argc, char* argv[])
             if (e) {
                 nonzero++;
             }
-        }
-        switch (hextype) {
-        case HEX_LITTLEENDIAN:
-            if (color) {
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
-            } else {
-                c = grplen * ((cols + octspergrp - 1) / octspergrp);
-            }
-            break;
-        case HEX_BITS:
-            if (color) {
-                c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
-            } else {
-                c = (grplen * cols - 1) / octspergrp;
-            }
-            break;
-        default:
             if (color) {
                 c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             } else {
