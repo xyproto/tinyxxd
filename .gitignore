@@ -63,5 +63,5 @@ timing.txt
 *.bak
 *.swp
 *.tmp
-output.txt
+*output.txt
 *time.txt
