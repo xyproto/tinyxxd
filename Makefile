@@ -23,8 +23,8 @@ profile: tinyxxd_debug
 	@kcachegrind || echo 'Profile generated. Use kcachegrind or a similar tool to view the callgrind output.'
 
 bench: tinyxxd
-	python3 bench.py
-	@rm -f sample.bin  # Clean up the sample file after benchmarking
+	@python3 bench.py
+	@rm -f sample.bin
 
 fmt: main.c
 	clang-format -style=WebKit -i main.c
