@@ -188,10 +188,10 @@ void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* hav
  * Supports Postscript formats with format-specific rules. It aligns data in the output stream,
  * filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream_postscript(const int cols, const enum HexType hextype, const long base_off)
+int decode_hex_stream_postscript(const long base_off)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0;
     long have_off = 0, want_off = 0;
     rewind(input_file);
     while ((c = getc(input_file)) != EOF) {
@@ -217,14 +217,10 @@ int decode_hex_stream_postscript(const int cols, const enum HexType hextype, con
             have_off++;
             want_off++;
             n1 = -1;
-            if (!hextype && (++p >= cols)) {
-                c = skip_to_eol_or_die(c);
-            }
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
             c = skip_to_eol_or_die(c);
         }
         if (c == '\n') {
-            p = cols;
             ignore = true;
         }
     }
@@ -436,6 +432,38 @@ enum ColorDigit ascii_char_color(const unsigned char e)
         return COLOR_GREEN;
     }
     return COLOR_RED;
+}
+
+int hex_postscript(const bool colsgiven, int cols, int octspergrp, bool revert, int p, int e, const long length, const int negseek, const long seekoff, long n, const char* hex_digits)
+{
+    if (!colsgiven) {
+        cols = 30;
+    } else if (cols < 0) {
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+        exit(1);
+    }
+    if (octspergrp < 1 || octspergrp > cols) {
+        octspergrp = cols;
+    }
+    if (revert) {
+        return decode_hex_stream_postscript(negseek ? -seekoff : seekoff);
+    }
+    p = cols;
+    getc_or_die(&e);
+    while ((length < 0 || n < length) && e != EOF) {
+        putc_or_die(hex_digits[(e >> 4) & 0xf]);
+        putc_or_die(hex_digits[e & 0xf]);
+        n++;
+        if (cols > 0 && !--p) {
+            putc_or_die('\n');
+            p = cols;
+        }
+        getc_or_die(&e);
+    }
+    if (!cols || p < cols) {
+        putc_or_die('\n');
+    }
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -663,34 +691,7 @@ int main(int argc, char* argv[])
 
     switch (hextype) {
     case HEX_POSTSCRIPT:
-        if (!colsgiven) {
-            cols = 30;
-        } else if (cols < 0) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        }
-        if (revert) {
-            return decode_hex_stream_postscript(cols, hextype, negseek ? -seekoff : seekoff);
-        }
-        p = cols;
-        getc_or_die(&e);
-        while ((length < 0 || n < length) && e != EOF) {
-            putc_or_die(hex_digits[(e >> 4) & 0xf]);
-            putc_or_die(hex_digits[e & 0xf]);
-            n++;
-            if (cols > 0 && !--p) {
-                putc_or_die('\n');
-                p = cols;
-            }
-            getc_or_die(&e);
-        }
-        if (!cols || p < cols) {
-            putc_or_die('\n');
-        }
-        break; // return 0
+        return hex_postscript(colsgiven, cols, octspergrp, revert, p, e, length, negseek, seekoff, n, hex_digits);
     case HEX_CINCLUDE:
         if (!colsgiven || !cols) {
             cols = 12;
