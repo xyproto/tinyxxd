@@ -851,10 +851,10 @@ int main(int argc, char* argv[])
                 c = (grplen * cols - 1) / octspergrp;
             }
         }
-        if (e) {
-            nonzero++;
-        }
         if (color) {
+            if (e) {
+                nonzero++;
+            }
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
@@ -862,6 +862,9 @@ int main(int argc, char* argv[])
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
             clear_color(l, &c);
         } else { // no color
+            if (e) {
+                nonzero++;
+            }
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
