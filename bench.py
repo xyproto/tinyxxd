@@ -1,6 +1,10 @@
 import subprocess
 import time
 import sys
+import os
+
+def file_is_not_empty(filepath):
+    return os.path.isfile(filepath) and os.path.getsize(filepath) > 0
 
 def run_command(command):
     start = time.perf_counter()
@@ -13,22 +17,29 @@ def print_progress_bar(iteration, total, prefix='', suffix='', length=50, fill='
     filled_length = int(length * iteration // total)
     bar = fill * filled_length + '-' * (length - filled_length)
     print(f'\r{prefix} |{bar}| {percent}% {suffix}', end="\r")
-    if iteration == total:  # Print New Line on Complete
+    if iteration == total:
         print()
 
-def benchmark_command(command, total_runs=50):
+def benchmark_command(command, check_files, total_runs=50):
     times = []
     for i in range(total_runs):
+        for file in check_files['before']:
+            if not file_is_not_empty(file):
+                print(f"Error: '{file}' is empty or does not exist.")
+                return
         duration, returncode = run_command(command)
         if returncode != 0:
-            print(f"Error executing command")
-            break
+            print("Error executing command")
+            return
+        for file in check_files['after']:
+            if not file_is_not_empty(file):
+                print(f"Error: '{file}' is empty or was not properly generated.")
+                return
         times.append(duration)
         print_progress_bar(i + 1, total_runs, prefix='Benchmarking:', suffix='Complete', length=40)
     return times
 
 def main():
-    # Default total_runs to 50 if not specified
     total_runs = 50
     if len(sys.argv) > 1:
         try:
@@ -39,17 +50,21 @@ def main():
 
     sample_file = 'sample.bin'
     with open(sample_file, 'wb') as f:
-        f.write(bytearray(10 * 1024 * 1024))  # 10MB file
+        f.write(bytearray(10 * 1024 * 1024))
 
-    # Commands for xxd and tinyxxd
+    check_files = {
+        'before': ['sample.bin'],
+        'after': ['sample.hex', 'sample_out.bin']
+    }
+
     command_base = f'xxd sample.bin sample.hex && xxd -r sample.hex sample_out.bin'
     tinyxxd_command = command_base.replace('xxd', './tinyxxd')
 
     print("Benchmarking xxd...")
-    xxd_times = benchmark_command(command_base, total_runs)
+    xxd_times = benchmark_command(command_base, check_files, total_runs)
 
     print("Benchmarking tinyxxd...")
-    tinyxxd_times = benchmark_command(tinyxxd_command, total_runs)
+    tinyxxd_times = benchmark_command(tinyxxd_command, check_files, total_runs)
 
     avg_xxd_time = sum(xxd_times) / len(xxd_times)
     avg_tinyxxd_time = sum(tinyxxd_times) / len(tinyxxd_times)
