@@ -675,7 +675,22 @@ int main(int argc, char* argv[])
         if (revert) {
             return decode_hex_stream_postscript(cols, hextype, negseek ? -seekoff : seekoff);
         }
-        break;
+        p = cols;
+        getc_or_die(&e);
+        while ((length < 0 || n < length) && e != EOF) {
+            putc_or_die(hex_digits[(e >> 4) & 0xf]);
+            putc_or_die(hex_digits[e & 0xf]);
+            n++;
+            if (cols > 0 && !--p) {
+                putc_or_die('\n');
+                p = cols;
+            }
+            getc_or_die(&e);
+        }
+        if (!cols || p < cols) {
+            putc_or_die('\n');
+        }
+        break; // return 0
     case HEX_CINCLUDE:
         if (!colsgiven || !cols) {
             cols = 12;
@@ -689,60 +704,6 @@ int main(int argc, char* argv[])
         if (revert) {
             exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
-        break;
-    case HEX_BITS:
-        if (!colsgiven || !cols) {
-            cols = 6;
-        } else if (cols < 1 || cols > COLS) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 0) {
-            octspergrp = 1;
-        } else if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        }
-        if (revert) {
-            return decode_hex_stream_bits(cols, hextype);
-        }
-        break;
-    case HEX_NORMAL:
-        if (!colsgiven || !cols) {
-            cols = 16;
-        } else if (cols < 1 || cols > COLS) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 0) {
-            octspergrp = 2;
-        } else if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        }
-        if (revert) {
-            return decode_hex_stream_normal(cols, hextype, negseek ? -seekoff : seekoff);
-        }
-        break;
-    case HEX_LITTLEENDIAN:
-        if (!colsgiven || !cols) {
-            cols = 16;
-        } else if (cols < 1 || cols > COLS) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 0) {
-            octspergrp = 4;
-        } else if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        } else if (octspergrp & (octspergrp - 1)) {
-            exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
-        }
-        if (revert) {
-            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
-        }
-        break;
-    }
-    switch (hextype) {
-    case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
             varname = argv[1];
         }
@@ -792,25 +753,22 @@ int main(int argc, char* argv[])
                 exit_with_error(3, NULL);
             }
         }
-        return 0;
-    case HEX_POSTSCRIPT:
-        p = cols;
-        getc_or_die(&e);
-        while ((length < 0 || n < length) && e != EOF) {
-            putc_or_die(hex_digits[(e >> 4) & 0xf]);
-            putc_or_die(hex_digits[e & 0xf]);
-            n++;
-            if (cols > 0 && !--p) {
-                putc_or_die('\n');
-                p = cols;
-            }
-            getc_or_die(&e);
-        }
-        if (!cols || p < cols) {
-            putc_or_die('\n');
-        }
-        return 0;
+        break; // return 0
     case HEX_BITS:
+        if (!colsgiven || !cols) {
+            cols = 6;
+        } else if (cols < 1 || cols > COLS) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 0) {
+            octspergrp = 1;
+        } else if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        }
+        if (revert) {
+            return decode_hex_stream_bits(cols, hextype);
+        }
         grplen = 8 * octspergrp + 1;
         getc_or_die(&e);
         while ((length < 0 || n < length) && e != EOF) {
@@ -867,87 +825,22 @@ int main(int argc, char* argv[])
         } else if (autoskip) {
             xxdline(l, -1); // last chance to flush out suppressed lines
         }
-        break;
-    case HEX_LITTLEENDIAN:
-        if (color) {
-            grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
-        } else {
-            grplen = octspergrp + octspergrp + 1; // chars per octet group
-        }
-        getc_or_die(&e);
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; l[c++] = ' ')
-                    ;
-            }
-            x = p ^ (octspergrp - 1);
-            c = addrlen + 1 + (grplen * x) / octspergrp;
-            if (color) {
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                l[c++] = hex_digits[(e >> 4) & 0xf];
-                l[c++] = hex_digits[e & 0xf];
-                clear_color(l, &c);
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
-                if (e) {
-                    nonzero++;
-                }
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-                clear_color(l, &c);
-            } else { // no color
-                l[c] = hex_digits[(e >> 4) & 0xf];
-                l[++c] = hex_digits[e & 0xf];
-                c = grplen * ((cols + octspergrp - 1) / octspergrp);
-                if (e) {
-                    nonzero++;
-                }
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                c += addrlen + 3 + p;
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            }
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e);
-        }
-        if (p) {
-            l[c++] = '\n';
-            l[c] = '\0';
-            if (color) {
-                x = p;
-                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
-                c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
-                for (i = 0; i < fill; i++) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                    x++;
-                    p++;
-                }
-                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
-                for (i = cols - p; i > 0; i--) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                }
-            }
-            xxdline(l, 1);
-        } else if (autoskip) {
-            xxdline(l, -1); // last chance to flush out suppressed lines
-        }
-        break;
+        break; // return 0
     case HEX_NORMAL:
+        if (!colsgiven || !cols) {
+            cols = 16;
+        } else if (cols < 1 || cols > COLS) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 0) {
+            octspergrp = 2;
+        } else if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        }
+        if (revert) {
+            return decode_hex_stream_normal(cols, hextype, negseek ? -seekoff : seekoff);
+        }
         if (color) {
             grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
         } else {
@@ -1064,7 +957,102 @@ int main(int argc, char* argv[])
         } else if (autoskip) {
             xxdline(l, -1); // last chance to flush out suppressed lines
         }
-        break;
+        break; // return 0
+    case HEX_LITTLEENDIAN:
+        if (!colsgiven || !cols) {
+            cols = 16;
+        } else if (cols < 1 || cols > COLS) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 0) {
+            octspergrp = 4;
+        } else if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        } else if (octspergrp & (octspergrp - 1)) {
+            exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
+        }
+        if (revert) {
+            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
+        }
+        if (color) {
+            grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
+        } else {
+            grplen = octspergrp + octspergrp + 1; // chars per octet group
+        }
+        getc_or_die(&e);
+        while ((length < 0 || n < length) && e != EOF) {
+            if (!p) {
+                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                for (c = addrlen; c < LLEN; l[c++] = ' ')
+                    ;
+            }
+            x = p ^ (octspergrp - 1);
+            c = addrlen + 1 + (grplen * x) / octspergrp;
+            if (color) {
+                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
+                clear_color(l, &c);
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
+                if (e) {
+                    nonzero++;
+                }
+                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+                if (!ascii) { // EBCDIC
+                    e = (e < 64) ? '.' : etoa64[e - 64];
+                }
+                l[c++] = (e >= ' ' && e < 127) ? e : '.';
+                clear_color(l, &c);
+            } else { // no color
+                l[c] = hex_digits[(e >> 4) & 0xf];
+                l[++c] = hex_digits[e & 0xf];
+                c = grplen * ((cols + octspergrp - 1) / octspergrp);
+                if (e) {
+                    nonzero++;
+                }
+                if (!ascii) { // EBCDIC
+                    e = (e < 64) ? '.' : etoa64[e - 64];
+                }
+                c += addrlen + 3 + p;
+                l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            }
+            n++;
+            if (++p == cols) {
+                l[c++] = '\n';
+                l[c] = '\0';
+                xxdline(l, autoskip ? nonzero : 1);
+                nonzero = 0;
+                p = 0;
+            }
+            getc_or_die(&e);
+        }
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            if (color) {
+                x = p;
+                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
+                c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
+                for (i = 0; i < fill; i++) {
+                    set_color(l, &c, COLOR_RED);
+                    l[c++] = ' ';
+                    clear_color(l, &c);
+                    x++;
+                    p++;
+                }
+                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
+                for (i = cols - p; i > 0; i--) {
+                    set_color(l, &c, COLOR_RED);
+                    l[c++] = ' ';
+                    clear_color(l, &c);
+                }
+            }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
+        }
+        break; // return 0
     }
     return 0;
 }
