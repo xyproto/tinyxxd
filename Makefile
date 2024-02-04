@@ -1,9 +1,9 @@
-.PHONY: clean fmt install test uninstall
+.PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -funroll-loops -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
+CFLAGS ?= -std=c11 -O3 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS := -std=c11 -O2 -pipe -fPIC -fstack-protector-strong -funroll-loops -Wall -Wextra -Wpedantic -Wfatal-errors
+	CFLAGS := -std=c11 -O3 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors
 endif
 
 PREFIX ?= /usr
@@ -12,6 +12,19 @@ DESTDIR ?=
 
 tinyxxd: main.c
 	$(CC) $(CFLAGS) -o $@ $<
+
+tinyxxd_debug: main.c
+	$(CC) $(CFLAGS) -g -o $@ $<
+
+profile: tinyxxd_debug
+	dd if=/dev/random of=sample.bin bs=1M count=1
+	valgrind --dump-instr=yes --collect-jumps=yes --tool=callgrind ./tinyxxd_debug sample.bin
+	@rm -f sample.bin
+	@kcachegrind || echo 'Profile generated. Use kcachegrind or a similar tool to view the callgrind output.'
+
+bench: tinyxxd
+	python3 bench.py
+	@rm -f sample.bin  # Clean up the sample file after benchmarking
 
 fmt: main.c
 	clang-format -style=WebKit -i main.c
@@ -47,4 +60,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f tinyxxd *.o
+	rm -f tinyxxd *.o *.bin callgrind.out.* tinyxxd_debug
