@@ -611,37 +611,41 @@ int main(int argc, char* argv[])
         argv++; // advance to next argument
         argc--;
     }
-    if (!colsgiven || (!cols && hextype != HEX_POSTSCRIPT)) {
-        switch (hextype) {
-        case HEX_POSTSCRIPT:
+    switch (hextype) {
+    case HEX_POSTSCRIPT:
+        if (!colsgiven) {
             cols = 30;
-            break;
-        case HEX_CINCLUDE:
+        }
+        break;
+    case HEX_CINCLUDE:
+        if (!colsgiven || !cols) {
             cols = 12;
-            break;
-        case HEX_BITS:
+        }
+        break;
+    case HEX_BITS:
+        if (!colsgiven || !cols) {
             cols = 6;
-            break;
-        default:
-            cols = 16;
-            break;
         }
-    }
-    if (octspergrp < 0) {
-        switch (hextype) {
-        case HEX_BITS:
+        if (octspergrp < 0) {
             octspergrp = 1;
-            break;
-        case HEX_NORMAL:
-            octspergrp = 2;
-            break;
-        case HEX_LITTLEENDIAN:
-            octspergrp = 4;
-            break;
-        default:
-            octspergrp = 0;
-            break;
         }
+        break;
+    case HEX_NORMAL:
+        if (!colsgiven || !cols) {
+            cols = 16;
+        }
+        if (octspergrp < 0) {
+            octspergrp = 2;
+        }
+        break;
+    case HEX_LITTLEENDIAN:
+        if (!colsgiven || !cols) {
+            cols = 16;
+        }
+        if (octspergrp < 0) {
+            octspergrp = 4;
+        }
+        break;
     }
     if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
         fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
