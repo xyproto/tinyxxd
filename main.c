@@ -287,7 +287,7 @@ int decode_hex_stream_normal(const int cols, const enum HexType hextype, const l
  * Supports bits formats with format-specific rules. It aligns data in the output stream,
  * filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream_bits(const int cols, const enum HexType hextype)
+int decode_hex_stream_bits(const int cols)
 {
     bool ignore = true;
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
@@ -316,7 +316,7 @@ int decode_hex_stream_bits(const int cols, const enum HexType hextype)
             want_off = (want_off << 4) | n1;
             continue;
         }
-        if (hextype == HEX_BITS && c == '\n') {
+        if (c == '\n') {
             want_off = 0;
         }
         if (bit_count == 8) {
@@ -442,11 +442,11 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
         fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
         exit(1);
     }
-    if (octspergrp < 1 || octspergrp > cols) {
-        octspergrp = cols;
-    }
     if (revert) {
         return decode_hex_stream_postscript(negseek ? -seekoff : seekoff);
+    }
+    if (octspergrp < 1 || octspergrp > cols) {
+        octspergrp = cols;
     }
     p = cols;
     getc_or_die(&e);
@@ -528,6 +528,83 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
         if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
             exit_with_error(3, NULL);
         }
+    }
+    return 0;
+}
+
+// int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length)
+int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int c, int grplen, int e, const long length, int n, int addrlen, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, int x, const bool color, int nonzero, const bool ascii, const bool autoskip)
+{
+    static char l[LLEN + 1]; // static because it may be too big for stack
+    if (!colsgiven || !cols) {
+        cols = 6;
+    } else if (cols < 1 || cols > COLS) {
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+        exit(1);
+    }
+    if (revert) {
+        return decode_hex_stream_bits(cols);
+    }
+    if (octspergrp < 0) {
+        octspergrp = 1;
+    } else if (octspergrp < 1 || octspergrp > cols) {
+        octspergrp = cols;
+    }
+    grplen = 8 * octspergrp + 1;
+    getc_or_die(&e);
+    while ((length < 0 || n < length) && e != EOF) {
+        if (!p) {
+            addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            for (c = addrlen; c < LLEN; l[c++] = ' ')
+                ;
+        }
+        x = p;
+        c = addrlen + 1 + (grplen * x) / octspergrp;
+        for (int i = 7; i >= 0; i--) {
+            l[c++] = (e & (1 << i)) ? '1' : '0';
+        }
+        if (color) {
+            c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
+            if (e) {
+                nonzero++;
+            }
+            set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            if (!ascii) { // EBCDIC
+                e = (e < 64) ? '.' : etoa64[e - 64];
+            }
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            clear_color(l, &c);
+        } else {
+            c = (grplen * cols - 1) / octspergrp;
+            if (e) {
+                nonzero++;
+            }
+            if (!ascii) { // EBCDIC
+                e = (e < 64) ? '.' : etoa64[e - 64];
+            }
+            c += addrlen + 3 + p;
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+        }
+        n++;
+        if (++p == cols) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            xxdline(l, autoskip ? nonzero : 1);
+            nonzero = 0;
+            p = 0;
+        }
+        getc_or_die(&e);
+    }
+    if (p) {
+        l[c++] = '\n';
+        l[c] = '\0';
+        if (color) {
+            x = p;
+            c++;
+        }
+        xxdline(l, 1);
+    } else if (autoskip) {
+        xxdline(l, -1); // last chance to flush out suppressed lines
     }
     return 0;
 }
@@ -761,77 +838,7 @@ int main(int argc, char* argv[])
     case HEX_CINCLUDE:
         return hex_cinclude(colsgiven, cols, octspergrp, revert, p, e, c, capitalize, varname, argv[1], uppercase_hex, length);
     case HEX_BITS:
-        if (!colsgiven || !cols) {
-            cols = 6;
-        } else if (cols < 1 || cols > COLS) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 0) {
-            octspergrp = 1;
-        } else if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        }
-        if (revert) {
-            return decode_hex_stream_bits(cols, hextype);
-        }
-        grplen = 8 * octspergrp + 1;
-        getc_or_die(&e);
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; l[c++] = ' ')
-                    ;
-            }
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp;
-            for (i = 7; i >= 0; i--) {
-                l[c++] = (e & (1 << i)) ? '1' : '0';
-            }
-            if (color) {
-                c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
-                if (e) {
-                    nonzero++;
-                }
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-                clear_color(l, &c);
-            } else {
-                c = (grplen * cols - 1) / octspergrp;
-                if (e) {
-                    nonzero++;
-                }
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                c += addrlen + 3 + p;
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            }
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e);
-        }
-        if (p) {
-            l[c++] = '\n';
-            l[c] = '\0';
-            if (color) {
-                x = p;
-                c++;
-            }
-            xxdline(l, 1);
-        } else if (autoskip) {
-            xxdline(l, -1); // last chance to flush out suppressed lines
-        }
-        break; // return 0
+        return hex_bits(colsgiven, cols, octspergrp, revert, p, c, grplen, e, length, n, addrlen, decimal_format_string, seekoff, displayoff, x, color, nonzero, ascii, autoskip);
     case HEX_NORMAL:
         if (!colsgiven || !cols) {
             cols = 16;
