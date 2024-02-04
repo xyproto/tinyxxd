@@ -1,67 +1,48 @@
-xxd
-tinyxxd
-tinyxxd_debug
-
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
 *.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
+*.app
+*.bak
+*.bin
+*.cmd
+*.d
+*.dSYM/
 *.dll
+*.dylib
+*.elf
+*.exp
+*.gch
+*.hex
+*.i*86
+*.idb
+*.ilk
+*.ko
+*.la
+*.lib
+*.lo
+*.map
+*.mod*
+*.o
+*.obj
+*.out
+*.pch
+*.pdb
 *.so
 *.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
 *.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
-# Benchmarking
-*.bin
-timing.txt
-
-# Leftover files
-*.bak
 *.swp
 *.tmp
+*.x86_64
 *output.txt
 *time.txt
+.tmp_versions/
+Mkfile.old
+Module.symvers
+dkms.conf
+modules.order
+output_*
+results.md
+timing.txt
+tinyxxd
+tinyxxd_*
+tinyxxd_debug
+xxd
+xxd_*
