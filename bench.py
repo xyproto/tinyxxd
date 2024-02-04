@@ -15,10 +15,10 @@ ctrl_c_pressed = False
 
 def run_command(command, nice_level=None):
     global ctrl_c_pressed
-    if platform.system() == "Linux":
-        nice_cmd = f"sudo nice -n {nice_level}" if nice_level else ""
-    else:
-        nice_cmd = f"nice -n {nice_level}" if nice_level else ""
+    #if platform.system() == "Linux":
+    #    nice_cmd = f"sudo nice -n {nice_level}" if nice_level else ""
+    #else:
+    nice_cmd = f"nice -n {nice_level}" if nice_level else ""
     full_command = f"{nice_cmd} {command}"
     start = time.perf_counter()
     process = subprocess.Popen(full_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -43,41 +43,32 @@ def benchmark_reverse_command(tool, N=5, nice_level=-10):
     runtimes = []
     for i in range(N):
         input_file = 'input_file.bin'
-        output_file = 'output_file.bin'
+        hex_file = 'input_file.hex'
+        reversed_file = 'reversed_file.bin'
 
         # Generate random input data
         with open(input_file, 'wb') as f:
             f.write(os.urandom(7 * 1024 * 1024))
-        print(f"Generated input file: {os.path.abspath(input_file)}")
 
-        # Encode the input file with the specified tool
-        encode_command = f"{tool} {input_file} {output_file}"
-        print(f"Encoding command: {encode_command}")
+        # Correctly encode the input file into a hex dump
+        encode_command = f"{tool} {input_file} > {hex_file}"
         run_command(encode_command, nice_level=nice_level)
 
-        if not os.path.exists(output_file):
-            print(f"Error: Output file not created by encode command: {os.path.abspath(output_file)}")
-            continue
-
-        # Reverse the encoded file with the specified tool
-        reverse_command = f"{tool} -r {output_file} {input_file}"
-        print(f"Reversing command: {reverse_command}")
+        # Correctly reverse the encoded hex dump back into binary
+        reverse_command = f"{tool} -r {hex_file} > {reversed_file}"
         duration = run_command(reverse_command, nice_level=nice_level)
 
-        if not os.path.exists(input_file):
-            print(f"Error: Input file not recreated by reverse command: {os.path.abspath(input_file)}")
-            continue
-
         # Check if the reversed file matches the original file
-        files_match = filecmp.cmp(input_file, output_file)
+        files_match = filecmp.cmp(input_file, reversed_file)
 
         if files_match:
             runtimes.append(duration)
         else:
-            print(f"Files do not match: {input_file} and {output_file}")
+            print(f"Files do not match: {input_file} and {reversed_file}")
 
         print_progress_bar(i + 1, N, prefix=f'{tool}, {i+1}/{N}', suffix='Complete')
 
+    # Calculate and return the average, minimum, and maximum runtimes
     if runtimes:
         avg_runtime = sum(runtimes) / len(runtimes)
         min_runtime = min(runtimes)
@@ -185,6 +176,8 @@ def ctrl_c_handler(signum, frame):
 
 
 def main():
+    print("THIS BENCHMARK SCRIPT IS A WORK IN PROGRESS! IT IS CURRENTLY PLAIN WRONG!")
+
     total_runs = 3  # runs per flag
     sample_file = '/dev/shm/sample.bin' if platform.system() == "Linux" else '/tmp/sample.bin'
     with open(sample_file, 'wb') as f:
@@ -205,13 +198,12 @@ def main():
                 command = f"{tool} {flag} {sample_file}" if flag else f"{tool} {sample_file}"
                 hex_file = ''  # Initialize variable for optional hex file generation
                 if flag == '-r':
-                    # For reverse operation, generate the hex file first (not covered in the randomization step)
-                    hex_file = f'output_{tool}_hex.txt'
-                    run_command(f'{tool} {sample_file} {hex_file}')
-                    command = f"{tool} -r {hex_file} /dev/null"
+                    # For reverse operation, assume the hex file is generated first (outside this loop).
+                    # You should not generate the hex file here or add '-r' flag here.
+                    command = f"{tool} {sample_file}"  # Do not append '-r' here.
                 else:
                     output_file = f'output_{tool}_{flag.replace(" ", "_") if flag else "default"}.txt'
-                    command += f" {output_file}"
+                    command = f"{tool} {flag} {sample_file} {output_file}"
 
                 # Benchmark the command, adjusting the function call as needed
                 if flag not in findings:
