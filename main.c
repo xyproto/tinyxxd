@@ -796,9 +796,10 @@ int main(int argc, char* argv[])
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ;
         }
-        x = hextype == HEX_LITTLEENDIAN ? p ^ (octspergrp - 1) : p;
-        c = addrlen + 1 + (grplen * x) / octspergrp;
-        if (hextype == HEX_NORMAL || hextype == HEX_LITTLEENDIAN) {
+        switch (hextype) {
+        case HEX_NORMAL:
+            x = p;
+            c = addrlen + 1 + (grplen * x) / octspergrp;
             if (color) {
                 set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
                 l[c++] = hex_digits[(e >> 4) & 0xf];
@@ -808,13 +809,45 @@ int main(int argc, char* argv[])
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
             }
-        } else { // hextype == HEX_BITS
+            if (e) {
+                nonzero++;
+            }
+            break;
+        case HEX_LITTLEENDIAN:
+            x = p ^ (octspergrp - 1);
+            c = addrlen + 1 + (grplen * x) / octspergrp;
+            if (color) {
+                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
+                clear_color(l, &c);
+            } else { // no color
+                l[c] = hex_digits[(e >> 4) & 0xf];
+                l[++c] = hex_digits[e & 0xf];
+            }
+            if (e) {
+                nonzero++;
+            }
+            break;
+        case HEX_BITS:
+            x = p;
+            c = addrlen + 1 + (grplen * x) / octspergrp;
             for (i = 7; i >= 0; i--) {
                 l[c++] = (e & (1 << i)) ? '1' : '0';
             }
-        }
-        if (e) {
-            nonzero++;
+            if (e) {
+                nonzero++;
+            }
+            break;
+        default: // HEX_POSTSCRIPT, HEX_CINCLUDE
+            x = p;
+            c = addrlen + 1 + (grplen * x) / octspergrp;
+            for (i = 7; i >= 0; i--) {
+                l[c++] = (e & (1 << i)) ? '1' : '0';
+            }
+            if (e) {
+                nonzero++;
+            }
         }
         switch (hextype) {
         case HEX_LITTLEENDIAN:
