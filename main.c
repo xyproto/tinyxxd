@@ -988,16 +988,27 @@ int main(int argc, char* argv[])
         }
         break;
     }
-    if (p) {
-        l[c++] = '\n';
-        l[c] = '\0';
-        if (color) {
-            x = p;
-            switch (hextype) {
-            case HEX_BITS:
+    switch (hextype) {
+    case HEX_BITS:
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+
+            if (color) {
+                x = p;
                 c++;
-                break;
-            case HEX_LITTLEENDIAN: {
+            }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
+        }
+        break;
+    case HEX_LITTLEENDIAN: {
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            if (color) {
+                x = p;
                 const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
                 c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
                 for (i = 0; i < fill; i++) {
@@ -1007,9 +1018,6 @@ int main(int argc, char* argv[])
                     x++;
                     p++;
                 }
-            }
-            // fallthrough
-            default: // HEX_NORMAL, HEX_POSTSCRIPT, HEX_CINCLUDE or HEX_LITTLEENDIAN (fallthrough)
                 c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
                 for (i = cols - p; i > 0; i--) {
                     set_color(l, &c, COLOR_RED);
@@ -1017,10 +1025,28 @@ int main(int argc, char* argv[])
                     clear_color(l, &c);
                 }
             }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
         }
-        xxdline(l, 1);
-    } else if (autoskip) {
-        xxdline(l, -1); // last chance to flush out suppressed lines
+    } break;
+    default: // HEX_NORMAL, HEX_POSTSCRIPT or HEX_LITTLEENDIAN (fallthrough)
+        if (p) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            if (color) {
+                x = p;
+                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
+                for (i = cols - p; i > 0; i--) {
+                    set_color(l, &c, COLOR_RED);
+                    l[c++] = ' ';
+                    clear_color(l, &c);
+                }
+            }
+            xxdline(l, 1);
+        } else if (autoskip) {
+            xxdline(l, -1); // last chance to flush out suppressed lines
+        }
     }
     return 0;
 }
