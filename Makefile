@@ -39,6 +39,7 @@ test: tinyxxd
 	@$(MAKE) run_test CMD='-b sample.bin' DESC='Binary digit dump'
 	@$(MAKE) run_test CMD='-u sample.bin' DESC='Capitalized hex output'
 	@$(MAKE) run_test CMD='-E sample.bin' DESC='Show EBCDIC'
+	@$(MAKE) verify_conversion_test
 	@rm -f tinyxxd_output.txt xxd_output.txt sample.bin
 	@echo 'All tests complete.'
 
@@ -52,6 +53,18 @@ run_test:
 		echo 'Test failed'; \
 		diff tinyxxd_output.txt xxd_output.txt; \
 	fi
+
+verify_conversion_test:
+	@echo "Running conversion and verification test..."
+	@./tinyxxd sample.bin > sample_tinyxxd.bin
+	@./tinyxxd -r sample_tinyxxd.bin > sample_restored.bin
+	@if diff -q sample.bin sample_restored.bin > /dev/null; then \
+		echo -e "\033[0;32mConversion and verification test passed\033[0m"; \
+	else \
+		echo -e "\033[0;31mConversion and verification test failed\033[0m"; \
+		exit 1; \
+	fi
+	@rm -f sample_tinyxxd.bin sample_restored.bin
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
