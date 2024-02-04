@@ -712,6 +712,8 @@ int main(int argc, char* argv[])
         }
     }
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
+    const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
+    char color_digit = 0;
     switch (hextype) {
     case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
@@ -780,20 +782,29 @@ int main(int argc, char* argv[])
         if (!cols || p < cols) {
             putc_or_die('\n');
         }
+        getc_or_die(&e);
         return 0;
     case HEX_BITS:
         grplen = 8 * octspergrp + 1;
+        getc_or_die(&e);
         break;
-    default: // HEX_NORMAL, HEX_BITS or HEX_LITTLEENDIAN
+    case HEX_NORMAL:
         if (color) {
             grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
         } else {
             grplen = octspergrp + octspergrp + 1; // chars per octet group
         }
+        getc_or_die(&e);
+        break;
+    case HEX_LITTLEENDIAN:
+        if (color) {
+            grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
+        } else {
+            grplen = octspergrp + octspergrp + 1; // chars per octet group
+        }
+        getc_or_die(&e);
+        break;
     }
-    getc_or_die(&e);
-    const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
-    char color_digit = 0;
     switch (hextype) {
     case HEX_NORMAL:
         if (color && ascii) {
