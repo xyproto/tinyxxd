@@ -635,6 +635,28 @@ int main(int argc, char* argv[])
         rewind(output_file);
     }
 
+    if (seekoff || negseek || !relseek) {
+        if (relseek) {
+            e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
+        } else {
+            e = fseek(input_file, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
+        }
+        if (e < 0 && negseek) {
+            exit_with_error(4, "Sorry, cannot seek.");
+        }
+        if (e >= 0) {
+            seekoff = ftell(input_file);
+        } else {
+            long s = seekoff;
+            while (s--) {
+                getc_or_die(&c);
+                if (c == EOF) {
+                    exit_with_error(4, "Sorry, cannot seek.");
+                }
+            }
+        }
+    }
+
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     char color_digit = 0;
@@ -717,27 +739,7 @@ int main(int argc, char* argv[])
             exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
     }
-    if (seekoff || negseek || !relseek) {
-        if (relseek) {
-            e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
-        } else {
-            e = fseek(input_file, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
-        }
-        if (e < 0 && negseek) {
-            exit_with_error(4, "Sorry, cannot seek.");
-        }
-        if (e >= 0) {
-            seekoff = ftell(input_file);
-        } else {
-            long s = seekoff;
-            while (s--) {
-                getc_or_die(&c);
-                if (c == EOF) {
-                    exit_with_error(4, "Sorry, cannot seek.");
-                }
-            }
-        }
-    }
+
     switch (hextype) {
     case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
