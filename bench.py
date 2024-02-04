@@ -1,60 +1,59 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
-
 import subprocess
 import time
-import filecmp
+import sys
 
 def run_command(command):
-    start = time.time()
-    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    end = time.time()
-    return end - start
+    start = time.perf_counter()
+    result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    end = time.perf_counter()
+    return (end - start, result.returncode)
+
+def print_progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
+    percent = "{0:.1f}".format(100 * (iteration / float(total)))
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end="\r")
+    if iteration == total:  # Print New Line on Complete
+        print()
+
+def benchmark_command(command, total_runs=50):
+    times = []
+    for i in range(total_runs):
+        duration, returncode = run_command(command)
+        if returncode != 0:
+            print(f"Error executing command")
+            break
+        times.append(duration)
+        print_progress_bar(i + 1, total_runs, prefix='Benchmarking:', suffix='Complete', length=40)
+    return times
 
 def main():
-    # Ensure the sample file exists
-    with open('sample.bin', 'wb') as f:
-        f.write(bytearray(10 * 1024 * 1024))  # Create a 10MB file for more realistic testing
+    # Default total_runs to 50 if not specified
+    total_runs = 50
+    if len(sys.argv) > 1:
+        try:
+            total_runs = int(sys.argv[1])
+        except ValueError:
+            print("Usage: python bench.py [total_runs]")
+            sys.exit(1)
 
-    # Initialize lists to store execution times
-    tinyxxd_times = []
-    xxd_times = []
+    sample_file = 'sample.bin'
+    with open(sample_file, 'wb') as f:
+        f.write(bytearray(10 * 1024 * 1024))  # 10MB file
 
-    total_runs = 50  # Number of total runs
-    for i in range(1, total_runs + 1):
-        print(f"Run #{i} / {total_runs} - Converting and Verifying")
+    # Commands for xxd and tinyxxd
+    command_base = f'xxd sample.bin sample.hex && xxd -r sample.hex sample_out.bin'
+    tinyxxd_command = command_base.replace('xxd', './tinyxxd')
 
-        # Convert sample.bin to hex using tinyxxd and measure time
-        tinyxxd_times.append(run_command('./tinyxxd sample.bin > sample.hex'))
+    print("Benchmarking xxd...")
+    xxd_times = benchmark_command(command_base, total_runs)
 
-        # Convert the hex back to binary using tinyxxd and measure time
-        tinyxxd_times.append(run_command('./tinyxxd -r sample.hex > sample_tinyxxd.bin'))
+    print("Benchmarking tinyxxd...")
+    tinyxxd_times = benchmark_command(tinyxxd_command, total_runs)
 
-        # Verify if the binary files match after conversion
-        if not filecmp.cmp('sample_tinyxxd.bin', 'sample.bin', shallow=False):
-            print("Error: Converted binary files do not match (tinyxxd).")
-
-        # Remove the temporary files
-        subprocess.run('rm sample.hex sample_tinyxxd.bin', shell=True)
-
-        # Convert sample.bin to hex using xxd and measure time
-        xxd_times.append(run_command('xxd -p sample.bin > sample.hex'))
-
-        # Convert the hex back to binary using xxd and measure time
-        xxd_times.append(run_command('xxd -p -r sample.hex > sample_xxd.bin'))
-
-        # Verify if the binary files match after conversion
-        if not filecmp.cmp('sample_xxd.bin', 'sample.bin', shallow=False):
-            print("Error: Converted binary files do not match (xxd).")
-
-        # Remove the temporary files
-        subprocess.run('rm sample.hex sample_xxd.bin', shell=True)
-
-    # Calculate the average execution time for each command
-    avg_tinyxxd_time = sum(tinyxxd_times) / len(tinyxxd_times)
     avg_xxd_time = sum(xxd_times) / len(xxd_times)
+    avg_tinyxxd_time = sum(tinyxxd_times) / len(tinyxxd_times)
 
-    # Print the result message based on which one is faster
     if avg_xxd_time < avg_tinyxxd_time:
         print(f'On average, xxd is {((avg_tinyxxd_time - avg_xxd_time) / avg_xxd_time * 100):.2f}% faster than tinyxxd over {total_runs} runs.')
     else:
