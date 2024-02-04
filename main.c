@@ -805,16 +805,10 @@ int main(int argc, char* argv[])
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
                 clear_color(l, &c);
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             } else { // no color
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
-            }
-            if (e) {
-                nonzero++;
-            }
-            if (color) {
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            } else {
                 c = (grplen * cols - 1) / octspergrp;
             }
             break;
@@ -826,16 +820,10 @@ int main(int argc, char* argv[])
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
                 clear_color(l, &c);
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
             } else { // no color
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
-            }
-            if (e) {
-                nonzero++;
-            }
-            if (color) {
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
-            } else {
                 c = grplen * ((cols + octspergrp - 1) / octspergrp);
             }
             break;
@@ -844,9 +832,6 @@ int main(int argc, char* argv[])
             c = addrlen + 1 + (grplen * x) / octspergrp;
             for (i = 7; i >= 0; i--) {
                 l[c++] = (e & (1 << i)) ? '1' : '0';
-            }
-            if (e) {
-                nonzero++;
             }
             if (color) {
                 c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
@@ -860,14 +845,14 @@ int main(int argc, char* argv[])
             for (i = 7; i >= 0; i--) {
                 l[c++] = (e & (1 << i)) ? '1' : '0';
             }
-            if (e) {
-                nonzero++;
-            }
             if (color) {
                 c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             } else {
                 c = (grplen * cols - 1) / octspergrp;
             }
+        }
+        if (e) {
+            nonzero++;
         }
         if (color) {
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
