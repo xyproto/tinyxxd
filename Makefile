@@ -40,7 +40,7 @@ test: tinyxxd
 	@$(MAKE) run_test CMD='-u sample.bin' DESC='Capitalized hex output'
 	@$(MAKE) run_test CMD='-E sample.bin' DESC='Show EBCDIC'
 	@$(MAKE) verify_conversion_test
-	@rm -f tinyxxd_output.txt xxd_output.txt sample.bin
+	@rm -f *.hex sample.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
 
 run_test:
@@ -73,4 +73,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f tinyxxd *.o *.bin callgrind.out.* tinyxxd_debug
+	rm -f *.bin *.hex *.o callgrind.out.* tinyxxd tinyxxd_debug
