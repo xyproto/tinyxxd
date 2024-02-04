@@ -711,7 +711,9 @@ int main(int argc, char* argv[])
             }
         }
     }
-    if (hextype == HEX_CINCLUDE) {
+    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
+    switch (hextype) {
+    case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
             varname = argv[1];
         }
@@ -762,9 +764,6 @@ int main(int argc, char* argv[])
             }
         }
         return 0;
-    }
-    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
-    switch (hextype) {
     case HEX_POSTSCRIPT:
         p = cols;
         getc_or_die(&e);
