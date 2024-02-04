@@ -55,25 +55,6 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-void set_color(char* l, int* c, const enum ColorDigit color_digit)
-{
-    l[(*c)++] = '\033';
-    l[(*c)++] = '[';
-    l[(*c)++] = '1';
-    l[(*c)++] = ';';
-    l[(*c)++] = '3';
-    l[(*c)++] = color_digit;
-    l[(*c)++] = 'm';
-}
-
-void clear_color(char* l, int* c)
-{
-    l[(*c)++] = '\033';
-    l[(*c)++] = '[';
-    l[(*c)++] = '0';
-    l[(*c)++] = 'm';
-}
-
 void exit_with_usage(void)
 {
     fprintf(stderr,
@@ -373,7 +354,7 @@ int decode_hex_stream_bits(const int cols, const enum HexType hextype)
  */
 void xxdline(const char* l, const int nz)
 {
-    static char __attribute__((aligned(16))) z[LLEN + 1];
+    static char z[LLEN + 1];
     static int zero_seen = 0;
     if (!nz && zero_seen == 1) {
         strcpy(z, l);
@@ -395,6 +376,25 @@ void xxdline(const char* l, const int nz)
             zero_seen = 0;
         }
     }
+}
+
+void set_color(char* l, int* c, const enum ColorDigit color_digit)
+{
+    l[(*c)++] = '\033';
+    l[(*c)++] = '[';
+    l[(*c)++] = '1';
+    l[(*c)++] = ';';
+    l[(*c)++] = '3';
+    l[(*c)++] = color_digit;
+    l[(*c)++] = 'm';
+}
+
+void clear_color(char* l, int* c)
+{
+    l[(*c)++] = '\033';
+    l[(*c)++] = '[';
+    l[(*c)++] = '0';
+    l[(*c)++] = 'm';
 }
 
 enum ColorDigit ebcdic_char_color(const unsigned char e)
@@ -441,7 +441,7 @@ enum ColorDigit ascii_char_color(const unsigned char e)
 int main(int argc, char* argv[])
 {
     enum HexType hextype = HEX_NORMAL;
-    static char __attribute__((aligned(16))) l[LLEN + 1]; // static because it may be too big for stack
+    static char l[LLEN + 1]; // static because it may be too big for stack
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
     bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
     char* pp = NULL;
@@ -790,18 +790,20 @@ int main(int argc, char* argv[])
     }
     getc_or_die(&e);
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
+    char color_digit = 0;
     switch (hextype) {
     case HEX_NORMAL:
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; l[c++] = ' ')
-                    ;
-            }
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp;
-            if (color) {
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+        if (color && ascii) {
+            while ((length < 0 || n < length) && e != EOF) {
+                if (!p) {
+                    addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                    for (c = addrlen; c < LLEN; l[c++] = ' ')
+                        ;
+                }
+                x = p;
+                c = addrlen + 1 + (grplen * x) / octspergrp;
+                color_digit = ascii_char_color(e);
+                set_color(l, &c, color_digit);
                 l[c++] = hex_digits[(e >> 4) & 0xf];
                 l[c++] = hex_digits[e & 0xf];
                 clear_color(l, &c);
@@ -809,13 +811,60 @@ int main(int argc, char* argv[])
                 if (e) {
                     nonzero++;
                 }
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
+                set_color(l, &c, color_digit);
                 l[c++] = (e >= ' ' && e < 127) ? e : '.';
                 clear_color(l, &c);
-            } else { // no color
+                n++;
+                if (++p == cols) {
+                    l[c++] = '\n';
+                    l[c] = '\0';
+                    xxdline(l, autoskip ? nonzero : 1);
+                    nonzero = 0;
+                    p = 0;
+                }
+                getc_or_die(&e);
+            }
+        } else if (color && !ascii) { // color + EBCDIC
+            while ((length < 0 || n < length) && e != EOF) {
+                if (!p) {
+                    addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                    for (c = addrlen; c < LLEN; l[c++] = ' ')
+                        ;
+                }
+                x = p;
+                c = addrlen + 1 + (grplen * x) / octspergrp;
+                color_digit = ebcdic_char_color(e);
+                set_color(l, &c, color_digit);
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
+                clear_color(l, &c);
+                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
+                if (e) {
+                    nonzero++;
+                }
+                set_color(l, &c, color_digit);
+                e = (e < 64) ? '.' : etoa64[e - 64];
+                l[c++] = (e >= ' ' && e < 127) ? e : '.';
+                clear_color(l, &c);
+                n++;
+                if (++p == cols) {
+                    l[c++] = '\n';
+                    l[c] = '\0';
+                    xxdline(l, autoskip ? nonzero : 1);
+                    nonzero = 0;
+                    p = 0;
+                }
+                getc_or_die(&e);
+            }
+        } else if (!color) { // no color + (ASCII or EBCDIC)
+            while ((length < 0 || n < length) && e != EOF) {
+                if (!p) {
+                    addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                    for (c = addrlen; c < LLEN; l[c++] = ' ')
+                        ;
+                }
+                x = p;
+                c = addrlen + 1 + (grplen * x) / octspergrp;
                 l[c] = hex_digits[(e >> 4) & 0xf];
                 l[++c] = hex_digits[e & 0xf];
                 c = (grplen * cols - 1) / octspergrp;
@@ -827,16 +876,16 @@ int main(int argc, char* argv[])
                 }
                 c += addrlen + 3 + p;
                 l[c++] = (e >= ' ' && e < 127) ? e : '.';
+                n++;
+                if (++p == cols) {
+                    l[c++] = '\n';
+                    l[c] = '\0';
+                    xxdline(l, autoskip ? nonzero : 1);
+                    nonzero = 0;
+                    p = 0;
+                }
+                getc_or_die(&e);
             }
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e);
         }
         break;
     case HEX_LITTLEENDIAN:
