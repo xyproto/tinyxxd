@@ -611,6 +611,10 @@ int main(int argc, char* argv[])
         argv++; // advance to next argument
         argc--;
     }
+
+    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
+    const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
+    char color_digit = 0;
     switch (hextype) {
     case HEX_POSTSCRIPT:
         if (!colsgiven) {
@@ -647,15 +651,48 @@ int main(int argc, char* argv[])
         }
         break;
     }
-    if ((hextype == HEX_POSTSCRIPT && cols < 0) || (hextype != HEX_POSTSCRIPT && cols < 1) || ((hextype == HEX_NORMAL || hextype == HEX_BITS || hextype == HEX_LITTLEENDIAN) && (cols > COLS))) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+    switch (hextype) {
+    case HEX_POSTSCRIPT:
+        if (cols < 0) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        }
+        break;
+    case HEX_CINCLUDE:
+        if (cols < 1) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        }
+        break;
+    case HEX_NORMAL:
+        // fallthrough
+    case HEX_BITS:
+        if (cols < 1 || cols > COLS) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        }
+        break;
+    case HEX_LITTLEENDIAN:
+        if (cols < 1 || cols > COLS) {
+            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+            exit(1);
+        }
+        if (octspergrp < 1 || octspergrp > cols) {
+            octspergrp = cols;
+        } else if (octspergrp & (octspergrp - 1)) {
+            exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
+        }
     }
-    if (octspergrp < 1 || octspergrp > cols) {
-        octspergrp = cols;
-    } else if (hextype == HEX_LITTLEENDIAN && (octspergrp & (octspergrp - 1))) {
-        exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
-    }
+
     if (argc > 3) {
         exit_with_usage();
     }
@@ -711,9 +748,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
-    const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
-    char color_digit = 0;
     switch (hextype) {
     case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
