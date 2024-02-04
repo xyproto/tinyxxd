@@ -1,5 +1,6 @@
 xxd
 tinyxxd
+tinyxxd_debug
 
 # Prerequisites
 *.d
@@ -63,3 +64,4 @@ timing.txt
 *.swp
 *.tmp
 output.txt
+*time.txt
