@@ -263,6 +263,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                     continue;
                 }
                 want_off = (want_off << 4) | n1;
+                continue;
             }
             fflush_fseek_and_putc(&base_off, &want_off, &have_off);
             if (n2 >= 0 && n1 >= 0) {
@@ -300,6 +301,7 @@ int decode_hex_stream(const int cols, const enum HexType hextype, const long bas
                     continue;
                 }
                 want_off = (want_off << 4) | n1;
+                continue;
             }
             if (hextype == HEX_BITS && c == '\n') {
                 want_off = 0;
