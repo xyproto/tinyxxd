@@ -615,12 +615,12 @@ int main(int argc, char* argv[])
     const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     char color_digit = 0;
+
     switch (hextype) {
     case HEX_POSTSCRIPT:
         if (!colsgiven) {
             cols = 30;
-        }
-        if (cols < 0) {
+        } else if (cols < 0) {
             fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
             exit(1);
         }
@@ -631,8 +631,7 @@ int main(int argc, char* argv[])
     case HEX_CINCLUDE:
         if (!colsgiven || !cols) {
             cols = 12;
-        }
-        if (cols < 1) {
+        } else if (cols < 1) {
             fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
             exit(1);
         }
@@ -643,45 +642,39 @@ int main(int argc, char* argv[])
     case HEX_BITS:
         if (!colsgiven || !cols) {
             cols = 6;
-        }
-        if (octspergrp < 0) {
-            octspergrp = 1;
-        }
-        if (cols < 1 || cols > COLS) {
+        } else if (cols < 1 || cols > COLS) {
             fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
             exit(1);
         }
-        if (octspergrp < 1 || octspergrp > cols) {
+        if (octspergrp < 0) {
+            octspergrp = 1;
+        } else if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
         }
         break;
     case HEX_NORMAL:
         if (!colsgiven || !cols) {
             cols = 16;
-        }
-        if (octspergrp < 0) {
-            octspergrp = 2;
-        }
-        if (cols < 1 || cols > COLS) {
+        } else if (cols < 1 || cols > COLS) {
             fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
             exit(1);
         }
-        if (octspergrp < 1 || octspergrp > cols) {
+        if (octspergrp < 0) {
+            octspergrp = 2;
+        } else if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
         }
         break;
     case HEX_LITTLEENDIAN:
         if (!colsgiven || !cols) {
             cols = 16;
-        }
-        if (octspergrp < 0) {
-            octspergrp = 4;
-        }
-        if (cols < 1 || cols > COLS) {
+        } else if (cols < 1 || cols > COLS) {
             fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
             exit(1);
         }
-        if (octspergrp < 1 || octspergrp > cols) {
+        if (octspergrp < 0) {
+            octspergrp = 4;
+        } else if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
         } else if (octspergrp & (octspergrp - 1)) {
             exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
