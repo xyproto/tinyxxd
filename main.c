@@ -672,6 +672,9 @@ int main(int argc, char* argv[])
         if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
         }
+        if (revert) {
+            return decode_hex_stream_postscript(cols, hextype, negseek ? -seekoff : seekoff);
+        }
         break;
     case HEX_CINCLUDE:
         if (!colsgiven || !cols) {
@@ -682,6 +685,9 @@ int main(int argc, char* argv[])
         }
         if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
+        }
+        if (revert) {
+            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
         break;
     case HEX_BITS:
@@ -696,6 +702,9 @@ int main(int argc, char* argv[])
         } else if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
         }
+        if (revert) {
+            return decode_hex_stream_bits(cols, hextype);
+        }
         break;
     case HEX_NORMAL:
         if (!colsgiven || !cols) {
@@ -708,6 +717,9 @@ int main(int argc, char* argv[])
             octspergrp = 2;
         } else if (octspergrp < 1 || octspergrp > cols) {
             octspergrp = cols;
+        }
+        if (revert) {
+            return decode_hex_stream_normal(cols, hextype, negseek ? -seekoff : seekoff);
         }
         break;
     case HEX_LITTLEENDIAN:
@@ -724,22 +736,11 @@ int main(int argc, char* argv[])
         } else if (octspergrp & (octspergrp - 1)) {
             exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
         }
-        break;
-    }
-
-    if (revert) {
-        switch (hextype) {
-        case HEX_NORMAL:
-            return decode_hex_stream_normal(cols, hextype, negseek ? -seekoff : seekoff);
-        case HEX_POSTSCRIPT:
-            return decode_hex_stream_postscript(cols, hextype, negseek ? -seekoff : seekoff);
-        case HEX_BITS:
-            return decode_hex_stream_bits(cols, hextype);
-        default:
+        if (revert) {
             exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
         }
+        break;
     }
-
     switch (hextype) {
     case HEX_CINCLUDE:
         if (!varname && input_file != stdin) {
