@@ -390,7 +390,7 @@ inline void clear_color(char* l, int* c)
     l[(*c)++] = 'm';
 }
 
-enum ColorDigit ebcdic_char_color(const unsigned char e)
+inline enum ColorDigit ebcdic_char_color(const unsigned char e)
 {
     switch (e) {
     case 0:
@@ -410,7 +410,7 @@ enum ColorDigit ebcdic_char_color(const unsigned char e)
     return ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249)) ? COLOR_GREEN : COLOR_RED;
 }
 
-enum ColorDigit ascii_char_color(const unsigned char e)
+inline enum ColorDigit ascii_char_color(const unsigned char e)
 {
     switch (e) {
     case '\0':
