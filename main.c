@@ -102,28 +102,28 @@ void exit_with_error(const int exit_code, const char* message)
     exit(exit_code);
 }
 
-void getc_or_die(int* ch)
+static inline void getc_or_die(int* ch)
 {
     if ((*ch = getc(input_file)) == EOF && ferror(input_file)) {
         exit_with_error(2, NULL);
     }
 }
 
-void putc_or_die(int ch)
+static inline void putc_or_die(int ch)
 {
     if (putc(ch, output_file) == EOF) {
         exit_with_error(3, NULL);
     }
 }
 
-void fputs_or_die(const char* s)
+static inline void fputs_or_die(const char* s)
 {
     if (fputs(s, output_file) == EOF) {
         exit_with_error(3, NULL);
     }
 }
 
-void fflush_or_die(void)
+static inline void fflush_or_die(void)
 {
     if (fflush(output_file)) {
         exit_with_error(3, NULL);
@@ -142,7 +142,7 @@ void fclose_or_die(void)
 }
 
 // parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1.
-int parse_hex_digit(const int ch)
+inline int parse_hex_digit(const int ch)
 {
     return (ch >= '0' && ch <= '9') ? ch - '0'
         : (ch >= 'a' && ch <= 'f')  ? ch - 'a' + 10
@@ -151,7 +151,7 @@ int parse_hex_digit(const int ch)
 }
 
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1.
-int parse_bin_digit(const int ch)
+inline int parse_bin_digit(const int ch)
 {
     return (ch >= '0' && ch <= '1') ? ch - '0' : -1;
 }
@@ -159,7 +159,7 @@ int parse_bin_digit(const int ch)
 /* skip_to_eol_or_die will ignore text from the input file, until EOL or EOF.
  * Returns '\n', the EOF character or exists with an error.
  */
-int skip_to_eol_or_die(int ch)
+static inline int skip_to_eol_or_die(int ch)
 {
     while (ch != '\n' && ch != EOF) {
         getc_or_die(&ch);
@@ -167,7 +167,7 @@ int skip_to_eol_or_die(int ch)
     return ch;
 }
 
-void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
+static inline void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
 {
     if (*base_off + *want_off != *have_off) {
         fflush_or_die();
@@ -347,7 +347,7 @@ int decode_hex_stream_bits(const int cols)
  *
  * If nz is always positive, lines are never suppressed.
  */
-void print_or_suppress_zero_line(const char* l, const int nz)
+static inline void print_or_suppress_zero_line(const char* l, const int nz)
 {
     static char z[LLEN + 1];
     static int zero_seen = 0;
@@ -371,7 +371,7 @@ void print_or_suppress_zero_line(const char* l, const int nz)
     }
 }
 
-void set_color(char* l, int* c, const enum ColorDigit color_digit)
+inline void set_color(char* l, int* c, const enum ColorDigit color_digit)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
@@ -382,7 +382,7 @@ void set_color(char* l, int* c, const enum ColorDigit color_digit)
     l[(*c)++] = 'm';
 }
 
-void clear_color(char* l, int* c)
+inline void clear_color(char* l, int* c)
 {
     l[(*c)++] = '\033';
     l[(*c)++] = '[';
