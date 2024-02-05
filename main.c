@@ -533,12 +533,10 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
     return 0;
 }
 
-int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int grplen, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, int x, const bool color, int nonzero, const bool ascii, const bool autoskip)
+int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
-    int p = 0;
-    int n = 0;
-    int addrlen = 9;
+    int grplen = 0, n = 0, nonzero = 0, p = 0, x = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 6;
     } else if (cols < 1 || cols > COLS) {
@@ -612,14 +610,11 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
     return 0;
 }
 
-int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, int grplen, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, int x, const char* hex_digits, int nonzero, const bool autoskip)
+int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
     char color_digit = 0;
-    int p = 0;
-    int n = 0;
-    int addrlen = 9;
-
+    int grplen = 0, n = 0, nonzero = 0, p = 0, x = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -753,10 +748,10 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
     return 0;
 }
 
-int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int grplen, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, int nonzero, const bool autoskip)
+int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
-    int addrlen = 9;
+    int grplen = 0, nonzero = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -779,9 +774,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
         grplen = octspergrp + octspergrp + 1; // chars per octet group
     }
     getc_or_die(&e);
-    int n = 0;
-    int p = 0;
-    int x = 0;
+    int n = 0, p = 0, x = 0;
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
@@ -865,12 +858,9 @@ int main(int argc, char* argv[])
     char* varname = NULL;
     bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
     bool ascii = true, revert = false, uppercase_hex = false;
-
-    int c = 0, cols = 0, e = 0, grplen = 0, negseek = 0, nonzero = 0;
-    int octspergrp = -1, relseek = 0, x = 0;
-    long length = -1, seekoff = 0;
+    int cols = 0, relseek = 0, negseek = 0, octspergrp = -1;
     unsigned long displayoff = 0;
-
+    long seekoff = 0, length = -1;
     program_name = argv[0];
     for (pp = program_name; *pp;) {
         if (*pp++ == '/') { // path separator
@@ -1051,6 +1041,7 @@ int main(int argc, char* argv[])
         }
         rewind(output_file);
     }
+    int ch = 0, e = 0;
     if (seekoff || negseek || !relseek) {
         if (negseek) {
             if ((e = fseek(input_file, -seekoff, relseek ? SEEK_CUR : SEEK_END)) < 0) {
@@ -1063,8 +1054,8 @@ int main(int argc, char* argv[])
             seekoff = ftell(input_file);
         } else {
             for (long s = seekoff; s > 0; s--) {
-                getc_or_die(&c);
-                if (c == EOF) {
+                getc_or_die(&ch);
+                if (ch == EOF) {
                     exit_with_error(4, "Sorry, cannot seek.");
                 }
             }
@@ -1076,13 +1067,13 @@ int main(int argc, char* argv[])
     case HEX_POSTSCRIPT:
         return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits);
     case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, c, capitalize, varname, argv[1], uppercase_hex, length);
+        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length);
     case HEX_BITS:
-        return hex_bits(colsgiven, cols, octspergrp, revert, c, grplen, e, length, decimal_format_string, seekoff, displayoff, x, color, nonzero, ascii, autoskip);
+        return hex_bits(colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip);
     case HEX_NORMAL:
-        return hex_normal(colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, grplen, ascii, length, decimal_format_string, displayoff, c, x, hex_digits, nonzero, autoskip);
+        return hex_normal(colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip);
     case HEX_LITTLEENDIAN:
-        return hex_littleendian(colsgiven, cols, octspergrp, revert, seekoff, color, grplen, e, length, decimal_format_string, displayoff, c, ascii, hex_digits, nonzero, autoskip);
+        return hex_littleendian(colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip);
     }
     return 0;
 }
