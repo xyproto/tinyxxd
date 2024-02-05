@@ -151,7 +151,7 @@ inline int parse_hex_digit(const int ch)
 // parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1.
 inline int parse_bin_digit(const int ch)
 {
-    return (ch >= '0' && ch <= '1') ? ch - '0' : -1;
+    return (ch < '0' || ch > '1') ? -1 : ch - '0';
 }
 
 /* skip_to_eol_or_die will ignore text from the input file, until EOL or EOF.
