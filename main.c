@@ -337,18 +337,18 @@ int decode_hex_stream_bits(const int cols)
     return 0;
 }
 
-/* xxdline prints line l. If nz is false, it regards the line as
+/* print_or_suppress_zero_line prints line l. If nz is false, it regards the line as
  * a line of zeroes. If there are three or more consecutive lines
  * of zeroes, they are replaced by a single '*' character.
  *
  * If the output ends with more than two lines of zeroes,
- * you should call xxdline again with l being the last line and nz
+ * you should call print_or_suppress_zero_line again with l being the last line and nz
  * negative. This ensures that the last line is shown even when
  * it is all zeroes.
  *
  * If nz is always positive, lines are never suppressed.
  */
-void xxdline(const char* l, const int nz)
+void print_or_suppress_zero_line(const char* l, const int nz)
 {
     static char z[LLEN + 1];
     static int zero_seen = 0;
@@ -590,7 +590,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
         if (++p == cols) {
             l[c++] = '\n';
             l[c] = '\0';
-            xxdline(l, autoskip ? nonzero : 1);
+            print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
             nonzero = 0;
             p = 0;
         }
@@ -603,9 +603,9 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
             x = p;
             c++;
         }
-        xxdline(l, 1);
+        print_or_suppress_zero_line(l, 1);
     } else if (autoskip) {
-        xxdline(l, -1); // last chance to flush out suppressed lines
+        print_or_suppress_zero_line(l, -1); // last chance to flush out suppressed lines
     }
     return 0;
 }
@@ -660,7 +660,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             if (++p == cols) {
                 l[c++] = '\n';
                 l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
+                print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
             }
@@ -692,7 +692,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             if (++p == cols) {
                 l[c++] = '\n';
                 l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
+                print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
             }
@@ -722,7 +722,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             if (++p == cols) {
                 l[c++] = '\n';
                 l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
+                print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
                 nonzero = 0;
                 p = 0;
             }
@@ -741,9 +741,9 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 clear_color(l, &c);
             }
         }
-        xxdline(l, 1);
+        print_or_suppress_zero_line(l, 1);
     } else if (autoskip) {
-        xxdline(l, -1); // last chance to flush out suppressed lines
+        print_or_suppress_zero_line(l, -1); // last chance to flush out suppressed lines
     }
     return 0;
 }
@@ -815,7 +815,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
         if (++p == cols) {
             l[c++] = '\n';
             l[c] = '\0';
-            xxdline(l, autoskip ? nonzero : 1);
+            print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
             nonzero = 0;
             p = 0;
         }
@@ -842,9 +842,9 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
                 clear_color(l, &c);
             }
         }
-        xxdline(l, 1);
+        print_or_suppress_zero_line(l, 1);
     } else if (autoskip) {
-        xxdline(l, -1); // last chance to flush out suppressed lines
+        print_or_suppress_zero_line(l, -1); // last chance to flush out suppressed lines
     }
     return 0;
 }
