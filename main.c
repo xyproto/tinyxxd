@@ -32,8 +32,6 @@ enum ColorDigit {
 };
 
 const char* version = "tinyxxd 1.2.0";
-const char* lower_hex_digits = "0123456789abcdef";
-const char* upper_hex_digits = "0123456789ABCDEF";
 
 static FILE* input_file;
 static FILE* output_file;
@@ -169,17 +167,18 @@ static inline int skip_to_eol_or_die(int ch)
 
 static inline void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
 {
-    if (*base_off + *want_off != *have_off) {
-        fflush_or_die();
-        if (fseek(output_file, *base_off + *want_off - *have_off, SEEK_CUR) >= 0) {
-            *have_off = *base_off + *want_off;
-        }
-        if (*base_off + *want_off < *have_off) {
-            exit_with_error(5, "Sorry, cannot seek backwards.");
-        }
-        for (; *have_off < *base_off + *want_off; (*have_off)++) {
-            putc_or_die(0);
-        }
+    if (*base_off + *want_off == *have_off) {
+        return;
+    }
+    fflush_or_die();
+    if (fseek(output_file, *base_off + *want_off - *have_off, SEEK_CUR) >= 0) {
+        *have_off = *base_off + *want_off;
+    }
+    if (*base_off + *want_off < *have_off) {
+        exit_with_error(5, "Sorry, cannot seek backwards.");
+    }
+    for (; *have_off < *base_off + *want_off; (*have_off)++) {
+        putc_or_die(0);
     }
 }
 
@@ -198,8 +197,8 @@ int decode_hex_stream_postscript(const long base_off)
             continue;
         }
         // Allow multiple spaces. This doesn't work when there is normal text
-        // after the hex codes in the last line that looks like hex, thus only
-        // use it for PostScript format.
+        // after the hex codes in the last line that looks like hex, so only
+        // use it for the PostScript format.
         if (c == ' ' || c == '\n' || c == '\t') {
             continue;
         }
@@ -209,7 +208,6 @@ int decode_hex_stream_postscript(const long base_off)
         if (n1 == -1 && ignore) {
             continue;
         }
-        ignore = false;
         fflush_fseek_and_putc(&base_off, &want_off, &have_off);
         if (n2 >= 0 && n1 >= 0) {
             putc_or_die((n2 << 4) | n1);
@@ -219,9 +217,7 @@ int decode_hex_stream_postscript(const long base_off)
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
             c = skip_to_eol_or_die(c);
         }
-        if (c == '\n') {
-            ignore = true;
-        }
+        ignore = (c == '\n');
     }
     fflush_or_die();
     fseek(output_file, 0L, SEEK_END);
@@ -336,15 +332,12 @@ int decode_hex_stream_bits(const int cols)
     return 0;
 }
 
-/* print_or_suppress_zero_line prints line l. If nz is false, it regards the line as
- * a line of zeroes. If there are three or more consecutive lines
- * of zeroes, they are replaced by a single '*' character.
- *
+/* print_or_suppress_zero_line prints line l.
+ * If nz is false, it regards the line as a line of zeroes.
+ * Replace three or more consecutive lines of zeros with a single '*' character.
  * If the output ends with more than two lines of zeroes,
  * you should call print_or_suppress_zero_line again with l being the last line and nz
- * negative. This ensures that the last line is shown even when
- * it is all zeroes.
- *
+ * negative. This ensures that the last line is shown even when it is all zeroes.
  * If nz is always positive, lines are never suppressed.
  */
 static inline void print_or_suppress_zero_line(const char* l, const int nz)
@@ -445,8 +438,7 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     }
-    int p = cols;
-    int n = 0;
+    int n = 0, p = cols;
     getc_or_die(&e);
     while ((length < 0 || n < length) && e != EOF) {
         putc_or_die(hex_digits[(e >> 4) & 0xf]);
@@ -486,12 +478,10 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
         if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL);
         }
-        if (capitalize) {
-            for (e = 0; (c = varname[e]); e++) {
+        for (e = 0; (c = varname[e]); e++) {
+            if (capitalize) {
                 putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-            }
-        } else {
-            for (e = 0; (c = varname[e]); e++) {
+            } else {
                 putc_or_die(isalnum((unsigned char)c) ? c : '_');
             }
         }
@@ -507,19 +497,17 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
         getc_or_die(&c);
     }
     if (p) {
-        fputs_or_die("\n");
+        putc_or_die('\n');
     }
     if (varname) {
         fputs_or_die("};\n");
         if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL);
         }
-        if (capitalize) {
-            for (e = 0; (c = varname[e]); e++) {
+        for (e = 0; (c = varname[e]); e++) {
+            if (capitalize) {
                 putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-            }
-        } else {
-            for (e = 0; (c = varname[e]); e++) {
+            } else {
                 putc_or_die(isalnum((unsigned char)c) ? c : '_');
             }
         }
@@ -567,7 +555,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
         } else {
             c = (grplen * cols - 1) / octspergrp;
@@ -576,7 +564,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
         }
         n++;
         if (++p == cols) {
@@ -591,9 +579,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
     if (p) {
         l[c++] = '\n';
         l[c] = '\0';
-        if (color) {
-            c++;
-        }
+        c += color ? 1 : 0;
         print_or_suppress_zero_line(l, 1);
     } else if (autoskip) {
         print_or_suppress_zero_line(l, -1); // last chance to flush out suppressed lines
@@ -638,7 +624,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             nonzero += e ? 1 : 0;
             set_color(l, &c, color_digit);
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
             n++;
             if (++p == cols) {
@@ -667,7 +653,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             nonzero += e ? 1 : 0;
             set_color(l, &c, color_digit);
             e = (e < 64) ? '.' : etoa64[e - 64];
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
             n++;
             if (++p == cols) {
@@ -695,7 +681,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             n++;
             if (++p == cols) {
                 l[c++] = '\n';
@@ -767,7 +753,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
         } else { // no color
             l[c] = hex_digits[(e >> 4) & 0xf];
@@ -778,7 +764,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
         }
         n++;
         if (++p == cols) {
@@ -1029,8 +1015,8 @@ int main(int argc, char* argv[])
             }
         }
     }
-    const char* hex_digits = uppercase_hex ? upper_hex_digits : lower_hex_digits;
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
+    const char* hex_digits = uppercase_hex ? "0123456789ABCDEF" : "0123456789abcdef";
     switch (hextype) {
     case HEX_POSTSCRIPT:
         return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits);
@@ -1043,5 +1029,4 @@ int main(int argc, char* argv[])
     case HEX_LITTLEENDIAN:
         return hex_littleendian(colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip);
     }
-    return 0;
 }
