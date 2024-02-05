@@ -353,7 +353,8 @@ static inline void print_or_suppress_zero_line(const char* l, const int nz)
             if (zero_seen == 2) {
                 fputs_or_die(z);
             } else if (zero_seen > 2) {
-                fputs_or_die("*\n");
+                putc_or_die('*');
+                putc_or_die('\n');
             }
         }
         if (nz >= 0 || zero_seen > 0) {
