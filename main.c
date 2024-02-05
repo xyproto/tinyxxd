@@ -1025,7 +1025,6 @@ int main(int argc, char* argv[])
         argv++; // advance to next argument
         argc--;
     }
-
     if (argc > 3) {
         exit_with_usage();
     }
@@ -1049,13 +1048,12 @@ int main(int argc, char* argv[])
         rewind(output_file);
     }
     if (seekoff || negseek || !relseek) {
-        if (relseek) {
-            e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
+        if (negseek) {
+            if ((e = fseek(input_file, -seekoff, relseek ? SEEK_CUR : SEEK_END)) < 0) {
+                exit_with_error(4, "Sorry, cannot seek.");
+            }
         } else {
-            e = fseek(input_file, negseek ? -seekoff : seekoff, negseek ? SEEK_END : SEEK_SET);
-        }
-        if (e < 0 && negseek) {
-            exit_with_error(4, "Sorry, cannot seek.");
+            e = fseek(input_file, seekoff, relseek ? SEEK_CUR : SEEK_SET);
         }
         if (e >= 0) {
             seekoff = ftell(input_file);
