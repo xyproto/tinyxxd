@@ -36,6 +36,7 @@
 .tmp_versions/
 Mkfile.old
 Module.symvers
+callgrind.*
 dkms.conf
 modules.order
 output_*
