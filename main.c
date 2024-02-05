@@ -286,7 +286,7 @@ int decode_hex_stream_bits(const int cols)
 {
     bool ignore = true;
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
-    long have_off = 0, want_off = 0;
+    long want_off = 0;
     rewind(input_file);
     while ((c = getc(input_file)) != EOF) {
         if (c == '\r') { // DOS style newlines?
@@ -316,7 +316,6 @@ int decode_hex_stream_bits(const int cols)
         }
         if (bit_count == 8) {
             putc_or_die(bit_buffer);
-            have_off++;
             want_off++;
             bit_buffer = 0;
             bit_count = 0;
