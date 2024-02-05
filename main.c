@@ -434,7 +434,7 @@ enum ColorDigit ascii_char_color(const unsigned char e)
     return COLOR_RED;
 }
 
-int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int e, const long length, const int negseek, const long seekoff, long n, const char* hex_digits)
+int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits)
 {
     if (!colsgiven) {
         cols = 30;
@@ -448,7 +448,8 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     }
-    p = cols;
+    int p = cols;
+    int n = 0;
     getc_or_die(&e);
     while ((length < 0 || n < length) && e != EOF) {
         putc_or_die(hex_digits[(e >> 4) & 0xf]);
@@ -466,8 +467,9 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     return 0;
 }
 
-int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length)
+int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length)
 {
+    int p = 0;
     if (!colsgiven || !cols) {
         cols = 12;
     } else if (cols < 1) {
@@ -498,7 +500,6 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
         }
         fputs_or_die("[] = {\n");
     }
-    p = 0;
     getc_or_die(&c);
     char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((length < 0 || p < length) && c != EOF) {
@@ -532,9 +533,11 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
     return 0;
 }
 
-int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int p, int c, int grplen, int e, const long length, int n, int addrlen, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, int x, const bool color, int nonzero, const bool ascii, const bool autoskip)
+int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int grplen, int e, const long length, int addrlen, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, int x, const bool color, int nonzero, const bool ascii, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
+    int p = 0;
+    int n = 0;
     if (!colsgiven || !cols) {
         cols = 6;
     } else if (cols < 1 || cols > COLS) {
@@ -608,10 +611,12 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
     return 0;
 }
 
-int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, int grplen, const bool ascii, const long length, int n, int p, int addrlen, const char* decimal_format_string, const unsigned long displayoff, int c, int x, const char* hex_digits, int nonzero, const bool autoskip)
+int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, int grplen, const bool ascii, const long length, int addrlen, const char* decimal_format_string, const unsigned long displayoff, int c, int x, const char* hex_digits, int nonzero, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
     char color_digit = 0;
+    int p = 0;
+    int n = 0;
 
     if (!colsgiven || !cols) {
         cols = 16;
@@ -746,19 +751,120 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
     return 0;
 }
 
+int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int grplen, int e, const long length, int addrlen, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, int nonzero, const bool autoskip)
+{
+    static char l[LLEN + 1]; // static because it may be too big for stack
+    if (!colsgiven || !cols) {
+        cols = 16;
+    } else if (cols < 1 || cols > COLS) {
+        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+        exit(1);
+    }
+    if (revert) {
+        exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
+    }
+    if (octspergrp < 0) {
+        octspergrp = 4;
+    } else if (octspergrp < 1 || octspergrp > cols) {
+        octspergrp = cols;
+    } else if (octspergrp & (octspergrp - 1)) {
+        exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
+    }
+    if (color) {
+        grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
+    } else {
+        grplen = octspergrp + octspergrp + 1; // chars per octet group
+    }
+    getc_or_die(&e);
+    int n = 0;
+    int p = 0;
+    int x = 0;
+    while ((length < 0 || n < length) && e != EOF) {
+        if (!p) {
+            addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            for (c = addrlen; c < LLEN; l[c++] = ' ')
+                ;
+        }
+        x = p ^ (octspergrp - 1);
+        c = addrlen + 1 + (grplen * x) / octspergrp;
+        if (color) {
+            set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            l[c++] = hex_digits[(e >> 4) & 0xf];
+            l[c++] = hex_digits[e & 0xf];
+            clear_color(l, &c);
+            c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
+            if (e) {
+                nonzero++;
+            }
+            set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            if (!ascii) { // EBCDIC
+                e = (e < 64) ? '.' : etoa64[e - 64];
+            }
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+            clear_color(l, &c);
+        } else { // no color
+            l[c] = hex_digits[(e >> 4) & 0xf];
+            l[++c] = hex_digits[e & 0xf];
+            c = grplen * ((cols + octspergrp - 1) / octspergrp);
+            if (e) {
+                nonzero++;
+            }
+            if (!ascii) { // EBCDIC
+                e = (e < 64) ? '.' : etoa64[e - 64];
+            }
+            c += addrlen + 3 + p;
+            l[c++] = (e >= ' ' && e < 127) ? e : '.';
+        }
+        n++;
+        if (++p == cols) {
+            l[c++] = '\n';
+            l[c] = '\0';
+            xxdline(l, autoskip ? nonzero : 1);
+            nonzero = 0;
+            p = 0;
+        }
+        getc_or_die(&e);
+    }
+    if (p) {
+        l[c++] = '\n';
+        l[c] = '\0';
+        if (color) {
+            x = p;
+            const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
+            c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
+            for (int i = 0; i < fill; i++) {
+                set_color(l, &c, COLOR_RED);
+                l[c++] = ' ';
+                clear_color(l, &c);
+                x++;
+                p++;
+            }
+            c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
+            for (int i = cols - p; i > 0; i--) {
+                set_color(l, &c, COLOR_RED);
+                l[c++] = ' ';
+                clear_color(l, &c);
+            }
+        }
+        xxdline(l, 1);
+    } else if (autoskip) {
+        xxdline(l, -1); // last chance to flush out suppressed lines
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     enum HexType hextype = HEX_NORMAL;
-    static char l[LLEN + 1]; // static because it may be too big for stack
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
     bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
     char* pp = NULL;
     char* varname = NULL;
     bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
     bool ascii = true, revert = false, uppercase_hex = false;
-    int addrlen = 9, c = 0, cols = 0, e = 0, grplen = 0, i = 0, negseek = 0, nonzero = 0;
-    int octspergrp = -1, p = 0, relseek = 0, x = 0;
-    long length = -1, n = 0, seekoff = 0;
+    int addrlen = 9, c = 0, cols = 0, e = 0, grplen = 0, negseek = 0, nonzero = 0;
+    int octspergrp = -1, relseek = 0, x = 0;
+    long length = -1, seekoff = 0;
     unsigned long displayoff = 0;
 
     program_name = argv[0];
@@ -942,7 +1048,6 @@ int main(int argc, char* argv[])
         }
         rewind(output_file);
     }
-
     if (seekoff || negseek || !relseek) {
         if (relseek) {
             e = fseek(input_file, negseek ? -seekoff : seekoff, SEEK_CUR);
@@ -970,108 +1075,15 @@ int main(int argc, char* argv[])
 
     switch (hextype) {
     case HEX_POSTSCRIPT:
-        return hex_postscript(colsgiven, cols, octspergrp, revert, p, e, length, negseek, seekoff, n, hex_digits);
+        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits);
     case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, octspergrp, revert, p, e, c, capitalize, varname, argv[1], uppercase_hex, length);
+        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, c, capitalize, varname, argv[1], uppercase_hex, length);
     case HEX_BITS:
-        return hex_bits(colsgiven, cols, octspergrp, revert, p, c, grplen, e, length, n, addrlen, decimal_format_string, seekoff, displayoff, x, color, nonzero, ascii, autoskip);
+        return hex_bits(colsgiven, cols, octspergrp, revert, c, grplen, e, length, addrlen, decimal_format_string, seekoff, displayoff, x, color, nonzero, ascii, autoskip);
     case HEX_NORMAL:
-        return hex_normal(colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, grplen, ascii, length, n, p, addrlen, decimal_format_string, displayoff, c, x, hex_digits, nonzero, autoskip);
+        return hex_normal(colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, grplen, ascii, length, addrlen, decimal_format_string, displayoff, c, x, hex_digits, nonzero, autoskip);
     case HEX_LITTLEENDIAN:
-        if (!colsgiven || !cols) {
-            cols = 16;
-        } else if (cols < 1 || cols > COLS) {
-            fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-            exit(1);
-        }
-        if (octspergrp < 0) {
-            octspergrp = 4;
-        } else if (octspergrp < 1 || octspergrp > cols) {
-            octspergrp = cols;
-        } else if (octspergrp & (octspergrp - 1)) {
-            exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
-        }
-        if (revert) {
-            exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
-        }
-        if (color) {
-            grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
-        } else {
-            grplen = octspergrp + octspergrp + 1; // chars per octet group
-        }
-        getc_or_die(&e);
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; l[c++] = ' ')
-                    ;
-            }
-            x = p ^ (octspergrp - 1);
-            c = addrlen + 1 + (grplen * x) / octspergrp;
-            if (color) {
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                l[c++] = hex_digits[(e >> 4) & 0xf];
-                l[c++] = hex_digits[e & 0xf];
-                clear_color(l, &c);
-                c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
-                if (e) {
-                    nonzero++;
-                }
-                set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-                clear_color(l, &c);
-            } else { // no color
-                l[c] = hex_digits[(e >> 4) & 0xf];
-                l[++c] = hex_digits[e & 0xf];
-                c = grplen * ((cols + octspergrp - 1) / octspergrp);
-                if (e) {
-                    nonzero++;
-                }
-                if (!ascii) { // EBCDIC
-                    e = (e < 64) ? '.' : etoa64[e - 64];
-                }
-                c += addrlen + 3 + p;
-                l[c++] = (e >= ' ' && e < 127) ? e : '.';
-            }
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                xxdline(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e);
-        }
-        if (p) {
-            l[c++] = '\n';
-            l[c] = '\0';
-            if (color) {
-                x = p;
-                const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
-                c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
-                for (i = 0; i < fill; i++) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                    x++;
-                    p++;
-                }
-                c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
-                for (i = cols - p; i > 0; i--) {
-                    set_color(l, &c, COLOR_RED);
-                    l[c++] = ' ';
-                    clear_color(l, &c);
-                }
-            }
-            xxdline(l, 1);
-        } else if (autoskip) {
-            xxdline(l, -1); // last chance to flush out suppressed lines
-        }
-        break; // return 0
+        return hex_littleendian(colsgiven, cols, octspergrp, revert, seekoff, color, grplen, e, length, addrlen, decimal_format_string, displayoff, c, ascii, hex_digits, nonzero, autoskip);
     }
     return 0;
 }
