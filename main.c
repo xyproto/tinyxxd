@@ -95,17 +95,16 @@ void exit_with_error(const int exit_code, const char* message)
 {
     if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
-    } else {
-        fprintf(stderr, "%s: ", program_name);
-        perror(NULL);
+        exit(exit_code);
     }
+    fprintf(stderr, "%s: ", program_name);
+    perror(NULL);
     exit(exit_code);
 }
 
 void getc_or_die(int* ch)
 {
-    *ch = getc(input_file);
-    if (*ch == EOF && ferror(input_file)) {
+    if ((*ch = getc(input_file)) == EOF && ferror(input_file)) {
         exit_with_error(2, NULL);
     }
 }
@@ -357,9 +356,7 @@ void print_or_suppress_zero_line(const char* l, const int nz)
     }
     if (nz || !zero_seen++) {
         if (nz) {
-            if (nz < 0) {
-                zero_seen--;
-            }
+            zero_seen -= (nz < 0) ? 1 : 0;
             if (zero_seen == 2) {
                 fputs_or_die(z);
             } else if (zero_seen > 2) {
@@ -410,10 +407,7 @@ enum ColorDigit ebcdic_char_color(const unsigned char e)
     case 224:
         return COLOR_GREEN;
     }
-    if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249)) {
-        return COLOR_GREEN;
-    }
-    return COLOR_RED;
+    return ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249)) ? COLOR_GREEN : COLOR_RED;
 }
 
 enum ColorDigit ascii_char_color(const unsigned char e)
@@ -428,10 +422,7 @@ enum ColorDigit ascii_char_color(const unsigned char e)
     case 255:
         return COLOR_BLUE;
     }
-    if (e >= ' ' && e < 127) {
-        return COLOR_GREEN;
-    }
-    return COLOR_RED;
+    return (e >= ' ' && e < 127) ? COLOR_GREEN : COLOR_RED;
 }
 
 int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits)
@@ -536,7 +527,7 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
 int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip)
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
-    int grplen = 0, n = 0, nonzero = 0, p = 0, x = 0, addrlen = 9;
+    int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 6;
     } else if (cols < 1 || cols > COLS) {
@@ -559,16 +550,13 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
             for (c = addrlen; c < LLEN; l[c++] = ' ')
                 ;
         }
-        x = p;
-        c = addrlen + 1 + (grplen * x) / octspergrp;
+        c = addrlen + 1 + (grplen * p) / octspergrp;
         for (int i = 7; i >= 0; i--) {
             l[c++] = (e & (1 << i)) ? '1' : '0';
         }
         if (color) {
             c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
@@ -577,9 +565,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
             clear_color(l, &c);
         } else {
             c = (grplen * cols - 1) / octspergrp;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
@@ -600,7 +586,6 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
         l[c++] = '\n';
         l[c] = '\0';
         if (color) {
-            x = p;
             c++;
         }
         print_or_suppress_zero_line(l, 1);
@@ -614,7 +599,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
 {
     static char l[LLEN + 1]; // static because it may be too big for stack
     char color_digit = 0;
-    int grplen = 0, n = 0, nonzero = 0, p = 0, x = 0, addrlen = 9;
+    int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -630,11 +615,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
         octspergrp = cols;
     }
     getc_or_die(&e);
-    if (color) {
-        grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
-    } else {
-        grplen = octspergrp + octspergrp + 1; // chars per octet group
-    }
+    grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     if (color && ascii) {
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
@@ -642,17 +623,14 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 for (c = addrlen; c < LLEN; l[c++] = ' ')
                     ;
             }
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp;
+            c = addrlen + 1 + (grplen * p) / octspergrp;
             color_digit = ascii_char_color(e);
             set_color(l, &c, color_digit);
             l[c++] = hex_digits[(e >> 4) & 0xf];
             l[c++] = hex_digits[e & 0xf];
             clear_color(l, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             set_color(l, &c, color_digit);
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
             clear_color(l, &c);
@@ -673,17 +651,14 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 for (c = addrlen; c < LLEN; l[c++] = ' ')
                     ;
             }
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp;
+            c = addrlen + 1 + (grplen * p) / octspergrp;
             color_digit = ebcdic_char_color(e);
             set_color(l, &c, color_digit);
             l[c++] = hex_digits[(e >> 4) & 0xf];
             l[c++] = hex_digits[e & 0xf];
             clear_color(l, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             set_color(l, &c, color_digit);
             e = (e < 64) ? '.' : etoa64[e - 64];
             l[c++] = (e >= ' ' && e < 127) ? e : '.';
@@ -705,14 +680,11 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 for (c = addrlen; c < LLEN; l[c++] = ' ')
                     ;
             }
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp;
+            c = addrlen + 1 + (grplen * p) / octspergrp;
             l[c] = hex_digits[(e >> 4) & 0xf];
             l[++c] = hex_digits[e & 0xf];
             c = (grplen * cols - 1) / octspergrp;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
@@ -733,8 +705,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
         l[c++] = '\n';
         l[c] = '\0';
         if (color) {
-            x = p;
-            c = addrlen + 1 + (grplen * x) / octspergrp + (cols - p) + (cols - p) / octspergrp;
+            c = addrlen + 1 + (grplen * p) / octspergrp + (cols - p) + (cols - p) / octspergrp;
             for (int i = cols - p; i > 0; i--) {
                 set_color(l, &c, COLOR_RED);
                 l[c++] = ' ';
@@ -768,11 +739,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
     } else if (octspergrp & (octspergrp - 1)) {
         exit_with_error(1, "number of octets per group must be a power of 2 with -e.");
     }
-    if (color) {
-        grplen = octspergrp + octspergrp + 1 + 11 * octspergrp; // chars per octet group + 11
-    } else {
-        grplen = octspergrp + octspergrp + 1; // chars per octet group
-    }
+    grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     getc_or_die(&e);
     int n = 0, p = 0, x = 0;
     while ((length < 0 || n < length) && e != EOF) {
@@ -789,9 +756,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
             l[c++] = hex_digits[e & 0xf];
             clear_color(l, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             set_color(l, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
@@ -802,9 +767,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
             l[c] = hex_digits[(e >> 4) & 0xf];
             l[++c] = hex_digits[e & 0xf];
             c = grplen * ((cols + octspergrp - 1) / octspergrp);
-            if (e) {
-                nonzero++;
-            }
+            nonzero += e ? 1 : 0;
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
@@ -919,8 +882,7 @@ int main(int argc, char* argv[])
                 argc--;
             }
         } else if (!strncmp(pp, "-o", 2)) {
-            int reloffset = 0;
-            int negoffset = 0;
+            int reloffset = 0, negoffset = 0;
             if (pp[2] && strncmp("ffset", pp + 2, 5)) {
                 displayoff = strtoul(pp + 2, NULL, 0);
             } else {
