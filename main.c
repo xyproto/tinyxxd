@@ -385,23 +385,18 @@ inline void clear_color(char* l, int* c)
 
 inline enum ColorDigit ebcdic_char_color(const unsigned char e)
 {
-    if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249)) {
+    if ((e >= 75 && e <= 80) || (e >= 90 && e <= 97) || (e >= 107 && e <= 111) || (e >= 121 && e <= 127) || (e >= 129 && e <= 137) || (e >= 145 && e <= 154) || (e >= 162 && e <= 169) || (e >= 192 && e <= 201) || (e >= 208 && e <= 217) || (e >= 226 && e <= 233) || (e >= 240 && e <= 249) || (e == 64) || (e == 173) || (e == 189) || (e == 224)) {
         return COLOR_GREEN;
     }
     switch (e) {
-    case 0:
-        return COLOR_WHITE;
     case 5:
     case 13:
     case 37:
         return COLOR_YELLOW;
+    case 0:
+        return COLOR_WHITE;
     case 255:
         return COLOR_BLUE;
-    case 64:
-    case 173:
-    case 189:
-    case 224:
-        return COLOR_GREEN;
     }
     return COLOR_RED;
 }
@@ -412,12 +407,12 @@ inline enum ColorDigit ascii_char_color(const unsigned char e)
         return COLOR_GREEN;
     }
     switch (e) {
-    case '\0':
-        return COLOR_WHITE;
     case '\t':
     case '\n':
     case '\r':
         return COLOR_YELLOW;
+    case '\0':
+        return COLOR_WHITE;
     case 255:
         return COLOR_BLUE;
     }
