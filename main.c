@@ -14,14 +14,6 @@
 // For static declarations of buffers
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
-enum HexType {
-    HEX_NORMAL,
-    HEX_POSTSCRIPT,
-    HEX_CINCLUDE,
-    HEX_BITS, // not a hex dump, but bits, like: 01111001
-    HEX_LITTLEENDIAN
-};
-
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
     COLOR_RED = '1',
@@ -801,6 +793,13 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
 
 int main(int argc, char* argv[])
 {
+    enum HexType {
+        HEX_NORMAL,
+        HEX_BITS, // not a hex dump, but bits, like: 01111001
+        HEX_CINCLUDE,
+        HEX_LITTLEENDIAN,
+        HEX_POSTSCRIPT
+    };
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
     bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
@@ -1013,15 +1012,15 @@ int main(int argc, char* argv[])
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     const char* hex_digits = uppercase_hex ? "0123456789ABCDEF" : "0123456789abcdef";
     switch (hextype) {
-    case HEX_POSTSCRIPT:
-        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits);
-    case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length);
-    case HEX_BITS:
-        return hex_bits(colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip);
     case HEX_NORMAL:
         return hex_normal(colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip);
+    case HEX_BITS:
+        return hex_bits(colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip);
+    case HEX_CINCLUDE:
+        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length);
     case HEX_LITTLEENDIAN:
         return hex_littleendian(colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip);
+    case HEX_POSTSCRIPT:
+        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits);
     }
 }
