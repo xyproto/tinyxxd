@@ -3,6 +3,7 @@
 
 import atexit
 import os
+import pickle
 import random
 import subprocess
 import time
@@ -16,6 +17,7 @@ compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-s
 sample_sizes = [64, 32, 10, 5, 2, 1]  # in MiB
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 results = []
+previous_results = []
 
 
 def run_command(command, capture_output=False):
@@ -52,6 +54,21 @@ def create_sample_files():
     for size in sample_sizes:
         with open(f"{size}mb.bin", "wb") as f:
             f.write(os.urandom(size * 1024 * 1024))
+
+
+def write_results_to_file():
+    global results
+    with open('results.pkl', 'wb') as output_file:  # Note the 'wb' mode
+        pickle.dump(results, output_file)
+
+
+def read_previous_results():
+    global previous_results
+    try:
+        with open('results.pkl', 'rb') as input_file:  # Note the 'rb' mode
+            previous_results = pickle.load(input_file)
+    except (FileNotFoundError, EOFError):
+        previous_results = []
 
 
 def benchmark_conversion(program, flags, input_file, output_file, current, total):
@@ -106,6 +123,7 @@ def print_formatted_columns(row):
 
 
 def perform_benchmarks():
+    global results
     create_sample_files()
     programs = ['og_xxd', 'tinyxxd']
     total_benchmarks = len(sample_sizes) * len(programs) * (len(bench_flags)+1)
@@ -180,7 +198,7 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     return duration
 
 
-def analyze_performance(results, threshold=0.05):
+def analyze_performance(threshold=0.05):
     """Analyzes and summarizes performance differences between og_xxd and tinyxxd for each flag and file size.
 
     Args:
@@ -190,6 +208,7 @@ def analyze_performance(results, threshold=0.05):
     Returns:
         list: A list of summary strings describing performance comparisons.
     """
+    global results
     summaries = []
 
     # Group results by flags and size for comparison
@@ -215,8 +234,9 @@ def analyze_performance(results, threshold=0.05):
     return summaries
 
 
-def summarize_performance_by_size(results, threshold=0.05):
+def summarize_performance_by_size(threshold=0.05):
     """Summarizes performance differences per sample size."""
+    global results
     summary_data = defaultdict(lambda: defaultdict(list))
     # Collect data
     for result in results:
@@ -245,8 +265,9 @@ def summarize_performance_by_size(results, threshold=0.05):
     return performance_summaries_by_size
 
 
-def summarize_performance_by_flag(results, threshold=0.05):
+def summarize_performance_by_flag(threshold=0.05):
     """Summarizes performance differences per flag."""
+    global results
     summary_data = defaultdict(lambda: defaultdict(list))
 
     # Collect data
@@ -275,7 +296,41 @@ def summarize_performance_by_flag(results, threshold=0.05):
     return performance_summaries_by_flag
 
 
-def generate_html_report(results):
+def summarize_performance_change():
+    global results
+    global previous_results
+
+    performance_change_summaries = []
+
+    # Convert previous results to a more accessible structure
+    prev_summary = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+    for result in previous_results:
+        prev_summary[result['program']][result['flags']][result['size']] = float(result['conversion_time'])
+
+    # Calculate changes and summarize
+    for current in results:
+        program = current['program']
+        flags = current['flags']
+        size = current['size']
+        current_time = float(current['conversion_time'])
+        prev_time = prev_summary[program][flags][size]
+
+        if prev_time > 0:  # Ensure there was a previous run to compare against
+            change_percent = ((current_time - prev_time) / prev_time) * 100
+            if change_percent < 0:
+                performance_change_summaries.append(
+                    f"For {size}MiB files with flags '{flags}', {program} improved by {abs(change_percent):.2f}% compared to the last run.")
+            elif change_percent > 0:
+                performance_change_summaries.append(
+                    f"For {size}MiB files with flags '{flags}', {program} slowed down by {change_percent:.2f}% compared to the last run.")
+            # If change_percent is 0, you might choose not to add a summary for no change or handle it differently.
+
+    return performance_change_summaries
+
+
+def generate_html_report():
+    global results
+    global previous_results
     current_datetime_iso = datetime.now().isoformat()
     html_content = '''
     <!DOCTYPE html>
@@ -320,42 +375,44 @@ def generate_html_report(results):
     </body>
     </html>
     '''
-    # '''
-
     html_content += "<hr>"
 
-    performance_summaries = analyze_performance(results)
+    performance_summaries = analyze_performance()
     for summary in performance_summaries:
         html_content += f"<p>{summary}</p>"
-
     html_content += "<hr>"
 
     # per-size performance summary
-    performance_summaries_by_size = summarize_performance_by_size(results)
+    performance_summaries_by_size = summarize_performance_by_size()
     for summary in performance_summaries_by_size:
         html_content += f"<p>{summary}</p>"
-
     html_content += "<hr>"
 
     # per-flag performance summary
-    performance_summaries_by_flag = summarize_performance_by_flag(results)
+    performance_summaries_by_flag = summarize_performance_by_flag()
     for summary in performance_summaries_by_flag:
         html_content += f"<p>{summary}</p>"
-
     html_content += "<hr>"
 
-    html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
+    if previous_results:
+        performance_change_summaries = summarize_performance_change()
+        for summary in performance_change_summaries:
+            html_content += f"<p>{summary}</p>"
+        html_content += "<hr>"
 
+    html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
     html_content += "</body></html>"
 
     filename = "benchmark_results.html"
     with open(filename, "w") as file:
         file.write(html_content)
-    # '''
+
     print(f"Wrote {filename}.")
 
 
-def generate_markdown_report(results):
+def generate_markdown_report():
+    global results
+    global previous_results
     current_datetime_iso = datetime.now().isoformat()
     md_content = "# Benchmark Results\n\n"
 
@@ -369,19 +426,25 @@ def generate_markdown_report(results):
 
     # Add performance summaries
     md_content += "\n## Performance Summaries\n"
-    performance_summaries = analyze_performance(results)
+    performance_summaries = analyze_performance()
     for summary in performance_summaries:
         md_content += f"- {summary}\n"
 
     md_content += "\n### Performance by Size\n"
-    performance_summaries_by_size = summarize_performance_by_size(results)
+    performance_summaries_by_size = summarize_performance_by_size()
     for summary in performance_summaries_by_size:
         md_content += f"- {summary}\n"
 
     md_content += "\n### Performance by Flag\n"
-    performance_summaries_by_flag = summarize_performance_by_flag(results)
+    performance_summaries_by_flag = summarize_performance_by_flag()
     for summary in performance_summaries_by_flag:
         md_content += f"- {summary}\n"
+
+    if previous_results:
+        md_content += "\n### Performance compared to last run\n"
+        performance_change_summaries = summarize_performance_change()
+        for summary in performance_change_summaries:
+            md_content += f"- {summary}\n"
 
     md_content += f"\nReport generated on: {current_datetime_iso}\n"
 
@@ -412,10 +475,12 @@ def cleanup_files():
 def main():
     atexit.register(cleanup_files)
     try:
+        read_previous_results()
         compile_programs()
         perform_benchmarks()
-        generate_html_report(results)
-        generate_markdown_report(results)
+        write_results_to_file()
+        generate_html_report()
+        generate_markdown_report()
     except KeyboardInterrupt:
         print("\nctrl-c")
 
