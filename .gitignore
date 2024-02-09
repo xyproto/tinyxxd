@@ -26,6 +26,7 @@
 *.out
 *.pch
 *.pdb
+*.pkl
 *.so
 *.so.*
 *.su
