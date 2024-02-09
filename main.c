@@ -586,22 +586,33 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
     }
     getc_or_die(&e);
     grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
-    if (color && ascii) {
+    if (color) {
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
                 addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
                 for (c = addrlen; c < LLEN; l[c++] = ' ')
                     ;
             }
-            c = addrlen + 1 + (grplen * p) / octspergrp;
-            color_digit = ascii_char_color(e);
+            c = addrlen + 1 + (p * grplen) / octspergrp;
+            color_digit = ascii ? ascii_char_color(e) : ebcdic_char_color(e);
             set_color(l, &c, color_digit);
             l[c++] = hex_digits[(e >> 4) & 0xf];
             l[c++] = hex_digits[e & 0xf];
             clear_color(l, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            nonzero += e ? 1 : 0;
             set_color(l, &c, color_digit);
+            if (!ascii) { // EBCDIC
+                if (e == 0) {
+                    nonzero++;
+                    e = '.';
+                } else if (e < 64) {
+                    e = '.';
+                } else {
+                    e = etoa64[e - 64];
+                }
+            } else if (e) {
+                nonzero++;
+            }
             l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
             n++;
@@ -614,36 +625,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             }
             getc_or_die(&e);
         }
-    } else if (color && !ascii) { // color + EBCDIC
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; l[c++] = ' ')
-                    ;
-            }
-            c = addrlen + 1 + (grplen * p) / octspergrp;
-            color_digit = ebcdic_char_color(e);
-            set_color(l, &c, color_digit);
-            l[c++] = hex_digits[(e >> 4) & 0xf];
-            l[c++] = hex_digits[e & 0xf];
-            clear_color(l, &c);
-            c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            nonzero += e ? 1 : 0;
-            set_color(l, &c, color_digit);
-            e = (e < 64) ? '.' : etoa64[e - 64];
-            l[c++] = (e < ' ' || e >= 127) ? '.' : e;
-            clear_color(l, &c);
-            n++;
-            if (++p == cols) {
-                l[c++] = '\n';
-                l[c] = '\0';
-                print_or_suppress_zero_line(l, autoskip ? nonzero : 1);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e);
-        }
-    } else if (!color) { // no color + (ASCII or EBCDIC)
+    } else if (!color) { // no color
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
                 addrlen = snprintf(l, sizeof(l), decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
