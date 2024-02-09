@@ -579,9 +579,6 @@ def main():
             export_benchmark_results_for_gnuplot('benchmark_data_by_size.dat', 'size')
             generate_gnuplot_graph('benchmark_data_by_size.dat', 'graph_by_size.svg',
                                    'Benchmark Results by Sample Size', 'Sample Size (MiB)', 'Time (seconds)')
-            #export_benchmark_results_for_gnuplot('benchmark_data_by_flags.dat', 'flags')
-            #generate_gnuplot_graph('benchmark_data_by_flags.dat', 'graph_by_flags.svg',
-            #                       'Benchmark Results by Flags', 'Flags', 'Time (seconds)')
     except KeyboardInterrupt:
         print("\nctrl-c")
 
