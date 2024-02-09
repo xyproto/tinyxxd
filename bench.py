@@ -7,6 +7,7 @@ import pickle
 import platform
 import random
 import subprocess
+import tempfile
 import time
 
 from collections import defaultdict
@@ -80,7 +81,7 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
         cmd_prefix = ""
 
     cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
-    command_message = f"{program} {flags} on {input_file}"
+    command_message = f"{program} {flags} // {input_file}"
     # Update progress bar with command being run
     progress_bar(current, total, message=command_message)
     start_time = time.time()
@@ -111,9 +112,20 @@ def progress_bar(current, total, message="", length=50):
     percent = min(percent, 100)
     arrow = int(fraction * length) * "="
     padding = (length - len(arrow)) * " "
+
+    messageTrimmed = message.strip().replace("  ", " ")
+    first_word = messageTrimmed
+    the_rest = ""
+    if " // " in messageTrimmed:
+        words = messageTrimmed.split(" // ")
+        first_word = words[0]
+        the_rest = words[1]
+        if the_rest:
+            the_rest = " " + the_rest
+
     # Use blue (34) for message, green (32) for progress bar
     print(
-        f"\033[2K\033[90mBenchmarking \033[37m{message}\033[0m \033[96m[{arrow}{padding}] \033[93m{percent}% \033[37m({current}/{total})\033[0m", end="\r")
+        f"\033[2K\033[90mBenchmarking \033[94m{first_word}\033[33m{the_rest} \033[0m\033[96m[{arrow}{padding}] \033[93m{percent}% \033[37m({current}/{total})\033[0m", end="\r")
 
 
 def print_colored(message, color_code):
@@ -183,7 +195,7 @@ def perform_benchmarks():
                             f"Output verification failed: these files differ: \"{size}mb{flags}_og_xxd.hex\" and \"{size}mb{flags}_tinyxxd.hex\".", 91)
                         exit(1)
 
-            progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} on {size}MiB")
+            progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} // {size}MiB")
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
     print()
@@ -463,6 +475,85 @@ def cleanup_files():
                     pass
 
 
+def export_benchmark_results_for_gnuplot(data_filename, group_by):
+    global previous_results
+    include_previous = len(previous_results) > 0
+
+    with open(data_filename, 'w') as f:
+        if group_by == "size":
+            header_line = "#SampleSizeMB og_xxd tinyxxd"
+            if include_previous:
+                header_line += " previous_tinyxxd"
+            f.write(header_line + "\n")
+
+            for size in sample_sizes:
+                data_line = f"{size} " + " ".join(
+                    f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['size'] == size and x['flags'] == ''), 'NaN')}"
+                    for prog in ['og_xxd', 'tinyxxd']
+                )
+                if include_previous:
+                    prev_time = next((x['conversion_time'] for x in previous_results if x['program']
+                                     == 'tinyxxd' and x['size'] == size and x['flags'] == ''), 'NaN')
+                    data_line += f" {prev_time}"
+                f.write(data_line + "\n")
+
+        elif group_by == "flags":
+            header_line = "#Flag og_xxd tinyxxd"
+            if include_previous:
+                header_line += " previous_tinyxxd"
+            f.write(header_line + "\n")
+
+        for flag in bench_flags:
+            modified_flag = flag.replace("-", "")  # Remove "-" from flags
+            data_line = f"{modified_flag} " + " ".join(
+                f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['flags'] == flag), 'NaN')}"
+                for prog in ['og_xxd', 'tinyxxd']
+            )
+            if include_previous:
+                prev_time = next((x['conversion_time'] for x in previous_results if x['program']
+                                 == 'tinyxxd' and x['flags'] == flag), 'NaN')
+                data_line += f" {prev_time}"
+            f.write(data_line + "\n")
+
+    print(f"Wrote {data_filename}.")
+
+
+def generate_gnuplot_graph(data_filename, graph_filename, title, xlabel, ylabel):
+    global previous_results
+    include_previous = len(previous_results) > 0
+
+    plot_commands = [
+        f"'{data_filename}' using 1:2 title 'og_xxd' with linespoints",
+        f"'{data_filename}' using 1:3 title 'tinyxxd' with linespoints",
+    ]
+    if include_previous:
+        plot_commands.append(f"'{data_filename}' using 1:4 title 'previous tinyxxd' with linespoints")
+
+    gnuplot_commands = f"""
+set terminal svg size 800,600 enhanced background rgb 'white'
+set output '{graph_filename}'
+set title '{title}'
+set xlabel '{xlabel}'
+set ylabel '{ylabel}'
+set key outside
+set grid
+plot {", ".join(plot_commands)}
+"""
+
+    # Write commands to a temporary script file
+    with tempfile.NamedTemporaryFile('w', delete=False) as script_file:
+        script_file.write(gnuplot_commands)
+        script_filename = script_file.name
+
+    # Execute the script with gnuplot
+    subprocess.run(['gnuplot', script_filename], check=True)
+
+    # Optionally, remove the script file after execution
+    os.remove(script_filename)
+
+    print(f"Wrote {graph_filename}.")
+
+
 def main():
     atexit.register(cleanup_files)
     try:
@@ -472,6 +563,12 @@ def main():
         write_results_to_file()
         generate_html_report()
         generate_markdown_report()
+        #export_benchmark_results_for_gnuplot('benchmark_data_by_size.dat', 'size')
+        #generate_gnuplot_graph('benchmark_data_by_size.dat', 'graph_by_size.svg',
+        #                       'Benchmark Results by Sample Size', 'Sample Size (MiB)', 'Time (seconds)')
+        #export_benchmark_results_for_gnuplot('benchmark_data_by_flags.dat', 'flags')
+        #generate_gnuplot_graph('benchmark_data_by_flags.dat', 'graph_by_flags.svg',
+        #                       'Benchmark Results by Flags', 'Flags', 'Time (seconds)')
     except KeyboardInterrupt:
         print("\nctrl-c")
 
