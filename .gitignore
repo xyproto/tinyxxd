@@ -5,6 +5,7 @@
 *.cmd
 *.d
 *.dSYM/
+*.dat
 *.dll
 *.dylib
 *.elf
