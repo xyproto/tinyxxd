@@ -4,6 +4,7 @@
 import atexit
 import os
 import pickle
+import platform
 import random
 import subprocess
 import time
@@ -73,7 +74,12 @@ def read_previous_results():
 
 def benchmark_conversion(program, flags, input_file, output_file, current, total):
     """Measures the conversion time of a program, capturing output directly, and updates the progress bar with command info."""
-    cmd = f"./{program} {flags} {input_file} > {output_file}"
+    if platform.system() == "Linux":
+        cmd_prefix = "sudo ionice -c1 -n0 nice -n -20"
+    else:
+        cmd_prefix = ""
+
+    cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
     command_message = f"{program} {flags} on {input_file}"
     # Update progress bar with command being run
     progress_bar(current, total, message=command_message)
@@ -181,21 +187,6 @@ def perform_benchmarks():
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
     print()
-
-
-def benchmark_conversion(program, flags, input_file, output_file, current, total):
-    """Measures the conversion time of a program, capturing output directly, and updates the progress bar with command info."""
-    cmd = f"./{program} {flags} {input_file} > {output_file}"
-    command_message = f"{program} {flags} on {input_file}"
-    # Update progress bar with command being run
-    progress_bar(current, total, message=command_message)
-    start_time = time.time()
-    result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    duration = time.time() - start_time
-    if result.returncode != 0:
-        print_colored("Command failed", 91)
-        exit(1)
-    return duration
 
 
 def analyze_performance(threshold=0.05):
