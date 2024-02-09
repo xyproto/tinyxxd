@@ -224,10 +224,7 @@ int decode_hex_stream_normal(const int cols, const long base_off)
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while ((c = getc(input_file)) != EOF) {
-        if (c == '\r') { // DOS style newlines?
-            continue;
-        }
+    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
         n3 = n2;
         n2 = n1;
         n1 = parse_hex_digit(c);
@@ -277,10 +274,7 @@ int decode_hex_stream_bits(const int cols)
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(input_file);
-    while ((c = getc(input_file)) != EOF) {
-        if (c == '\r') { // DOS style newlines?
-            continue;
-        }
+    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
         n1 = parse_hex_digit(c);
         if (n1 == -1 && ignore) {
             continue;
