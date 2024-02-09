@@ -8,6 +8,7 @@ import subprocess
 import time
 
 from collections import defaultdict
+from datetime import datetime
 from urllib.request import urlretrieve
 
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
@@ -276,6 +277,7 @@ def summarize_performance_by_flag(results, threshold=0.05):
 
 
 def generate_html_report(results):
+    current_datetime_iso = datetime.now().isoformat()
     html_content = '''
     <!DOCTYPE html>
     <html lang="en">
@@ -284,11 +286,14 @@ def generate_html_report(results):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Benchmark Results</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
-            th { background-color: #f2f2f2; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        h2 { color: #17a2b8; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; text-align: left; padding: 8px; }
+        th { background-color: #17a2b8; color: #ffffff; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        hr { border: 1px solid #17a2b8; margin-top: 40px; }
+        p { color: #212529; }
         </style>
     </head>
     <body>
@@ -337,6 +342,10 @@ def generate_html_report(results):
     performance_summaries_by_flag = summarize_performance_by_flag(results)
     for summary in performance_summaries_by_flag:
         html_content += f"<p>{summary}</p>"
+
+    html_content += "<hr>"
+
+    html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
 
     html_content += "</body></html>"
 
