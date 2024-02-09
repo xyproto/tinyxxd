@@ -39,10 +39,13 @@ Module.symvers
 callgrind.*
 dkms.conf
 modules.order
+og_xxd
+og_xxd.c
 output_*
 results.md
 timing.txt
 tinyxxd
+tinyxxd2
 tinyxxd_*
 tinyxxd_debug
 xxd
