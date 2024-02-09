@@ -165,8 +165,7 @@ static inline void fflush_fseek_and_putc(const long* base_off, const long* want_
     fflush_or_die();
     if (fseek(output_file, *base_off + *want_off - *have_off, SEEK_CUR) >= 0) {
         *have_off = *base_off + *want_off;
-    }
-    if (*base_off + *want_off < *have_off) {
+    } else if (*base_off + *want_off < *have_off) {
         exit_with_error(5, "Sorry, cannot seek backwards.");
     }
     for (; *have_off < *base_off + *want_off; (*have_off)++) {
@@ -227,25 +226,22 @@ int decode_hex_stream_normal(const int cols, const long base_off)
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while ((c = getc(input_file)) != EOF) {
-        if (c == '\r') { // DOS style newlines?
-            continue;
-        }
+    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
         n3 = n2;
         n2 = n1;
         n1 = parse_hex_digit(c);
         if (n1 == -1 && ignore) {
             continue;
         }
-        ignore = false;
         if (p >= cols) {
             if (n1 < 0) {
                 p = 0;
-                continue;
+            } else {
+                want_off = (want_off << 4) | n1;
             }
-            want_off = (want_off << 4) | n1;
             continue;
         }
+        ignore = false;
         fflush_fseek_and_putc(&base_off, &want_off, &have_off);
         if (n2 >= 0 && n1 >= 0) {
             putc_or_die((n2 << 4) | n1);
@@ -298,9 +294,9 @@ int decode_hex_stream_bits(const int cols)
             if (n1 < 0) {
                 p = 0;
                 bit_count = 0;
-                continue;
+            } else {
+                want_off = (want_off << 4) | n1;
             }
-            want_off = (want_off << 4) | n1;
             continue;
         }
         if (c == '\n') {
