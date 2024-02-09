@@ -266,7 +266,6 @@ def summarize_performance_by_size(threshold=0.05):
 
 
 def summarize_performance_by_flag(threshold=0.05):
-    """Summarizes performance differences per flag."""
     global results
     summary_data = defaultdict(lambda: defaultdict(list))
 
@@ -278,20 +277,20 @@ def summarize_performance_by_flag(threshold=0.05):
     performance_summaries_by_flag = []
     for flag, data in summary_data.items():
         if 'og_xxd' not in data or 'tinyxxd' not in data:
-            continue  # Skip if data for either program is missing
+            # Skip if data for either program is missing
+            continue
 
         avg_og_xxd = sum(data['og_xxd']) / len(data['og_xxd'])
         avg_tinyxxd = sum(data['tinyxxd']) / len(data['tinyxxd'])
 
-        if avg_og_xxd < avg_tinyxxd:
-            percent_faster = ((avg_tinyxxd - avg_og_xxd) / avg_og_xxd) * 100
-            if percent_faster > threshold:
-                summary = f"With flag '{flag}', og_xxd was {percent_faster:.2f}% faster than tinyxxd."
-        else:
-            percent_faster = ((avg_og_xxd - avg_tinyxxd) / avg_tinyxxd) * 100
-            if percent_faster > threshold:
-                summary = f"With flag '{flag}', tinyxxd was {percent_faster:.2f}% faster than og_xxd."
-        performance_summaries_by_flag.append(summary)
+        # Calculate the percentage faster relative to the slower program
+        if avg_og_xxd != avg_tinyxxd:  # Check to ensure division by zero doesn't occur
+            diff = abs(avg_og_xxd - avg_tinyxxd) / max(avg_og_xxd, avg_tinyxxd)
+            if diff > threshold:
+                better_program = "og_xxd" if avg_og_xxd < avg_tinyxxd else "tinyxxd"
+                percent_faster = (diff / (1 - diff)) * 100
+                summary = f"With flag '{flag}', {better_program} was {percent_faster:.2f}% faster."
+                performance_summaries_by_flag.append(summary)
 
     return performance_summaries_by_flag
 
