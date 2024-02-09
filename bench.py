@@ -7,6 +7,7 @@ import pickle
 import platform
 import random
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -14,12 +15,16 @@ from collections import defaultdict
 from datetime import datetime
 from urllib.request import urlretrieve
 
-xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
-compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
-sample_sizes = [256, 128, 64, 32, 8, 4, 1]  # in MiB
-bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 results = []
 previous_results = []
+xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
+compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
+bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
+
+if len(sys.argv) > 1 and sys.argv[1] == "-q":
+    sample_sizes = [3, 2, 1]  # in MiB
+else:
+    sample_sizes = [256, 128, 64, 32, 8, 4, 1]  # in MiB
 
 
 def run_command(command, capture_output=False):
