@@ -16,7 +16,7 @@ from urllib.request import urlretrieve
 
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
-sample_sizes = [64, 32, 10, 5, 2, 1]  # in MiB
+sample_sizes = [128, 64, 32, 16, 8]  # in MiB
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 results = []
 previous_results = []
@@ -75,11 +75,9 @@ def read_previous_results():
 
 def benchmark_conversion(program, flags, input_file, output_file, current, total):
     """Measures the conversion time of a program, capturing output directly, and updates the progress bar with command info."""
+    cmd_prefix = ""
     if platform.system() == "Linux":
         cmd_prefix = "sudo ionice -c1 -n0 nice -n -20"
-    else:
-        cmd_prefix = ""
-
     cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
     command_message = f"{program} {flags} // {input_file}"
     # Update progress bar with command being run
@@ -123,7 +121,6 @@ def progress_bar(current, total, message="", length=50):
         if the_rest:
             the_rest = " " + the_rest
 
-    # Use blue (34) for message, green (32) for progress bar
     print(
         f"\033[2K\033[90mBenchmarking \033[94m{first_word}\033[33m{the_rest} \033[0m\033[96m[{arrow}{padding}] \033[93m{percent}% \033[37m({current}/{total})\033[0m", end="\r")
 
@@ -475,6 +472,19 @@ def cleanup_files():
                     pass
 
 
+def gnuplot_is_available():
+    """Check if gnuplot is available on the system."""
+    try:
+        subprocess.run(["gnuplot", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except subprocess.CalledProcessError as e:
+        print("gnuplot not found or an error occurred while checking gnuplot version:", e)
+        return False
+    except FileNotFoundError:
+        print("gnuplot is not installed or not in the PATH.")
+        return False
+
+
 def export_benchmark_results_for_gnuplot(data_filename, group_by):
     global previous_results
     include_previous = len(previous_results) > 0
@@ -504,8 +514,10 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
             f.write(header_line + "\n")
 
         for flag in bench_flags:
-            modified_flag = flag.replace("-", "")  # Remove "-" from flags
-            data_line = f"{modified_flag} " + " ".join(
+            modified_flag = flag.replace("-", "")
+            if modified_flag == "":
+                modified_flag = "NA"
+            data_line = f"'{modified_flag}' " + " ".join(  # Ensure flags are quoted for gnuplot
                 f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['flags'] == flag), 'NaN')}"
                 for prog in ['og_xxd', 'tinyxxd']
             )
@@ -563,12 +575,13 @@ def main():
         write_results_to_file()
         generate_html_report()
         generate_markdown_report()
-        export_benchmark_results_for_gnuplot('benchmark_data_by_size.dat', 'size')
-        generate_gnuplot_graph('benchmark_data_by_size.dat', 'graph_by_size.svg',
-                               'Benchmark Results by Sample Size', 'Sample Size (MiB)', 'Time (seconds)')
-        #export_benchmark_results_for_gnuplot('benchmark_data_by_flags.dat', 'flags')
-        #generate_gnuplot_graph('benchmark_data_by_flags.dat', 'graph_by_flags.svg',
-        #                       'Benchmark Results by Flags', 'Flags', 'Time (seconds)')
+        if gnuplot_is_available():
+            export_benchmark_results_for_gnuplot('benchmark_data_by_size.dat', 'size')
+            generate_gnuplot_graph('benchmark_data_by_size.dat', 'graph_by_size.svg',
+                                   'Benchmark Results by Sample Size', 'Sample Size (MiB)', 'Time (seconds)')
+            #export_benchmark_results_for_gnuplot('benchmark_data_by_flags.dat', 'flags')
+            #generate_gnuplot_graph('benchmark_data_by_flags.dat', 'graph_by_flags.svg',
+            #                       'Benchmark Results by Flags', 'Flags', 'Time (seconds)')
     except KeyboardInterrupt:
         print("\nctrl-c")
 
