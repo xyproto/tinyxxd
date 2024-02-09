@@ -16,7 +16,7 @@ from urllib.request import urlretrieve
 
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
-sample_sizes = [128, 64, 32, 16, 8]  # in MiB
+sample_sizes = [256, 128, 64, 32, 8, 4, 1]  # in MiB
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 results = []
 previous_results = []
@@ -348,6 +348,7 @@ def generate_html_report():
         tr:nth-child(even) { background-color: #f2f2f2; }
         hr { border: 1px solid #17a2b8; margin-top: 40px; }
         p { color: #212529; }
+        img { max-width: 100%; height: auto; }
         </style>
     </head>
     <body>
@@ -400,6 +401,14 @@ def generate_html_report():
             html_content += f"<p>{summary}</p>"
         html_content += "<hr>"
 
+    html_content += "<h2>Graphs</h2>\n"
+    html_content += "<h3>Graph by Size</h3>\n"
+    html_content += '<img src="img/graph_by_size.svg" alt="Graph by Size">\n'
+    for flag in bench_flags:
+        flag_suffix = flag.replace("-", "") if flag else "none"
+        html_content += f"<h3>Graph for Flag '{flag}'</h3>\n"
+        html_content += f'<img src="img/graph_flag_{flag_suffix}.svg" alt="Graph Flag {flag_suffix}">\n'
+
     html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
     html_content += "</body></html>"
 
@@ -445,6 +454,14 @@ def generate_markdown_report():
         performance_change_summaries = summarize_performance_change()
         for summary in performance_change_summaries:
             md_content += f"- {summary}\n"
+
+    md_content += "\n## Graphs\n\n"
+    md_content += "### Graph by Size\n"
+    md_content += "![Graph by Size](img/graph_by_size.svg)\n\n"
+    for flag in bench_flags:
+        flag_suffix = flag.replace("-", "") if flag else "none"
+        md_content += f"### Graph for Flag '{flag}'\n"
+        md_content += f"![Graph Flag {flag_suffix}](img/graph_flag_{flag_suffix}.svg)\n\n"
 
     md_content += f"\nReport generated on: {current_datetime_iso}\n"
 
@@ -530,6 +547,42 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
     print(f"Wrote {data_filename}.")
 
 
+def export_benchmark_results_for_each_flag():
+    for flag in bench_flags:
+        filename = f'img/benchmark_data_flag_{flag.replace("-", "") if flag else "none"}.dat'
+        with open(filename, 'w') as file:
+            header = "#SampleSizeMB og_xxd tinyxxd" + (" previous_tinyxxd" if previous_results else "") + "\n"
+            file.write(header)
+            for size in sample_sizes:
+                line = f"{size} "
+                line += " ".join(f"{avg_time_for_program_size_flag(program, size, flag)}" for program in [
+                                 'og_xxd', 'tinyxxd'])
+                if previous_results:
+                    prev_avg_time = avg_time_for_program_size_flag('tinyxxd', size, flag, previous=True)
+                    line += f" {prev_avg_time}"
+                file.write(line + "\n")
+
+
+def generate_graphs_for_each_flag():
+    for flag in bench_flags:
+        data_filename = f'img/benchmark_data_flag_{flag.replace("-", "") if flag else "none"}.dat'
+        graph_filename = f'img/graph_flag_{flag.replace("-", "") if flag else "none"}.svg'
+        modified_flag = flag.replace("-", "")
+        if modified_flag == "":
+            modified_flag = "NA"
+        title = f"Benchmark Results for Flag {modified_flag}"
+        generate_gnuplot_graph(data_filename, graph_filename, title, "Sample Size (MiB)", "Time (seconds)")
+
+
+def avg_time_for_program_size_flag(program, size, flag, previous=False):
+    relevant_results = previous_results if previous else results
+    times = [result['conversion_time'] for result in relevant_results if result['program']
+             == program and result['size'] == size and result['flags'] == flag]
+    if times:
+        return sum(times) / len(times)
+    return 'NaN'
+
+
 def generate_gnuplot_graph(data_filename, graph_filename, title, xlabel, ylabel):
     global previous_results
     include_previous = len(previous_results) > 0
@@ -576,9 +629,11 @@ def main():
         generate_html_report()
         generate_markdown_report()
         if gnuplot_is_available():
-            export_benchmark_results_for_gnuplot('benchmark_data_by_size.dat', 'size')
-            generate_gnuplot_graph('benchmark_data_by_size.dat', 'graph_by_size.svg',
+            export_benchmark_results_for_gnuplot('img/benchmark_data_by_size.dat', 'size')
+            generate_gnuplot_graph('img/benchmark_data_by_size.dat', 'img/graph_by_size.svg',
                                    'Benchmark Results by Sample Size', 'Sample Size (MiB)', 'Time (seconds)')
+            export_benchmark_results_for_each_flag()
+            generate_graphs_for_each_flag()
     except KeyboardInterrupt:
         print("\nctrl-c")
 
