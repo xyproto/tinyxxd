@@ -472,7 +472,7 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
         fputs_or_die("[] = {\n");
     }
     getc_or_die(&c);
-    char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
+    const char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((length < 0 || p < length) && c != EOF) {
         if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
             exit_with_error(3, NULL);
