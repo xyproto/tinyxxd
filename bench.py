@@ -14,6 +14,7 @@ from urllib.request import urlretrieve
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
 sample_sizes = [64, 32, 10, 5, 2, 1]  # in MiB
+bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 results = []
 
 
@@ -107,9 +108,7 @@ def print_formatted_columns(row):
 def perform_benchmarks():
     create_sample_files()
     programs = ['og_xxd', 'tinyxxd']
-    flags_sets = ['', '-p', '-i', '-e', '-b', '-u', '-E']
-    # Calculate total benchmarks correctly considering each conversion and reconversion as separate steps
-    total_benchmarks = len(sample_sizes) * len(programs) * (len(flags_sets) + 1)
+    total_benchmarks = len(sample_sizes) * len(programs) * (len(bench_flags)+1)
     current_benchmark = 0
 
     random.seed()
@@ -120,7 +119,7 @@ def perform_benchmarks():
             input_file = f'{size}mb.bin'
             output_file = f"{size}mb_{program}.hex"
             recon_file = f'{size}mb_recreated.bin'
-            # Initial conversion without flags
+            # Conversion from binary to hex
             current_benchmark += 1
             conversion_time = benchmark_conversion(
                 program, "", input_file, output_file, current_benchmark, total_benchmarks)
@@ -130,7 +129,7 @@ def perform_benchmarks():
                 'conversion_time': conversion_time,
                 'flags': "",
             })
-            # Reconconversion
+            # Conversion back from hex to binary
             reconversion_time = benchmark_conversion(
                 program, "-r", output_file, recon_file, current_benchmark, total_benchmarks)
             if not verify_files(input_file, recon_file):
@@ -143,8 +142,9 @@ def perform_benchmarks():
                 'flags': "-r",
             })
 
-            for flags in flags_sets:
+            for flags in bench_flags:
                 current_benchmark += 1
+                output_file = f"{size}mb{flags}_{program}.hex"
                 conversion_time = benchmark_conversion(
                     program, flags, input_file, output_file, current_benchmark, total_benchmarks)
                 results.append({
@@ -153,13 +153,11 @@ def perform_benchmarks():
                     'conversion_time': conversion_time,
                     'flags': flags,
                 })
-
-            # TODO: Check more than the outputted files for just the last flag in flags_sets
-            if os.path.exists(f"{size}mb_og_xxd.hex") and os.path.exists(f"{size}mb_tinyxxd.hex"):
-                if not verify_files(f"{size}mb_og_xxd.hex", f"{size}mb_tinyxxd.hex"):
-                    print_colored(
-                        f"Output verification failed: these files differ: \"{size}mb_og_xxd.hex\" and \"{size}mb_tinyxxd.hex\".", 91)
-                    exit(1)
+                if os.path.exists(f"{size}mb{flags}_og_xxd.hex") and os.path.exists(f"{size}mb{flags}_tinyxxd.hex"):
+                    if not verify_files(f"{size}mb{flags}_og_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"):
+                        print_colored(
+                            f"Output verification failed: these files differ: \"{size}mb{flags}_og_xxd.hex\" and \"{size}mb{flags}_tinyxxd.hex\".", 91)
+                        exit(1)
 
             progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} on {size}MiB")
 
@@ -397,25 +395,29 @@ def generate_markdown_report(results):
 def cleanup_files():
     """Removes sample and output files created during the benchmark."""
     for size in sample_sizes:
-        files_to_delete = [
-            f"{size}mb.bin",
-            f"{size}mb_recreated.bin",
-            f"{size}mb_og_xxd.hex",
-            f"{size}mb_tinyxxd.hex"
-        ]
-        for file in files_to_delete:
-            try:
-                os.remove(file)
-            except OSError as e:
-                print(f"Error deleting file {file}: {e}")
+        for flags in ['', '-p', '-i', '-e', '-b', '-u', '-E']:
+            files_to_delete = [
+                f"{size}mb.bin",
+                f"{size}mb_recreated.bin",
+                f"{size}mb{flags}_og_xxd.hex",
+                f"{size}mb{flags}_tinyxxd.hex"
+            ]
+            for file in files_to_delete:
+                try:
+                    os.remove(file)
+                except OSError as e:
+                    pass
 
 
 def main():
     atexit.register(cleanup_files)
-    compile_programs()
-    perform_benchmarks()
-    generate_html_report(results)
-    generate_markdown_report(results)
+    try:
+        compile_programs()
+        perform_benchmarks()
+        generate_html_report(results)
+        generate_markdown_report(results)
+    except KeyboardInterrupt:
+        print("\nctrl-c")
 
 
 if __name__ == "__main__":
