@@ -13,7 +13,7 @@ from urllib.request import urlretrieve
 
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
-sample_sizes = [1, 2, 5, 10, 32, 64]  # in MiB
+sample_sizes = [64, 32, 10, 5, 2, 1]  # in MiB
 results = []
 
 
@@ -164,6 +164,7 @@ def perform_benchmarks():
             progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} on {size}MiB")
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
+    print()
 
 
 def benchmark_conversion(program, flags, input_file, output_file, current, total):
@@ -352,7 +353,45 @@ def generate_html_report(results):
     filename = "benchmark_results.html"
     with open(filename, "w") as file:
         file.write(html_content)
-    print(f"\nWrote {filename}.")
+    # '''
+    print(f"Wrote {filename}.")
+
+
+def generate_markdown_report(results):
+    current_datetime_iso = datetime.now().isoformat()
+    md_content = "# Benchmark Results\n\n"
+
+    # Add the table header
+    md_content += "| Program | Size (MiB) | Conversion Time (s) | Flags |\n"
+    md_content += "|---------|------------|----------------------|-------|\n"
+
+    # Add the table rows with the benchmark results
+    for result in results:
+        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags']} |\n"
+
+    # Add performance summaries
+    md_content += "\n## Performance Summaries\n"
+    performance_summaries = analyze_performance(results)
+    for summary in performance_summaries:
+        md_content += f"- {summary}\n"
+
+    md_content += "\n### Performance by Size\n"
+    performance_summaries_by_size = summarize_performance_by_size(results)
+    for summary in performance_summaries_by_size:
+        md_content += f"- {summary}\n"
+
+    md_content += "\n### Performance by Flag\n"
+    performance_summaries_by_flag = summarize_performance_by_flag(results)
+    for summary in performance_summaries_by_flag:
+        md_content += f"- {summary}\n"
+
+    md_content += f"\nReport generated on: {current_datetime_iso}\n"
+
+    # Write the Markdown content to a file
+    filename = "benchmark_results.md"
+    with open(filename, "w") as md_file:
+        md_file.write(md_content)
+    print(f"Wrote {filename}.")
 
 
 def cleanup_files():
@@ -376,6 +415,7 @@ def main():
     compile_programs()
     perform_benchmarks()
     generate_html_report(results)
+    generate_markdown_report(results)
 
 
 if __name__ == "__main__":
