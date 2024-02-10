@@ -20,6 +20,7 @@ previous_results = []
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
+base_path = "/dev/shm" if platform.system() == "Linux" else tempfile.gettempdir()
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
@@ -59,9 +60,11 @@ def compile_programs():
 
 
 def create_sample_files():
-    """Creates sample files of various sizes."""
+    """Creates sample files of various sizes in /dev/shm if on Linux."""
+    global base_path
     for size in sample_sizes:
-        with open(f"{size}mb.bin", "wb") as f:
+        filename = os.path.join(base_path, f"{size}mb.bin")
+        with open(filename, "wb") as f:
             f.write(os.urandom(size * 1024 * 1024))
 
 
@@ -93,7 +96,7 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     duration = time.time() - start_time
     if result.returncode != 0:
-        print_colored("Command failed", 91)
+        print_colored(f"Command failed: {cmd}", 91)
         exit(1)
     return duration
 
@@ -144,6 +147,23 @@ def print_formatted_columns(row):
     print(formatted_row)
 
 
+def cleanup_files_for_size(size):
+    """Removes sample and output files for a specific size."""
+    global base_path
+    file_patterns = [
+        f"{size}mb.bin",
+        f"{size}mb_recreated.bin",
+        *[f"{size}mb{flag}_og_xxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags]
+    ]
+    for pattern in file_patterns:
+        file_path = os.path.join(base_path, pattern)
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass  # File does not exist or cannot be deleted, move on
+
+
 def perform_benchmarks():
     global results
     create_sample_files()
@@ -156,9 +176,10 @@ def perform_benchmarks():
     for size in sample_sizes:
         random.shuffle(programs)
         for program in programs:
-            input_file = f'{size}mb.bin'
-            output_file = f"{size}mb_{program}.hex"
-            recon_file = f'{size}mb_recreated.bin'
+            input_file = os.path.join(base_path, f'{size}mb.bin')
+            output_file = os.path.join(base_path, f"{size}mb_{program}.hex")
+            recon_file = os.path.join(base_path, f'{size}mb_recreated.bin')
+
             # Conversion from binary to hex
             current_benchmark += 1
             conversion_time = benchmark_conversion(
@@ -200,6 +221,7 @@ def perform_benchmarks():
                         exit(1)
 
             progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} // {size}MiB")
+        cleanup_files_for_size(size)
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
     print()
@@ -486,23 +508,24 @@ def generate_markdown_report():
 
 def cleanup_files():
     """Removes sample and output files created during the benchmark."""
+    global base_path
     for size in sample_sizes:
         for flags in ['', '-p', '-i', '-e', '-b', '-u', '-E']:
             files_to_delete = [
-                f"{size}mb.bin",
-                f"{size}mb_recreated.bin",
-                f"{size}mb{flags}_og_xxd.hex",
-                f"{size}mb{flags}_tinyxxd.hex"
+                os.path.join(base_path, f"{size}mb.bin"),
+                os.path.join(base_path, f"{size}mb_recreated.bin"),
+                os.path.join(base_path, f"{size}mb{flags}_og_xxd.hex"),
+                os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex")
             ]
             for file in files_to_delete:
                 try:
                     os.remove(file)
-                except OSError as e:
+                except OSError:
                     pass
 
 
 def gnuplot_is_available():
-    """Check if gnuplot is available on the system."""
+    """Check if gnuplot is available on the system and works."""
     try:
         subprocess.run(["gnuplot", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
