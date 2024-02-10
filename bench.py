@@ -20,7 +20,7 @@ previous_results = []
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
-base_path = "/dev/shm" if platform.system() == "Linux" else tempfile.gettempdir()
+base_path = tempfile.gettempdir()
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
