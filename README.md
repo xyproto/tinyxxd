@@ -8,6 +8,8 @@ The source code for the program is a single `main.c` source file.
 
 Tested on both Arch Linux and macOS, where it builds, runs and all tests passes.
 
+The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
+
 ### What is it, and what can it do?
 
 `xxd` or `tinyxxd` can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex, and also do the same thing in reverse: create files from hex codes.
