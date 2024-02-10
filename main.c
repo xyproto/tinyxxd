@@ -145,9 +145,7 @@ inline int parse_bin_digit(const int ch)
     return (ch < '0' || ch > '1') ? -1 : ch - '0';
 }
 
-/* skip_to_eol_or_die will ignore text from the input file, until EOL or EOF.
- * Returns '\n', the EOF character or exits with an error.
- */
+// skip_to_eol_or_die will ignore text from the input file, until EOL or EOF
 static inline int skip_to_eol_or_die(int ch)
 {
     while (ch != '\n' && ch != EOF) {
@@ -370,12 +368,12 @@ inline enum ColorDigit ebcdic_char_color(const unsigned char e)
         return COLOR_GREEN;
     }
     switch (e) {
+    case 0:
+        return COLOR_WHITE;        
     case 5:
     case 13:
     case 37:
         return COLOR_YELLOW;
-    case 0:
-        return COLOR_WHITE;
     case 255:
         return COLOR_BLUE;
     }
@@ -948,8 +946,7 @@ int main(int argc, char* argv[])
     }
     if (argc > 3) {
         exit_with_usage();
-    }
-    if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
+    } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         input_file = stdin;
     } else if (!(input_file = fopen(argv[1], "r"))) { // for reading
         fprintf(stderr, "%s: ", program_name);
