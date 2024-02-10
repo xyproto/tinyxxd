@@ -408,11 +408,14 @@ def generate_html_report():
         html_content += "<hr>"
 
     html_content += "<h2>Graphs</h2>\n"
-    html_content += "<h3>Graph by Size</h3>\n"
+    html_content += "<h3>Graph by sample size</h3>\n"
     html_content += '<img src="img/graph_by_size.svg" alt="Graph by Size">\n'
     for flag in bench_flags:
         flag_suffix = flag.replace("-", "") if flag else "none"
-        html_content += f"<h3>Graph for Flag '{flag}'</h3>\n"
+        if flag:
+            html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
+        else:
+            html_content += f"<h3>Graph for no flag</h3>\n"
         html_content += f'<img src="img/graph_flag_{flag_suffix}.svg" alt="Graph Flag {flag_suffix}">\n'
 
     html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
@@ -445,12 +448,12 @@ def generate_markdown_report():
     for summary in performance_summaries:
         md_content += f"- {summary}\n"
 
-    md_content += "\n### Performance by Size\n"
+    md_content += "\n### Performance by sample size\n"
     performance_summaries_by_size = summarize_performance_by_size()
     for summary in performance_summaries_by_size:
         md_content += f"- {summary}\n"
 
-    md_content += "\n### Performance by Flag\n"
+    md_content += "\n### Performance by flag\n"
     performance_summaries_by_flag = summarize_performance_by_flag()
     for summary in performance_summaries_by_flag:
         md_content += f"- {summary}\n"
@@ -466,7 +469,10 @@ def generate_markdown_report():
     md_content += "![Graph by Size](img/graph_by_size.svg)\n\n"
     for flag in bench_flags:
         flag_suffix = flag.replace("-", "") if flag else "none"
-        md_content += f"### Graph for Flag '{flag}'\n"
+        if flag:
+            md_content += f"### Graph for flag '{flag}'\n"
+        else:
+            md_content += f"### Graph for no flag\n"
         md_content += f"![Graph Flag {flag_suffix}](img/graph_flag_{flag_suffix}.svg)\n\n"
 
     md_content += f"\nReport generated on: {current_datetime_iso}\n"
