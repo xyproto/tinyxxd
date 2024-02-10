@@ -121,7 +121,6 @@ static inline void fflush_or_die(void)
     }
 }
 
-// fclose_or_die closes the output file and then the input file, and exists if there are errors.
 void fclose_or_die(void)
 {
     if (fclose(output_file)) {
