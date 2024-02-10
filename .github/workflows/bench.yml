@@ -1,0 +1,45 @@
+name: Benchmark
+
+on: [push, pull_request]
+
+jobs:
+  benchmark-linux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Cache results.pkl
+      id: cache-results
+      uses: actions/cache@v3
+      with:
+        path: ./results.pkl
+        key: results-${{ github.ref }}-${{ github.run_id }}
+        restore-keys: |
+          results-${{ github.ref }}-
+
+    - name: Install Python and gnuplot
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm python gnuplot
+
+    - name: Check for cached results
+      run: |
+        if [ -f results.pkl ]; then
+          echo "Cached results.pkl found."
+        else
+          echo "No cached results.pkl found."
+        fi
+
+    - name: Run bench.py
+      run: python bench.py
+
+    - name: Commit benchmark updates
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add bench*.md img/
+        git commit -m "Update benchmarks and images" || echo "No changes to commit"
+        git push
