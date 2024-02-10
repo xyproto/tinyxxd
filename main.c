@@ -10,21 +10,16 @@
 
 // Change this if more columns should ever be needed
 #define COLS 256
-
 // For static declarations of buffers
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
-    COLOR_RED = '1',
-    COLOR_GREEN = '2',
-    COLOR_YELLOW = '3',
-    COLOR_BLUE = '4',
-    COLOR_WHITE = '7'
+    COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3',
+    COLOR_BLUE = '4', COLOR_WHITE = '7'
 };
 
 const char* version = "tinyxxd 1.2.0";
-
 static FILE* input_file;
 static FILE* output_file;
 static char* program_name;
@@ -85,10 +80,10 @@ void exit_with_error(const int exit_code, const char* message)
 {
     if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
-        exit(exit_code);
+    } else {
+        fprintf(stderr, "%s: ", program_name);
+        perror(NULL);
     }
-    fprintf(stderr, "%s: ", program_name);
-    perror(NULL);
     exit(exit_code);
 }
 
@@ -125,8 +120,7 @@ void fclose_or_die(void)
 {
     if (fclose(output_file)) {
         exit_with_error(3, NULL);
-    }
-    if (fclose(input_file)) {
+    } else if (fclose(input_file)) {
         exit_with_error(2, NULL);
     }
 }
@@ -147,7 +141,7 @@ inline int parse_bin_digit(const int ch)
 }
 
 /* skip_to_eol_or_die will ignore text from the input file, until EOL or EOF.
- * Returns '\n', the EOF character or exists with an error.
+ * Returns '\n', the EOF character or exits with an error.
  */
 static inline int skip_to_eol_or_die(int ch)
 {
@@ -303,7 +297,6 @@ int decode_hex_stream_bits(const int cols)
             bit_buffer = 0;
             bit_count = 0;
             if (++p >= cols) {
-                // skip the rest of the line as garbage
                 c = skip_to_eol_or_die(c);
             }
         }
