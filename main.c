@@ -13,6 +13,11 @@
 // For static declarations of buffers
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
+const char* version = "tinyxxd 1.2.0";
+static FILE* input_file;
+static FILE* output_file;
+static char* program_name;
+
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
     COLOR_RED = '1',
@@ -21,11 +26,6 @@ enum ColorDigit {
     COLOR_BLUE = '4',
     COLOR_WHITE = '7'
 };
-
-const char* version = "tinyxxd 1.2.0";
-static FILE* input_file;
-static FILE* output_file;
-static char* program_name;
 
 // This is an EBCDIC to ASCII conversion table from a proposed BTL standard, 16th of April 1979
 const unsigned char etoa64[] = {
@@ -83,10 +83,10 @@ void exit_with_error(const int exit_code, const char* message)
 {
     if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
-    } else {
-        fprintf(stderr, "%s: ", program_name);
-        perror(NULL);
+        exit(exit_code);
     }
+    fprintf(stderr, "%s: ", program_name);
+    perror(NULL);
     exit(exit_code);
 }
 
@@ -149,12 +149,11 @@ inline int parse_bin_digit(const int ch)
 }
 
 // skip_to_eol_or_die will ignore text from the input file, until EOL or EOF
-static inline int skip_to_eol_or_die(int ch)
+static inline void skip_to_eol_or_die(int* ch)
 {
-    while (ch != '\n' && ch != EOF) {
-        getc_or_die(&ch);
+    while (*ch != '\n' && *ch != EOF) {
+        getc_or_die(ch);
     }
-    return ch;
 }
 
 static inline void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
@@ -204,7 +203,7 @@ int decode_hex_stream_postscript(const long base_off)
             want_off++;
             n1 = -1;
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
-            c = skip_to_eol_or_die(c);
+            skip_to_eol_or_die(&c);
         }
         ignore = (c == '\n');
     }
@@ -247,10 +246,10 @@ int decode_hex_stream_normal(const int cols, const long base_off)
             want_off++;
             n1 = -1;
             if (++p >= cols) {
-                c = skip_to_eol_or_die(c);
+                skip_to_eol_or_die(&c);
             }
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
-            c = skip_to_eol_or_die(c);
+            skip_to_eol_or_die(&c);
         }
         if (c == '\n') {
             want_off = 0;
@@ -303,7 +302,7 @@ int decode_hex_stream_bits(const int cols)
             bit_buffer = 0;
             bit_count = 0;
             if (++p >= cols) {
-                c = skip_to_eol_or_die(c);
+                skip_to_eol_or_die(&c);
             }
         }
     }
