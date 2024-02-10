@@ -15,8 +15,11 @@
 
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
-    COLOR_RED = '1', COLOR_GREEN = '2', COLOR_YELLOW = '3',
-    COLOR_BLUE = '4', COLOR_WHITE = '7'
+    COLOR_RED = '1',
+    COLOR_GREEN = '2',
+    COLOR_YELLOW = '3',
+    COLOR_BLUE = '4',
+    COLOR_WHITE = '7'
 };
 
 const char* version = "tinyxxd 1.2.0";
@@ -369,7 +372,7 @@ inline enum ColorDigit ebcdic_char_color(const unsigned char e)
     }
     switch (e) {
     case 0:
-        return COLOR_WHITE;        
+        return COLOR_WHITE;
     case 5:
     case 13:
     case 37:
@@ -775,7 +778,11 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
 int main(int argc, char* argv[])
 {
     enum HexType {
-        HEX_NORMAL, HEX_BITS, HEX_CINCLUDE, HEX_LITTLEENDIAN, HEX_POSTSCRIPT
+        HEX_NORMAL,
+        HEX_BITS,
+        HEX_CINCLUDE,
+        HEX_LITTLEENDIAN,
+        HEX_POSTSCRIPT
     };
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
