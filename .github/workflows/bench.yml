@@ -23,7 +23,7 @@ jobs:
     - name: Install Python and gnuplot
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm gcc gnuplot python
+        pacman -S --noconfirm gcc git gnuplot python
 
     - name: Check for cached results
       run: |
