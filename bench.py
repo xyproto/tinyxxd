@@ -23,6 +23,8 @@ bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
+elif len(sys.argv) > 1 and sys.argv[1] == "-s":
+    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 else:
     sample_sizes = [256, 128, 64, 32, 8, 4, 1]  # in MiB
 
