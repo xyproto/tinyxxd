@@ -87,6 +87,12 @@ void exit_with_error(const int exit_code, const char* message)
     exit(exit_code);
 }
 
+void exit_with_col_error()
+{
+    fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+    exit(1);
+}
+
 static inline void getc_or_die(int* ch)
 {
     if ((*ch = getc(input_file)) == EOF && ferror(input_file)) {
@@ -400,8 +406,7 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     if (!colsgiven) {
         cols = 30;
     } else if (cols < 0) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+        exit_with_col_error();
     }
     if (revert) {
         return decode_hex_stream_postscript(negseek ? -seekoff : seekoff);
@@ -433,8 +438,7 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
     if (!colsgiven || !cols) {
         cols = 12;
     } else if (cols < 1) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+        exit_with_col_error();
     }
     if (revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
@@ -496,8 +500,7 @@ int hex_bits(const bool colsgiven, int cols, int octspergrp, const bool revert, 
     if (!colsgiven || !cols) {
         cols = 6;
     } else if (cols < 1 || cols > COLS) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+        exit_with_col_error();
     }
     if (revert) {
         return decode_hex_stream_bits(cols);
@@ -566,8 +569,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+        exit_with_col_error();
     }
     if (revert) {
         return decode_hex_stream_normal(cols, negseek ? -seekoff : seekoff);
@@ -688,8 +690,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
-        fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-        exit(1);
+        exit_with_col_error();
     }
     if (revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump");
@@ -777,11 +778,7 @@ int hex_littleendian(const bool colsgiven, int cols, int octspergrp, const bool 
 int main(int argc, char* argv[])
 {
     enum HexType {
-        HEX_NORMAL,
-        HEX_BITS, // not a hex dump, but bits, like: 01111001
-        HEX_CINCLUDE,
-        HEX_LITTLEENDIAN,
-        HEX_POSTSCRIPT
+        HEX_NORMAL, HEX_BITS, HEX_CINCLUDE, HEX_LITTLEENDIAN, HEX_POSTSCRIPT
     };
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
