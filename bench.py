@@ -25,7 +25,7 @@ base_path = "/dev/shm" if platform.system() == "Linux" else tempfile.gettempdir(
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
 elif len(sys.argv) > 1 and sys.argv[1] == "-s":
-    sample_sizes = [80, 64, 32, 16]  # in MiB
+    sample_sizes = [64, 32, 16, 8]  # in MiB
 else:
     sample_sizes = [512, 256, 128, 32, 16]  # in MiB
 
