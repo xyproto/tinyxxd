@@ -594,14 +594,19 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                     ;
             }
             c = addrlen + 1 + (p * grplen) / octspergrp;
-            color_digit = ascii ? ascii_char_color(e) : ebcdic_char_color(e);
-            set_color(l, &c, color_digit);
-            l[c++] = hex_digits[(e >> 4) & 0xf];
-            l[c++] = hex_digits[e & 0xf];
-            clear_color(l, &c);
-            c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            set_color(l, &c, color_digit);
-            if (!ascii) { // EBCDIC
+            if (ascii) { // ASCII
+                color_digit = ascii_char_color(e);
+                set_color(l, &c, color_digit);
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
+                if (e) {
+                    nonzero++;
+                }
+            } else { // EBCDIC
+                color_digit = ebcdic_char_color(e);
+                set_color(l, &c, color_digit);
+                l[c++] = hex_digits[(e >> 4) & 0xf];
+                l[c++] = hex_digits[e & 0xf];
                 if (e == 0) {
                     nonzero++;
                     e = '.';
@@ -610,9 +615,10 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
                 } else {
                     e = etoa64[e - 64];
                 }
-            } else if (e) {
-                nonzero++;
             }
+            clear_color(l, &c);
+            c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
+            set_color(l, &c, color_digit);
             l[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(l, &c);
             n++;
