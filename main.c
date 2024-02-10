@@ -642,9 +642,20 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
             l[c] = hex_digits[(e >> 4) & 0xf];
             l[++c] = hex_digits[e & 0xf];
             c = (grplen * cols - 1) / octspergrp;
-            nonzero += e ? 1 : 0;
-            if (!ascii) { // EBCDIC
-                e = (e < 64) ? '.' : etoa64[e - 64];
+            if (ascii) { // ASCII
+                if (e) {
+                    nonzero++;
+                }
+            } else { // EBCDIC
+                if (e == 0) {
+                    e = '.';
+                } else if (e < 64) {
+                    e = '.';
+                    nonzero++;
+                } else {
+                    e = etoa64[e - 64];
+                    nonzero++;
+                }
             }
             c += addrlen + 3 + p;
             l[c++] = (e < ' ' || e >= 127) ? '.' : e;
