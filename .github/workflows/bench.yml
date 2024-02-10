@@ -34,7 +34,7 @@ jobs:
         fi
 
     - name: Run bench.py
-      run: python bench.py
+      run: python bench.py -s
 
     - name: Commit benchmark updates
       run: |
