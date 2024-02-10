@@ -158,18 +158,19 @@ static inline void skip_to_eol_or_die(int* ch)
 
 static inline void fflush_fseek_and_putc(const long* base_off, const long* want_off, long* have_off)
 {
-    if (*base_off + *want_off == *have_off) {
+    const long target_offset = *base_off + *want_off;
+    if (target_offset == *have_off) {
         return;
     }
     fflush_or_die();
-    if (fseek(output_file, *base_off + *want_off - *have_off, SEEK_CUR) >= 0) {
-        *have_off = *base_off + *want_off;
-    }
-    if (*base_off + *want_off < *have_off) {
+    if (fseek(output_file, target_offset - *have_off, SEEK_CUR) >= 0) {
+        *have_off = target_offset;
+    } else if (target_offset < *have_off) {
         exit_with_error(5, "Sorry, cannot seek backwards.");
     }
-    for (; *have_off < *base_off + *want_off; (*have_off)++) {
+    while (*have_off < target_offset) {
         putc_or_die(0);
+        (*have_off)++;
     }
 }
 
