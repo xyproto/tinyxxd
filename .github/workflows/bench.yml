@@ -45,6 +45,8 @@ jobs:
   benchmark-commit:
     needs: benchmark-linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout code
