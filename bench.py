@@ -81,8 +81,8 @@ def read_previous_results():
 def benchmark_conversion(program, flags, input_file, output_file, current, total):
     """Measures the conversion time of a program, capturing output directly, and updates the progress bar with command info."""
     cmd_prefix = ""
-    if platform.system() == "Linux":
-        cmd_prefix = "sudo ionice -c1 -n0 nice -n -20"
+    if platform.system() == "Linux" and os.path.exists("/usr/bin/tinyionice"):
+        cmd_prefix = "sudo tinyionice -c1 -n0 nice -n -20"
     cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
     command_message = f"{program} {flags} // {input_file}"
     # Update progress bar with command being run
