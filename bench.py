@@ -499,6 +499,9 @@ def generate_markdown_report():
 
     md_content += f"\nReport generated on: {current_datetime_iso}\n"
 
+    md_content = md_content.replace("og_xxd", "original xxd")
+    md_content = md_content.replace("previous_tinyxxd", "previous tinyxxd")
+
     # Write the Markdown content to a file
     filename = "benchmark_results.md"
     with open(filename, "w") as md_file:
