@@ -62,9 +62,8 @@ verify_conversion_test:
 	fi
 	@rm -f sample_tinyxxd.bin sample_restored.bin
 
-tinyxxd_fuzz: CC=afl-gcc
 tinyxxd_fuzz: main.c
-	$(CC) $(CFLAGS) -o $@ $<
+	afl-gcc $(CFLAGS) -o $@ $<
 
 fuzz: tinyxxd_fuzz
 	export AFL_PATH=$(which afl-fuzz)
