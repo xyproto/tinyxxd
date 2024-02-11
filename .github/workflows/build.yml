@@ -44,11 +44,10 @@ jobs:
 
       - name: Setup environment
         run: |
-          choco install make
-          choco install mingw
+          choco install make mingw
 
       - name: Build
-        run: make
+        run: make CC=gcc
 
       - name: Test
-        run: make test
+        run: make test CC=gcc

@@ -1,6 +1,5 @@
 .PHONY: clean fmt install profile test uninstall
 
-CC ?= gcc
 CFLAGS ?= -std=c11 -O2 -pipe -fPIC -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
