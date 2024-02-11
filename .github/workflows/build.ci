@@ -34,3 +34,20 @@ jobs:
 
     - name: Test
       run: make test
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        run: |
+          choco install make
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
