@@ -62,6 +62,17 @@ verify_conversion_test:
 	fi
 	@rm -f sample_tinyxxd.bin sample_restored.bin
 
+tinyxxd_fuzz: CC=afl-gcc
+tinyxxd_fuzz: main.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fuzz: tinyxxd_fuzz
+	export AFL_PATH=$(which afl-fuzz)
+	export AFL_SKIP_CPUFREQ=1
+	@mkdir -p input_dir
+	@dd if=/dev/urandom of=input_dir/sample.bin count=1 bs=128
+	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
+
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
 

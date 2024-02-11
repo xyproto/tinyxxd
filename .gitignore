@@ -41,6 +41,7 @@ Mkfile.old
 Module.symvers
 callgrind.*
 dkms.conf
+fuzz_output/
 modules.order
 og_xxd
 og_xxd.c
