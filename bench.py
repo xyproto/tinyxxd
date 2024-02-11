@@ -18,7 +18,7 @@ from urllib.request import urlretrieve
 results = []
 previous_results = []
 xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
-compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors"
+compilation_command = "gcc -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors -Wl,-z,now"
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 base_path = tempfile.gettempdir()
 
