@@ -3,7 +3,7 @@
 CFLAGS ?= -std=c11 -O2 -pipe -fPIC -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt -Wl,-z,now
+	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt
 else ifeq ($(OS),Windows_NT)
 	CFLAGS += -D_WIN32
 else
