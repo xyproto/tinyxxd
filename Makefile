@@ -1,6 +1,6 @@
 .PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fno-plt -fstack-protector-strong -D_GNU_SOURCE -z norelro -Wall -Wextra -Wpedantic -Wfatal-errors
+CFLAGS ?= -std=c11 -O2 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors -D_GNU_SOURCE -fno-plt
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS := -std=c11 -O2 -pipe -fPIC -fstack-protector-strong -Wall -Wextra -Wpedantic -Wfatal-errors
@@ -9,6 +9,11 @@ endif
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 DESTDIR ?=
+
+VERSION ?= 1.2.0
+RELEASE_DIR := tinyxxd-$(VERSION)
+RELEASE_TARBALL := $(RELEASE_DIR).tar.gz
+RELEASE_FILES := main.c Makefile COPYING README.md
 
 tinyxxd: main.c
 	$(CC) $(CFLAGS) -o $@ $<
@@ -61,6 +66,19 @@ verify_conversion_test:
 		exit 1; \
 	fi
 	@rm -f sample_tinyxxd.bin sample_restored.bin
+
+update-version:
+	@echo "Updating version in main.c to $(VERSION)"
+	@sed -i 's/const char\* version = "tinyxxd [0-9]*\.[0-9]*\.[0-9]*"/const char* version = "tinyxxd $(VERSION)"/' main.c
+
+release: fmt test update-version
+	@echo "Creating release version $(VERSION)"
+	$(foreach file,$(RELEASE_FILES),$(if $(wildcard $(file)),,$(error Missing file $(file))))
+	mkdir -p "$(RELEASE_DIR)"
+	cp -v $(RELEASE_FILES) "$(RELEASE_DIR)/"
+	tar zcvf $(RELEASE_TARBALL) "$(RELEASE_DIR)/"
+	rm -rf "$(RELEASE_DIR)/"
+	@echo "Release package created: $(RELEASE_TARBALL)"
 
 tinyxxd_fuzz: main.c
 	afl-gcc $(CFLAGS) -o $@ $<
