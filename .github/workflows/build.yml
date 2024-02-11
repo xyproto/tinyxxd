@@ -45,6 +45,7 @@ jobs:
       - name: Setup environment
         run: |
           choco install make
+          choco install mingw
 
       - name: Build
         run: make
