@@ -79,4 +79,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f *.bin *.dat *.hex *.o *.pkl callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd_*
+	rm -f *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd_*
