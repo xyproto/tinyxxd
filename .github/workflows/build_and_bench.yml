@@ -109,8 +109,20 @@ jobs:
         git config user.name 'GitHub Actions'
         git config user.email 'actions@github.com'
 
-    - name: Commit benchmark updates
+    - name: Check for changes
+      id: git-check
       run: |
         git add bench*.md img/
-        git commit -m "Update benchmarks and images" -a || echo "No changes to commit"
+        if git diff --staged --quiet; then
+          echo "No changes to the content."
+          echo "::set-output name=changes::false"
+        else
+          echo "Content changes detected."
+          echo "::set-output name=changes::true"
+        fi
+
+    - name: Commit benchmark updates
+      if: steps.git-check.outputs.changes == 'true'
+      run: |
+        git commit -m "Update benchmarks and images" -a
         git push
