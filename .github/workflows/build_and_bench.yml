@@ -1,9 +1,56 @@
-name: Benchmark
+name: Build and benchmark
 
 on: [push, pull_request]
 
 jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Update system and Install dependencies
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm base-devel vim
+
+    - name: Build
+      run: make
+
+    - name: Test
+      run: make test
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build
+      run: make
+
+    - name: Test
+      run: make test
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        run: |
+          choco install make mingw
+
+      - name: Build
+        run: make CC=gcc
+
   benchmark-linux:
+    needs: build-linux
     runs-on: ubuntu-latest
     container: archlinux:latest
 
