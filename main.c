@@ -13,7 +13,7 @@
 // For static declarations of buffers
 #define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2)
 
-const char* version = "tinyxxd 1.2.0";
+const char* version = "tinyxxd 1.3.0";
 static FILE* input_file;
 static FILE* output_file;
 static char* program_name;
