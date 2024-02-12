@@ -44,7 +44,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          choco install curl make mingw
+          choco install curl diff make mingw
 
       - name: Build
         run: make CC=gcc
@@ -68,7 +68,7 @@ jobs:
     - name: Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm curl gcc git gnuplot make python
+        pacman -S --noconfirm curl diff gcc git gnuplot make python
 
     - name: Check for cached results
       run: |
