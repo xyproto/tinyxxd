@@ -17,7 +17,7 @@
 
 ## Requirements
 
-* A C-compiler that supports C11.
+* For building, a C-compiler that supports C11 is needed.
 * For running the benchmark script, `gcc`, `gnuplot` and `python` are needed.
 * For fuzzing, `afl-gcc` and `afl-fuzz` are needed.
 
