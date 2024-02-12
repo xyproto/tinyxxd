@@ -90,7 +90,7 @@ void exit_with_error(const int exit_code, const char* message)
     exit(exit_code);
 }
 
-void exit_with_col_error()
+void exit_with_col_error(void)
 {
     fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
     exit(1);
