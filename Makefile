@@ -95,7 +95,7 @@ fuzz: tinyxxd_fuzz
 	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
 
 xxd.c:
-	curl -OL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
+	curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 
 xxd: xxd.c
 	$(CC) $(CFLAGS) -o $@ $<
