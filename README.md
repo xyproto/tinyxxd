@@ -55,7 +55,7 @@ The performance is mostly IO bound, which is reflected in the [benchmark graphs]
 
 ## Performance
 
-`tinyxxd` is just a tiny bit faster than `xxd`. The larger the input, the larger the difference in performance appears to be.
+`tinyxxd` is just a tiny bit faster than `xxd`. The larger the input, the larger the performance advantage seems to be.
 
 ### General info
 
