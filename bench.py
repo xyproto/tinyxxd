@@ -433,12 +433,13 @@ def generate_html_report():
     html_content += "<h3>Graph by sample size</h3>\n"
     html_content += '<img src="img/graph_by_size.svg" alt="Graph by Size">\n'
     for flag in bench_flags:
-        flag_suffix = flag.replace("-", "") if flag else "none"
-        if flag:
+        flag_modified = flag.replace("-", "").replace("E", "e_upper")
+        flag_suffix = flag if flag else "none"
+        if flag_modified:
             html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
         else:
             html_content += f"<h3>Graph for no flag</h3>\n"
-        html_content += f'<img src="img/graph_flag_{flag_suffix}.svg" alt="Graph Flag {flag_suffix}">\n'
+        html_content += f'<img src="img/graph_flag_{flag_modified}.svg" alt="Graph Flag {flag_suffix}">\n'
 
     html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
     html_content += "</body></html>"
@@ -462,7 +463,8 @@ def generate_markdown_report():
 
     # Add the table rows with the benchmark results
     for result in results:
-        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags']} |\n"
+        md_content += f"| {result['program']} | {result['size']
+                                                 } | {result['conversion_time']:.2f} | {result['flags']} |\n"
 
     # Add performance summaries
     md_content += "\n## Performance Summaries\n"
@@ -552,7 +554,8 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
 
             for size in sample_sizes:
                 data_line = f"{size} " + " ".join(
-                    f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['size'] == size and x['flags'] == ''), 'NaN')}"
+                    f"{next((x['conversion_time'] for x in results if x['program'] ==
+                            prog and x['size'] == size and x['flags'] == ''), 'NaN')}"
                     for prog in ['og_xxd', 'tinyxxd']
                 )
                 if include_previous:
@@ -586,7 +589,7 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
 
 def export_benchmark_results_for_each_flag():
     for flag in bench_flags:
-        filename = f'img/benchmark_data_flag_{flag.replace("-", "") if flag else "none"}.dat'
+        filename = f'img/benchmark_data_flag_{flag.replace("-", "").replace("E", "e_upper") if flag else "none"}.dat'
         with open(filename, 'w') as file:
             header = "#SampleSizeMB xxd tinyxxd" + (" previous_tinyxxd" if previous_results else "") + "\n"
             file.write(header)
@@ -602,12 +605,12 @@ def export_benchmark_results_for_each_flag():
 
 def generate_graphs_for_each_flag():
     for flag in bench_flags:
-        data_filename = f'img/benchmark_data_flag_{flag.replace("-", "") if flag else "none"}.dat'
-        graph_filename = f'img/graph_flag_{flag.replace("-", "") if flag else "none"}.svg'
-        modified_flag = flag.replace("-", "")
+        flag = flag.replace("-", "").replace("E", "e_upper")
+        data_filename = f'img/benchmark_data_flag_{flag if flag else "none"}.dat'
+        graph_filename = f'img/graph_flag_{flag if flag else "none"}.svg'
         title = f"Benchmark results for no flag"
         if modified_flag:
-            title = f"Benchmark results for Flag {modified_flag}"
+            title = f"Benchmark results for flag {flag}"
         generate_gnuplot_graph(data_filename, graph_filename, title, "Sample Size (MiB)", "Time (seconds)")
 
 
