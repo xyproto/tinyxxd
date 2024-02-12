@@ -25,6 +25,10 @@ The CI system builds and tests `tinyxxd` on Arch Linux, macOS and Windows.
 * For running the benchmark script, `gcc`, `gnuplot` and `python` are needed.
 * For fuzzing, `afl-gcc` and `afl-fuzz` are needed.
 
+## Packaging status
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/tinyxxd.svg)](https://repology.org/project/tinyxxd/versions)
+
 ## Source code
 
 The source code for the program is a single `main.c` source file, written in C11.
