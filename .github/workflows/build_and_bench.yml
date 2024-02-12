@@ -14,7 +14,7 @@ jobs:
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm base-devel vim
+        pacman -S --noconfirm curl gcc make
 
     - name: Build
       run: make
@@ -44,7 +44,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          choco install make mingw
+          choco install curl make mingw
 
       - name: Build
         run: make CC=gcc
@@ -68,7 +68,7 @@ jobs:
     - name: Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm gcc git gnuplot python
+        pacman -S --noconfirm curl gcc git gnuplot make python
 
     - name: Check for cached results
       run: |
