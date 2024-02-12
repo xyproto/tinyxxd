@@ -59,4 +59,5 @@ tinyxxd2
 tinyxxd_*
 tinyxxd_debug
 xxd
+xxd.c
 xxd_*
