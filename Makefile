@@ -48,10 +48,10 @@ test: tinyxxd
 	@rm -f *.hex sample.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
 
-run_test:
+run_test: xxd
 	@echo "Running test: $(DESC)"
 	@./tinyxxd $(CMD) > tinyxxd_output.txt
-	@xxd $(CMD) > xxd_output.txt
+	@./xxd $(CMD) > xxd_output.txt
 	@if diff -q tinyxxd_output.txt xxd_output.txt > /dev/null; then \
 		echo 'Test passed'; \
 	else \
@@ -94,6 +94,12 @@ fuzz: tinyxxd_fuzz
 	@dd if=/dev/urandom of=input_dir/sample.bin count=1 bs=128
 	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
 
+xxd.c:
+	curl -OL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
+
+xxd: xxd.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
 
@@ -101,4 +107,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd_*
+	rm -f *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd xxd.c xxd_*

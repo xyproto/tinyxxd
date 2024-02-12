@@ -17,7 +17,6 @@ from urllib.request import urlretrieve
 
 results = []
 previous_results = []
-xxd_url = "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 compilation_command = "make xxd tinyxxd"
 bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
 base_path = tempfile.gettempdir()
@@ -43,16 +42,8 @@ def run_command(command, capture_output=False):
         exit(1)
 
 
-def download_file(url, filename):
-    """Downloads a file if it does not exist."""
-    if not os.path.exists(filename):
-        urlretrieve(url, filename)
-
-
 def compile_programs():
-    """Compiles main.c and xxd.c."""
-    if not os.path.exists("xxd.c"):
-        download_file(xxd_url, "xxd.c")
+    """Compiles main.c and xxd.c, and downloads xxd.c with curl if needed."""
     run_command(compilation_command)
 
 
