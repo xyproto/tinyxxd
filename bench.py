@@ -831,7 +831,7 @@ plot {", ".join(plot_commands)}
 
 def clean_all_hex_bin():
     for pattern in ["*mb.bin", "*mb.hex"]:
-        for file_path in glob.glob(os.path.join(directory, pattern)):
+        for file_path in glob.glob(os.path.join(".", pattern)):
             try:
                 os.remove(file_path)
                 print(f"removed {file_path}")
