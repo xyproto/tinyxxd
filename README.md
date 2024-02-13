@@ -19,7 +19,7 @@
 
 `tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
 
-`tinyxxd` is a bit faster than `xxd`. As the input grows, the performance advantage appears to increasing too.
+`tinyxxd` is a bit faster than `xxd`. As the size of the input data grows, the performance advantage appears to be increasing too.
 
 ![performance graph](img/graph_by_size.svg)
 
