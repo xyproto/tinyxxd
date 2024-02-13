@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import atexit
+import glob
 import os
 import pickle
 import platform
@@ -24,9 +25,9 @@ base_path = tempfile.gettempdir()
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
 elif len(sys.argv) > 1 and sys.argv[1] == "-s":
-    sample_sizes = [64, 32, 16, 8]  # in MiB
+    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 else:
-    sample_sizes = [512, 256, 128, 32, 16]  # in MiB
+    sample_sizes = [128, 64, 32, 16, 8, 4, 2, 1]  # in MiB
 
 
 def run_command(command, capture_output=False):
@@ -57,10 +58,13 @@ def compile_programs():
 def create_sample_files():
     """Creates sample files of various sizes in /dev/shm if on Linux."""
     global base_path
+    print("Generating sample files...")
     for size in sample_sizes:
+        print(f"Creating {size}mb.bin ({size} MiB)")
         filename = os.path.join(base_path, f"{size}mb.bin")
         with open(filename, "wb") as f:
             f.write(os.urandom(size * 1024 * 1024))
+    print("Sample file generation complete.")
 
 
 def write_results_to_file():
@@ -258,10 +262,44 @@ def perform_benchmarks():
                 total_benchmarks,
                 message=f"Completed: {program} // {size}MiB",
             )
+
         cleanup_files_for_size(size)
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
     print()
+
+
+def print_final_comparison():
+    largest_size = max(
+        sample_sizes
+    )  # Ensure this matches how you determine the largest sample size in your benchmark setup
+    xxd_times = [
+        d["conversion_time"]
+        for d in results
+        if d["program"] == "xxd" and d["size"] == largest_size
+    ]
+    tinyxxd_times = [
+        d["conversion_time"]
+        for d in results
+        if d["program"] == "tinyxxd" and d["size"] == largest_size
+    ]
+
+    # Calculate average times if multiple runs per program
+    avg_xxd_time = sum(xxd_times) / len(xxd_times) if xxd_times else 0
+    avg_tinyxxd_time = sum(tinyxxd_times) / len(tinyxxd_times) if tinyxxd_times else 0
+
+    if avg_xxd_time and avg_tinyxxd_time:  # Check if both times are non-zero
+        if avg_xxd_time < avg_tinyxxd_time:
+            percent_faster = ((avg_tinyxxd_time - avg_xxd_time) / avg_xxd_time) * 100
+            message = f"For {largest_size}MiB files, xxd was {percent_faster:.2f}% faster than tinyxxd."
+        else:
+            percent_faster = (
+                (avg_xxd_time - avg_tinyxxd_time) / avg_tinyxxd_time
+            ) * 100
+            message = f"For {largest_size}MiB files, tinyxxd was {percent_faster:.2f}% faster than xxd."
+        print(message)
+    else:
+        print("No valid comparison data available.")
 
 
 def analyze_performance(threshold=0.05):
@@ -750,6 +788,16 @@ plot {", ".join(plot_commands)}
     print(f"Wrote {graph_filename}.")
 
 
+def clean_all_hex_bin():
+    for pattern in ["*mb.bin", "*mb.hex"]:
+        for file_path in glob.glob(os.path.join(directory, pattern)):
+            try:
+                os.remove(file_path)
+                print(f"removed {file_path}")
+            except OSError as e:
+                print(f"Error removing {file_path}: {e.strerror}")
+
+
 def main():
     atexit.register(cleanup_files)
     try:
@@ -772,7 +820,9 @@ def main():
             )
             export_benchmark_results_for_each_flag()
             generate_graphs_for_each_flag()
+            print_final_comparison()
     except KeyboardInterrupt:
+        clean_all_hex_bin()
         print("\nctrl-c")
 
 
