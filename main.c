@@ -316,25 +316,31 @@ static inline void print_or_suppress_zero_line(const char* l, const int nz)
 {
     static char z[LLEN + 1];
     static int zero_seen = 0;
-    if (!nz && zero_seen == 1) {
-        strcpy(z, l);
-        return;
-    }
-    if (nz || !zero_seen++) {
-        if (nz) {
-            if (nz < 0) {
-                zero_seen--;
-            }
-            if (zero_seen == 2) {
-                fputs_or_die(z);
-            } else if (zero_seen > 2) {
-                putc_or_die('*');
-                putc_or_die('\n');
-            }
+    if (nz > 0) {
+        if (zero_seen == 2) {
+            fputs_or_die(z);
+        } else if (zero_seen > 2) {
+            putc_or_die('*');
+            putc_or_die('\n');
         }
-        if (nz >= 0 || zero_seen > 0) {
+        fputs_or_die(l);
+    } else if (!nz) {
+        if (!zero_seen) {
+            zero_seen++; // zero_seen == 1
             fputs_or_die(l);
-        } else if (nz) {
+        } else if (zero_seen == 1) {
+            strcpy(z, l);
+        }
+    } else if (nz < 0) {
+        zero_seen--;
+        if (zero_seen == 2) {
+            fputs_or_die(z);
+            fputs_or_die(l);
+        } else if (zero_seen > 2) {
+            putc_or_die('*');
+            putc_or_die('\n');
+            fputs_or_die(l);
+        } else {
             zero_seen = 0;
         }
     }
