@@ -15,6 +15,16 @@
 * It has been manually tested on Arch Linux and macOS.
 * The CI system builds and tests `tinyxxd` on Arch Linux, macOS and builds `tinyxxd` using Mingw on Windows.
 
+## Performance
+
+`tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
+
+The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
+
+`tinyxxd` is a bit faster than `xxd`. As the input grows, the performance advantage appears to increasing too.
+
+![performance graph](img/graph_by_size.svg)
+
 ## Requirements
 
 * A C-compiler that supports C11.
@@ -46,14 +56,6 @@ Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 ## Fuzzing
 
 `make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with varied input design to find edge cases in the program.
-
-## Performance
-
-`tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
-
-The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
-
-`tinyxxd` is a bit faster than `xxd`. The larger the input, the larger the performance advantage seems to be.
 
 ### General info
 
