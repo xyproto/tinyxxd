@@ -19,11 +19,11 @@
 
 `tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
 
-The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
-
 `tinyxxd` is a bit faster than `xxd`. As the input grows, the performance advantage appears to increasing too.
 
 ![performance graph](img/graph_by_size.svg)
+
+The performance is mostly I/O bound, which is reflected in the [benchmark graphs](benchmark_results.md).
 
 ## Requirements
 
