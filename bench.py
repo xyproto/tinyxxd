@@ -588,9 +588,9 @@ def export_benchmark_results_for_each_flag():
 
 def generate_graphs_for_each_flag():
     for flag in bench_flags:
-        flag = flag.replace("-", "").replace("E", "e_upper")
-        data_filename = f'img/benchmark_data_flag_{flag if flag else "none"}.dat'
-        graph_filename = f'img/graph_flag_{flag if flag else "none"}.svg'
+        modified_flag = flag.replace("-", "").replace("E", "e_upper")
+        data_filename = f'img/benchmark_data_flag_{modified_flag if modified_flag else "none"}.dat'
+        graph_filename = f'img/graph_flag_{modified_flag if modified_flag else "none"}.svg'
         title = f"Benchmark results for no flag"
         if modified_flag:
             title = f"Benchmark results for flag {flag}"
@@ -599,8 +599,7 @@ def generate_graphs_for_each_flag():
 
 def avg_time_for_program_size_flag(program, size, flag, previous=False):
     relevant_results = previous_results if previous else results
-    times = [result['conversion_time'] for result in relevant_results if result['program']
-             == program and result['size'] == size and result['flags'] == flag]
+    times = [result['conversion_time'] for result in relevant_results if result['program'] == program and result['size'] == size and result['flags'] == flag]
     if times:
         return sum(times) / len(times)
     return 'NaN'
