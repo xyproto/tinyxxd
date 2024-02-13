@@ -14,7 +14,7 @@ jobs:
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm curl gcc make
+        pacman -S --noconfirm curl diff gcc make
 
     - name: Build
       run: make
