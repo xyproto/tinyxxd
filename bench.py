@@ -417,7 +417,7 @@ def generate_html_report():
 
     html_content += "<h2>Graphs</h2>\n"
     html_content += "<h3>Graph by sample size</h3>\n"
-    html_content += '<img src="img/graph_by_size.svg" alt="Graph by Size">\n'
+    html_content += '<img src="img/graph_by_size.svg" alt="Graph by sample size">\n'
     for flag in bench_flags:
         flag_modified = flag.replace("-", "").replace("E", "e_upper")
         flag_suffix = flag if flag else "none"
@@ -474,8 +474,8 @@ def generate_markdown_report():
             md_content += f"- {summary}\n"
 
     md_content += "\n## Graphs\n\n"
-    md_content += "### Graph by Size\n"
-    md_content += "![Graph by Size](img/graph_by_size.svg)\n\n"
+    md_content += "### Graph by sample size\n"
+    md_content += "![Graph by sample size](img/graph_by_size.svg)\n\n"
     for flag in bench_flags:
         flag_suffix = flag.replace("-", "").replace("E", "e_upper") if flag else "none"
         if flag:
@@ -499,7 +499,7 @@ def cleanup_files():
     """Removes sample and output files created during the benchmark."""
     global base_path
     for size in sample_sizes:
-        for flags in ['', '-p', '-i', '-e', '-b', '-u', '-E']:
+        for flags in bench_flags:
             files_to_delete = [
                 os.path.join(base_path, f"{size}mb.bin"),
                 os.path.join(base_path, f"{size}mb_recreated.bin"),
@@ -594,7 +594,7 @@ def generate_graphs_for_each_flag():
         title = f"Benchmark results for no flag"
         if modified_flag:
             title = f"Benchmark results for flag {flag}"
-        generate_gnuplot_graph(data_filename, graph_filename, title, "Sample Size (MiB)", "Time (seconds)")
+        generate_gnuplot_graph(data_filename, graph_filename, title, "Sample size (MiB)", "Time (seconds)")
 
 
 def avg_time_for_program_size_flag(program, size, flag, previous=False):
@@ -653,7 +653,7 @@ def main():
         if gnuplot_is_available():
             export_benchmark_results_for_gnuplot('img/benchmark_data_by_size.dat', 'size')
             generate_gnuplot_graph('img/benchmark_data_by_size.dat', 'img/graph_by_size.svg',
-                                   'Benchmark results by sample size', 'Sample Size (MiB)', 'Time (seconds)')
+                                   'Benchmark results by sample size', 'Sample size (MiB)', 'Time (seconds)')
             export_benchmark_results_for_each_flag()
             generate_graphs_for_each_flag()
     except KeyboardInterrupt:
