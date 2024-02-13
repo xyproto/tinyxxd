@@ -17,9 +17,10 @@
 
 ## Requirements
 
-* For building, a C-compiler that supports C11 is needed.
-* For running the benchmark script, `gcc`, `gnuplot` and `python` are needed.
-* For fuzzing, `afl-gcc` and `afl-fuzz` are needed.
+* A C-compiler that supports C11.
+* For profiling: `valgrind` and `kcachegrind`.
+* For benchmarking: `gcc`, `gnuplot` and `python3`.
+* For fuzzing: `afl-gcc` and `afl-fuzz`.
 
 ## Packaging status
 
@@ -41,19 +42,20 @@ Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
 
 ## Benchmarking
 
-`tinyxxd` can be benchmarked by running `python bench.py` (or `python3 bench.py`).
-
-The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
 
 ## Fuzzing
 
-`make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with various input.
+`make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with varied input design to find edge cases in the program.
 
 ## Performance
 
-`tinyxxd` is just a tiny bit faster than `xxd`. The larger the input, the larger the performance advantage seems to be.
+`tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
+
+The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
+
+`tinyxxd` is a bit faster than `xxd`. The larger the input, the larger the performance advantage seems to be.
 
 ### General info
 
 * License: GPL2
-* Version: 1.2.0
+* Version: 1.3.1
