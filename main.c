@@ -318,6 +318,7 @@ static inline void print_or_suppress_zero_line(const char* l, const int nz)
     static int zero_seen = 0;
     if (!nz && zero_seen == 1) {
         strcpy(z, l);
+        return;
     }
     if (nz || !zero_seen++) {
         if (nz) {
