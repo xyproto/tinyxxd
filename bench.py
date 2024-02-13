@@ -18,7 +18,7 @@ from urllib.request import urlretrieve
 results = []
 previous_results = []
 compilation_command = "make xxd tinyxxd"
-bench_flags = ['', '-p', '-i', '-e', '-b', '-u', '-E']
+bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E"]
 base_path = tempfile.gettempdir()
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
@@ -33,12 +33,19 @@ def run_command(command, capture_output=False):
     """Executes a shell command, optionally capturing output, with enhanced error handling."""
     try:
         start_time = time.time()
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE if capture_output else None,
-                                stderr=subprocess.PIPE if capture_output else None)
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE if capture_output else None,
+            stderr=subprocess.PIPE if capture_output else None,
+        )
         duration = time.time() - start_time
         return duration, result.stdout if capture_output else None
     except subprocess.CalledProcessError as e:
-        print_colored(f"Command failed with error: {e.stderr.decode()}", 91)  # Red text for errors
+        print_colored(
+            f"Command failed with error: {e.stderr.decode()}", 91
+        )  # Red text for errors
         exit(1)
 
 
@@ -58,14 +65,14 @@ def create_sample_files():
 
 def write_results_to_file():
     global results
-    with open('results.pkl', 'wb') as output_file:  # Note the 'wb' mode
+    with open("results.pkl", "wb") as output_file:  # Note the 'wb' mode
         pickle.dump(results, output_file)
 
 
 def read_previous_results():
     global previous_results
     try:
-        with open('results.pkl', 'rb') as input_file:  # Note the 'rb' mode
+        with open("results.pkl", "rb") as input_file:  # Note the 'rb' mode
             previous_results = pickle.load(input_file)
     except (FileNotFoundError, EOFError):
         previous_results = []
@@ -81,7 +88,9 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     # Update progress bar with command being run
     progress_bar(current, total, message=command_message)
     start_time = time.time()
-    result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     duration = time.time() - start_time
     if result.returncode != 0:
         print_colored(f"Command failed: {cmd}", 91)
@@ -89,9 +98,9 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     return duration
 
 
-def verify_files(file1, file2, chunk_size=1024*1024):
+def verify_files(file1, file2, chunk_size=1024 * 1024):
     """Compares two files using binary comparison in chunks to reduce memory usage."""
-    with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
+    with open(file1, "rb") as f1, open(file2, "rb") as f2:
         while True:
             chunk1 = f1.read(chunk_size)
             chunk2 = f2.read(chunk_size)
@@ -119,7 +128,10 @@ def progress_bar(current, total, message="", length=50):
         if the_rest:
             the_rest = " " + the_rest
 
-    print(f"\033[2K\033[90mBenchmarking \033[94m{first_word}\033[33m{the_rest} \033[0m\033[96m[{arrow}{padding}] \033[93m{percent}% \033[37m({current}/{total})\033[0m", end="\r")
+    print(
+        f"\033[2K\033[90mBenchmarking \033[94m{first_word}\033[33m{the_rest} \033[0m\033[96m[{arrow}{padding}] \033[93m{percent}% \033[37m({current}/{total})\033[0m",
+        end="\r",
+    )
 
 
 def print_colored(message, color_code):
@@ -130,7 +142,9 @@ def print_colored(message, color_code):
 def print_formatted_columns(row):
     """Prints a single row of data in columns, dynamically adjusting the width."""
     widths = [10, 10, 20, 10]  # Adjust column widths as needed
-    formatted_row = " ".join(f"{str(item):<{width}}" for item, width in zip(row, widths))
+    formatted_row = " ".join(
+        f"{str(item):<{width}}" for item, width in zip(row, widths)
+    )
     print(formatted_row)
 
 
@@ -141,7 +155,7 @@ def cleanup_files_for_size(size):
         f"{size}mb.bin",
         f"{size}mb_recreated.bin",
         *[f"{size}mb{flag}_xxd.hex" for flag in bench_flags],
-        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags]
+        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags],
     ]
     for pattern in file_patterns:
         file_path = os.path.join(base_path, pattern)
@@ -154,8 +168,8 @@ def cleanup_files_for_size(size):
 def perform_benchmarks():
     global results
     create_sample_files()
-    programs = ['xxd', 'tinyxxd']
-    total_benchmarks = len(sample_sizes) * len(programs) * (len(bench_flags)+1)
+    programs = ["xxd", "tinyxxd"]
+    total_benchmarks = len(sample_sizes) * len(programs) * (len(bench_flags) + 1)
     current_benchmark = 0
 
     random.seed()
@@ -163,50 +177,87 @@ def perform_benchmarks():
     for size in sample_sizes:
         random.shuffle(programs)
         for program in programs:
-            input_file = os.path.join(base_path, f'{size}mb.bin')
+            input_file = os.path.join(base_path, f"{size}mb.bin")
             output_file = os.path.join(base_path, f"{size}mb_{program}.hex")
-            recon_file = os.path.join(base_path, f'{size}mb_recreated.bin')
+            recon_file = os.path.join(base_path, f"{size}mb_recreated.bin")
 
             # Conversion from binary to hex
             current_benchmark += 1
             conversion_time = benchmark_conversion(
-                program, "", input_file, output_file, current_benchmark, total_benchmarks)
-            results.append({
-                'program': program,
-                'size': size,
-                'conversion_time': conversion_time,
-                'flags': "",
-            })
+                program,
+                "",
+                input_file,
+                output_file,
+                current_benchmark,
+                total_benchmarks,
+            )
+            results.append(
+                {
+                    "program": program,
+                    "size": size,
+                    "conversion_time": conversion_time,
+                    "flags": "",
+                }
+            )
             # Conversion back from hex to binary
             reconversion_time = benchmark_conversion(
-                program, "-r", output_file, recon_file, current_benchmark, total_benchmarks)
+                program,
+                "-r",
+                output_file,
+                recon_file,
+                current_benchmark,
+                total_benchmarks,
+            )
             if not verify_files(input_file, recon_file):
-                print_colored(f"Verification failed for {recon_file}. Exiting...", 91)  # Red text
+                print_colored(
+                    f"Verification failed for {recon_file}. Exiting...", 91
+                )  # Red text
                 exit(1)
-            results.append({
-                'program': program,
-                'size': size,
-                'conversion_time': reconversion_time,
-                'flags': "-r",
-            })
+            results.append(
+                {
+                    "program": program,
+                    "size": size,
+                    "conversion_time": reconversion_time,
+                    "flags": "-r",
+                }
+            )
 
             for flags in bench_flags:
                 current_benchmark += 1
                 output_file = f"{size}mb{flags}_{program}.hex"
                 conversion_time = benchmark_conversion(
-                    program, flags, input_file, output_file, current_benchmark, total_benchmarks)
-                results.append({
-                    'program': program,
-                    'size': size,
-                    'conversion_time': conversion_time,
-                    'flags': flags,
-                })
-                if os.path.exists(f"{size}mb{flags}_xxd.hex") and os.path.exists(f"{size}mb{flags}_tinyxxd.hex"):
-                    if not verify_files(f"{size}mb{flags}_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"):
-                        print_colored(f"Output verification failed: these files differ: \"{size}mb{flags}_xxd.hex\" and \"{size}mb{flags}_tinyxxd.hex\".", 91)
+                    program,
+                    flags,
+                    input_file,
+                    output_file,
+                    current_benchmark,
+                    total_benchmarks,
+                )
+                results.append(
+                    {
+                        "program": program,
+                        "size": size,
+                        "conversion_time": conversion_time,
+                        "flags": flags,
+                    }
+                )
+                if os.path.exists(f"{size}mb{flags}_xxd.hex") and os.path.exists(
+                    f"{size}mb{flags}_tinyxxd.hex"
+                ):
+                    if not verify_files(
+                        f"{size}mb{flags}_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"
+                    ):
+                        print_colored(
+                            f'Output verification failed: these files differ: "{size}mb{flags}_xxd.hex" and "{size}mb{flags}_tinyxxd.hex".',
+                            91,
+                        )
                         exit(1)
 
-            progress_bar(current_benchmark, total_benchmarks, message=f"Completed: {program} // {size}MiB")
+            progress_bar(
+                current_benchmark,
+                total_benchmarks,
+                message=f"Completed: {program} // {size}MiB",
+            )
         cleanup_files_for_size(size)
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
@@ -229,20 +280,24 @@ def analyze_performance(threshold=0.05):
     # Group results by flags and size for comparison
     grouped = defaultdict(lambda: defaultdict(list))
     for result in results:
-        grouped[(result['flags'], result['size'])][result['program']].append(result['conversion_time'])
+        grouped[(result["flags"], result["size"])][result["program"]].append(
+            result["conversion_time"]
+        )
 
     # Compare performances
     for (flags, size), times in grouped.items():
-        if 'xxd' not in times or 'tinyxxd' not in times:
+        if "xxd" not in times or "tinyxxd" not in times:
             continue  # Skip if either program's data is missing
-        avg_xxd = sum(times['xxd']) / len(times['xxd'])
-        avg_tinyxxd = sum(times['tinyxxd']) / len(times['tinyxxd'])
+        avg_xxd = sum(times["xxd"]) / len(times["xxd"])
+        avg_tinyxxd = sum(times["tinyxxd"]) / len(times["tinyxxd"])
         diff = abs(avg_xxd - avg_tinyxxd) / max(avg_xxd, avg_tinyxxd)
 
         # Only consider differences above the threshold
         if diff > threshold:
             better_program = "xxd" if avg_xxd < avg_tinyxxd else "tinyxxd"
-            percent_faster = (diff / (1 - diff)) * 100  # Calculate percentage faster relative to the slower program
+            percent_faster = (
+                diff / (1 - diff)
+            ) * 100  # Calculate percentage faster relative to the slower program
             summary = f"With flags '{flags}' and size {size}MiB, {better_program} was {percent_faster:.2f}% faster."
             summaries.append(summary)
 
@@ -255,16 +310,18 @@ def summarize_performance_by_size(threshold=0.05):
     summary_data = defaultdict(lambda: defaultdict(list))
     # Collect data
     for result in results:
-        summary_data[result['size']][result['program']].append(result['conversion_time'])
+        summary_data[result["size"]][result["program"]].append(
+            result["conversion_time"]
+        )
 
     # Analyze and prepare summaries
     performance_summaries_by_size = []
     for size, data in summary_data.items():
-        if 'xxd' not in data or 'tinyxxd' not in data:
+        if "xxd" not in data or "tinyxxd" not in data:
             continue  # Skip if data for either program is missing
 
-        avg_xxd = sum(data['xxd']) / len(data['xxd'])
-        avg_tinyxxd = sum(data['tinyxxd']) / len(data['tinyxxd'])
+        avg_xxd = sum(data["xxd"]) / len(data["xxd"])
+        avg_tinyxxd = sum(data["tinyxxd"]) / len(data["tinyxxd"])
 
         if avg_xxd < avg_tinyxxd:
             percent_faster = ((avg_tinyxxd - avg_xxd) / avg_xxd) * 100
@@ -286,17 +343,19 @@ def summarize_performance_by_flag(threshold=0.05):
 
     # Collect data
     for result in results:
-        summary_data[result['flags']][result['program']].append(result['conversion_time'])
+        summary_data[result["flags"]][result["program"]].append(
+            result["conversion_time"]
+        )
 
     # Analyze and prepare summaries
     performance_summaries_by_flag = []
     for flag, data in summary_data.items():
-        if 'xxd' not in data or 'tinyxxd' not in data:
+        if "xxd" not in data or "tinyxxd" not in data:
             # Skip if data for either program is missing
             continue
 
-        avg_xxd = sum(data['xxd']) / len(data['xxd'])
-        avg_tinyxxd = sum(data['tinyxxd']) / len(data['tinyxxd'])
+        avg_xxd = sum(data["xxd"]) / len(data["xxd"])
+        avg_tinyxxd = sum(data["tinyxxd"]) / len(data["tinyxxd"])
 
         # Calculate the percentage faster relative to the slower program
         if avg_xxd != avg_tinyxxd:  # Check to ensure division by zero doesn't occur
@@ -319,24 +378,28 @@ def summarize_performance_change():
     # Convert previous results to a more accessible structure
     prev_summary = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
     for result in previous_results:
-        prev_summary[result['program']][result['flags']][result['size']] = float(result['conversion_time'])
+        prev_summary[result["program"]][result["flags"]][result["size"]] = float(
+            result["conversion_time"]
+        )
 
     # Calculate changes and summarize
     for current in results:
-        program = current['program']
-        flags = current['flags']
-        size = current['size']
-        current_time = float(current['conversion_time'])
+        program = current["program"]
+        flags = current["flags"]
+        size = current["size"]
+        current_time = float(current["conversion_time"])
         prev_time = prev_summary[program][flags][size]
 
         if prev_time > 0:  # Ensure there was a previous run to compare against
             change_percent = ((current_time - prev_time) / prev_time) * 100
             if change_percent < 0:
                 performance_change_summaries.append(
-                    f"For {size}MiB files with flags '{flags}', {program} improved by {abs(change_percent):.2f}% compared to the last run.")
+                    f"For {size}MiB files with flags '{flags}', {program} improved by {abs(change_percent):.2f}% compared to the last run."
+                )
             elif change_percent > 0:
                 performance_change_summaries.append(
-                    f"For {size}MiB files with flags '{flags}', {program} slowed down by {change_percent:.2f}% compared to the last run.")
+                    f"For {size}MiB files with flags '{flags}', {program} slowed down by {change_percent:.2f}% compared to the last run."
+                )
             # If change_percent is 0, you might choose not to add a summary for no change or handle it differently.
 
     return performance_change_summaries
@@ -346,7 +409,7 @@ def generate_html_report():
     global results
     global previous_results
     current_datetime_iso = datetime.now().isoformat()
-    html_content = '''
+    html_content = """
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -374,22 +437,22 @@ def generate_html_report():
                 <th>Conversion Time (s)</th>
                 <th>Flags</th>
             </tr>
-    '''
+    """
     for result in results:
-        html_content += f'''
+        html_content += f"""
             <tr>
                 <td>{result['program']}</td>
                 <td>{result['size']}</td>
                 <td>{result['conversion_time']:.2f}</td>
                 <td>{result['flags']}</td>
             </tr>
-        '''
+        """
 
-    html_content += '''
+    html_content += """
         </table>
     </body>
     </html>
-    '''
+    """
     html_content += "<hr>"
 
     performance_summaries = analyze_performance()
@@ -482,7 +545,9 @@ def generate_markdown_report():
             md_content += f"### Graph for flag '{flag}'\n"
         else:
             md_content += f"### Graph for no flag\n"
-        md_content += f"![Graph Flag {flag_suffix}](img/graph_flag_{flag_suffix}.svg)\n\n"
+        md_content += (
+            f"![Graph Flag {flag_suffix}](img/graph_flag_{flag_suffix}.svg)\n\n"
+        )
 
     md_content = md_content.replace("xxd", "xxd")
 
@@ -504,7 +569,7 @@ def cleanup_files():
                 os.path.join(base_path, f"{size}mb.bin"),
                 os.path.join(base_path, f"{size}mb_recreated.bin"),
                 os.path.join(base_path, f"{size}mb{flags}_xxd.hex"),
-                os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex")
+                os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex"),
             ]
             for file in files_to_delete:
                 try:
@@ -516,10 +581,17 @@ def cleanup_files():
 def gnuplot_is_available():
     """Check if gnuplot is available on the system and works."""
     try:
-        subprocess.run(["gnuplot", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(
+            ["gnuplot", "--version"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         return True
     except subprocess.CalledProcessError as e:
-        print("gnuplot not found or an error occurred while checking gnuplot version:", e)
+        print(
+            "gnuplot not found or an error occurred while checking gnuplot version:", e
+        )
         return False
     except FileNotFoundError:
         print("gnuplot is not installed or not in the PATH.")
@@ -530,7 +602,7 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
     global previous_results
     include_previous = len(previous_results) > 0
 
-    with open(data_filename, 'w') as f:
+    with open(data_filename, "w") as f:
         if group_by == "size":
             header_line = "#SampleSizeMB xxd tinyxxd"
             if include_previous:
@@ -540,11 +612,19 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
             for size in sample_sizes:
                 data_line = f"{size} " + " ".join(
                     f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['size'] == size and x['flags'] == ''), 'NaN')}"
-                    for prog in ['xxd', 'tinyxxd']
+                    for prog in ["xxd", "tinyxxd"]
                 )
                 if include_previous:
-                    prev_time = next((x['conversion_time'] for x in previous_results if x['program']
-                                     == 'tinyxxd' and x['size'] == size and x['flags'] == ''), 'NaN')
+                    prev_time = next(
+                        (
+                            x["conversion_time"]
+                            for x in previous_results
+                            if x["program"] == "tinyxxd"
+                            and x["size"] == size
+                            and x["flags"] == ""
+                        ),
+                        "NaN",
+                    )
                     data_line += f" {prev_time}"
                 f.write(data_line + "\n")
 
@@ -560,10 +640,17 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
                 modified_flag = "N/A"
             data_line = f"'{modified_flag}' " + " ".join(  # Ensure flags are quoted for gnuplot
                 f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['flags'] == flag), 'NaN')}"
-                for prog in ['xxd', 'tinyxxd']
+                for prog in ["xxd", "tinyxxd"]
             )
             if include_previous:
-                prev_time = next((x['conversion_time'] for x in previous_results if x['program'] == 'tinyxxd' and x['flags'] == flag), 'NaN')
+                prev_time = next(
+                    (
+                        x["conversion_time"]
+                        for x in previous_results
+                        if x["program"] == "tinyxxd" and x["flags"] == flag
+                    ),
+                    "NaN",
+                )
                 data_line += f" {prev_time}"
             f.write(data_line + "\n")
 
@@ -573,15 +660,23 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
 def export_benchmark_results_for_each_flag():
     for flag in bench_flags:
         filename = f'img/benchmark_data_flag_{flag.replace("-", "").replace("E", "e_upper") if flag else "none"}.dat'
-        with open(filename, 'w') as file:
-            header = "#SampleSizeMB xxd tinyxxd" + (" previous_tinyxxd" if previous_results else "") + "\n"
+        with open(filename, "w") as file:
+            header = (
+                "#SampleSizeMB xxd tinyxxd"
+                + (" previous_tinyxxd" if previous_results else "")
+                + "\n"
+            )
             file.write(header)
             for size in sample_sizes:
                 line = f"{size} "
-                line += " ".join(f"{avg_time_for_program_size_flag(program, size, flag)}" for program in [
-                                 'xxd', 'tinyxxd'])
+                line += " ".join(
+                    f"{avg_time_for_program_size_flag(program, size, flag)}"
+                    for program in ["xxd", "tinyxxd"]
+                )
                 if previous_results:
-                    prev_avg_time = avg_time_for_program_size_flag('tinyxxd', size, flag, previous=True)
+                    prev_avg_time = avg_time_for_program_size_flag(
+                        "tinyxxd", size, flag, previous=True
+                    )
                     line += f" {prev_avg_time}"
                 file.write(line + "\n")
 
@@ -589,20 +684,32 @@ def export_benchmark_results_for_each_flag():
 def generate_graphs_for_each_flag():
     for flag in bench_flags:
         modified_flag = flag.replace("-", "").replace("E", "e_upper")
-        data_filename = f'img/benchmark_data_flag_{modified_flag if modified_flag else "none"}.dat'
-        graph_filename = f'img/graph_flag_{modified_flag if modified_flag else "none"}.svg'
+        data_filename = (
+            f'img/benchmark_data_flag_{modified_flag if modified_flag else "none"}.dat'
+        )
+        graph_filename = (
+            f'img/graph_flag_{modified_flag if modified_flag else "none"}.svg'
+        )
         title = f"Benchmark results for no flag"
         if modified_flag:
             title = f"Benchmark results for flag {flag}"
-        generate_gnuplot_graph(data_filename, graph_filename, title, "Sample size (MiB)", "Time (seconds)")
+        generate_gnuplot_graph(
+            data_filename, graph_filename, title, "Sample size (MiB)", "Time (seconds)"
+        )
 
 
 def avg_time_for_program_size_flag(program, size, flag, previous=False):
     relevant_results = previous_results if previous else results
-    times = [result['conversion_time'] for result in relevant_results if result['program'] == program and result['size'] == size and result['flags'] == flag]
+    times = [
+        result["conversion_time"]
+        for result in relevant_results
+        if result["program"] == program
+        and result["size"] == size
+        and result["flags"] == flag
+    ]
     if times:
         return sum(times) / len(times)
-    return 'NaN'
+    return "NaN"
 
 
 def generate_gnuplot_graph(data_filename, graph_filename, title, xlabel, ylabel):
@@ -614,7 +721,9 @@ def generate_gnuplot_graph(data_filename, graph_filename, title, xlabel, ylabel)
         f"'{data_filename}' using 1:3 title 'tinyxxd' with linespoints",
     ]
     if include_previous:
-        plot_commands.append(f"'{data_filename}' using 1:4 title 'previous tinyxxd' with linespoints")
+        plot_commands.append(
+            f"'{data_filename}' using 1:4 title 'previous tinyxxd' with linespoints"
+        )
 
     gnuplot_commands = f"""
 set terminal svg size 800,600 enhanced background rgb 'white'
@@ -628,12 +737,12 @@ plot {", ".join(plot_commands)}
 """
 
     # Write commands to a temporary script file
-    with tempfile.NamedTemporaryFile('w', delete=False) as script_file:
+    with tempfile.NamedTemporaryFile("w", delete=False) as script_file:
         script_file.write(gnuplot_commands)
         script_filename = script_file.name
 
     # Execute the script with gnuplot
-    subprocess.run(['gnuplot', script_filename], check=True)
+    subprocess.run(["gnuplot", script_filename], check=True)
 
     # Optionally, remove the script file after execution
     os.remove(script_filename)
@@ -651,9 +760,16 @@ def main():
         generate_html_report()
         generate_markdown_report()
         if gnuplot_is_available():
-            export_benchmark_results_for_gnuplot('img/benchmark_data_by_size.dat', 'size')
-            generate_gnuplot_graph('img/benchmark_data_by_size.dat', 'img/graph_by_size.svg',
-                                   'Benchmark results by sample size', 'Sample size (MiB)', 'Time (seconds)')
+            export_benchmark_results_for_gnuplot(
+                "img/benchmark_data_by_size.dat", "size"
+            )
+            generate_gnuplot_graph(
+                "img/benchmark_data_by_size.dat",
+                "img/graph_by_size.svg",
+                "Benchmark results by sample size",
+                "Sample size (MiB)",
+                "Time (seconds)",
+            )
             export_benchmark_results_for_each_flag()
             generate_graphs_for_each_flag()
     except KeyboardInterrupt:
