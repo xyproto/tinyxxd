@@ -226,6 +226,47 @@ def perform_benchmarks():
                 }
             )
 
+            # Conversion from binary to hex
+            current_benchmark += 1
+            conversion_time = benchmark_conversion(
+                program,
+                "-b",
+                input_file,
+                output_file,
+                current_benchmark,
+                total_benchmarks,
+            )
+            results.append(
+                {
+                    "program": program,
+                    "size": size,
+                    "conversion_time": conversion_time,
+                    "flags": "",
+                }
+            )
+            # Conversion back from hex to binary
+            reconversion_time = benchmark_conversion(
+                program,
+                "-r -b",
+                output_file,
+                recon_file,
+                current_benchmark,
+                total_benchmarks,
+            )
+            if not verify_files(input_file, recon_file):
+                print_colored(
+                    f"Verification failed for {recon_file}. Exiting...", 91
+                )  # Red text
+                exit(1)
+            results.append(
+                {
+                    "program": program,
+                    "size": size,
+                    "conversion_time": reconversion_time,
+                    "flags": "-r",
+                }
+            )
+
             for flags in bench_flags:
                 current_benchmark += 1
                 output_file = f"{size}mb{flags}_{program}.hex"
@@ -823,7 +864,7 @@ def main():
             print_final_comparison()
     except KeyboardInterrupt:
         print("\nctrl-c")
-     clean_all_hex_bin()
+    clean_all_hex_bin()
 
 
 if __name__ == "__main__":
