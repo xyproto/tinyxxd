@@ -34,6 +34,9 @@ profile: tinyxxd_debug
 bench:
 	@python3 bench.py
 
+quick_bench:
+	@python3 bench.py -q
+
 fmt: main.c
 	clang-format -style=WebKit -i main.c
 
