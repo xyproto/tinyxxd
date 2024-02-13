@@ -14,7 +14,7 @@ jobs:
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm curl diff gcc make
+        pacman -S --noconfirm --needed curl diffutils gcc make
 
     - name: Build
       run: make
@@ -44,7 +44,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          choco install curl diff make mingw
+          choco install curl diffutils make mingw -y
 
       - name: Build
         run: make CC=gcc
@@ -68,7 +68,7 @@ jobs:
     - name: Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm curl diff gcc git gnuplot make python
+        pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python
 
     - name: Check for cached results
       run: |
