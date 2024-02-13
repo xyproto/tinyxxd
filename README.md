@@ -46,11 +46,11 @@ Some of the code has been neatly refactored into separate functions, and two enu
 
 ## Testing
 
-Tested on Arch Linux and macOS, where it builds, runs and all tests passes.
+Tested on Arch Linux, where it builds, runs and all tests passes.
 
 `make test` can be used to run simple tests, and `python bench.py` can run additional tests while benchmarking.
 
-`tinyxxd` also builds for Windows, but has not been tested on Windows yet.
+`tinyxxd` also builds on macOS and Windows, but it has not been tested on those platforms yet.
 
 ## Benchmarking
 
