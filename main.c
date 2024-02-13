@@ -75,9 +75,8 @@ void exit_with_usage(void)
     exit(1);
 }
 
-/* exit_with_error will exit with the given exit code.
- * pass in either a message that will be printed to stderr,
- * or NULL if perror should be printed instead.
+/* exit_with_error will print the message and exit if the message is not NULL.
+ * Otherwise, it will print the perror and exit.
  */
 void exit_with_error(const int exit_code, const char* message)
 {
@@ -175,28 +174,21 @@ static inline void fflush_fseek_and_putc(const long* base_off, const long* want_
 }
 
 /* decode_hex_stream_postscript decodes hex data from an input stream within 'cols' characters per line.
- * Supports Postscript formats with format-specific rules. It aligns data in the output stream,
- * filling with zeroes as needed to maintain the base offset.
+ * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
 int decode_hex_stream_postscript(const long base_off)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
-        // Allow multiple spaces. This doesn't work when there is normal text
-        // after the hex codes in the last line that looks like hex, so only
-        // use it for the PostScript format.
-        if (c == ' ' || c == '\n' || c == '\t') {
+    while (((c = getc(input_file)) != EOF) && c != ' ' && c != '\n' && c != '\t' && c != '\r') {
+        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
         n3 = n2;
         n2 = n1;
-        n1 = parse_hex_digit(c);
-        if (n1 == -1 && ignore) {
-            continue;
-        }
+        n1 = tmp;
         fflush_fseek_and_putc(&base_off, &want_off, &have_off);
         if (n2 >= 0 && n1 >= 0) {
             putc_or_die((n2 << 4) | n1);
@@ -215,29 +207,28 @@ int decode_hex_stream_postscript(const long base_off)
 }
 
 /* decode_hex_stream_normal decodes hex data from an input stream within 'cols' characters per line.
- * Supports normal formats with format-specific rules. It aligns data in the output stream,
- * filling with zeroes as needed to maintain the base offset.
+ * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
 int decode_hex_stream_normal(const int cols, const long base_off)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
-        n3 = n2;
-        n2 = n1;
-        n1 = parse_hex_digit(c);
-        if (n1 == -1 && ignore) {
+    while (((c = getc(input_file)) != EOF) && c != '\r') {
+        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
-        ignore = false;
+        n3 = n2;
+        n2 = n1;
+        n1 = tmp;
         if (p >= cols) {
             if (n1 < 0) {
                 p = 0;
             } else {
                 want_off = (want_off << 4) | n1;
             }
+            ignore = false;
             continue;
         }
         fflush_fseek_and_putc(&base_off, &want_off, &have_off);
@@ -252,10 +243,12 @@ int decode_hex_stream_normal(const int cols, const long base_off)
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
             skip_to_eol_or_die(&c);
         }
-        if (c == '\n') {
+        if (c != '\n') {
+            ignore = false;
+        } else {
+            ignore = true;
             want_off = 0;
             p = cols;
-            ignore = true;
         }
     }
     fflush_or_die();
@@ -265,8 +258,7 @@ int decode_hex_stream_normal(const int cols, const long base_off)
 }
 
 /* decode_hex_stream_bits decodes binary data from an input stream within 'cols' characters per line.
- * Supports bits formats with format-specific rules. It aligns data in the output stream,
- * filling with zeroes as needed to maintain the base offset.
+ * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
 int decode_hex_stream_bits(const int cols)
 {
@@ -274,9 +266,8 @@ int decode_hex_stream_bits(const int cols)
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && (c != '\r')) {
-        n1 = parse_hex_digit(c);
-        if (n1 == -1 && ignore) {
+    while (((c = getc(input_file)) != EOF) && c != '\r') {
+        if ((n1 = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
         bit = parse_bin_digit(c);
@@ -330,7 +321,9 @@ static inline void print_or_suppress_zero_line(const char* l, const int nz)
     }
     if (nz || !zero_seen++) {
         if (nz) {
-            zero_seen -= (nz < 0) ? 1 : 0;
+            if (nz < 0) {
+                zero_seen--;
+            }
             if (zero_seen == 2) {
                 fputs_or_die(z);
             } else if (zero_seen > 2) {
@@ -371,12 +364,12 @@ static inline enum ColorDigit ebcdic_char_color(const unsigned char e)
         return COLOR_GREEN;
     }
     switch (e) {
-    case 0:
-        return COLOR_WHITE;
     case 5:
     case 13:
     case 37:
         return COLOR_YELLOW;
+    case 0:
+        return COLOR_WHITE;
     case 255:
         return COLOR_BLUE;
     }
@@ -389,8 +382,8 @@ inline enum ColorDigit ascii_char_color(const unsigned char e)
         return COLOR_GREEN;
     }
     switch (e) {
-    case '\t':
     case '\n':
+    case '\t':
     case '\r':
         return COLOR_YELLOW;
     case '\0':
@@ -454,10 +447,10 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
             exit_with_error(3, NULL);
         }
         for (e = 0; (c = varname[e]); e++) {
-            if (capitalize) {
-                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-            } else {
+            if (!capitalize) {
                 putc_or_die(isalnum((unsigned char)c) ? c : '_');
+            } else {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
             }
         }
         fputs_or_die("[] = {\n");
@@ -480,10 +473,10 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
             exit_with_error(3, NULL);
         }
         for (e = 0; (c = varname[e]); e++) {
-            if (capitalize) {
-                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
-            } else {
+            if (!capitalize) {
                 putc_or_die(isalnum((unsigned char)c) ? c : '_');
+            } else {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_');
             }
         }
         if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
