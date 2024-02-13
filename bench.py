@@ -822,8 +822,8 @@ def main():
             generate_graphs_for_each_flag()
             print_final_comparison()
     except KeyboardInterrupt:
-        clean_all_hex_bin()
         print("\nctrl-c")
+     clean_all_hex_bin()
 
 
 if __name__ == "__main__":
