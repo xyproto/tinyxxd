@@ -317,31 +317,34 @@ static inline void print_or_suppress_zero_line(const char* l, const int nz)
     static char z[LLEN + 1];
     static int zero_seen = 0;
     if (nz > 0) {
-        if (zero_seen == 2) {
-            fputs_or_die(z);
+        if (zero_seen < 2) {
+            fputs_or_die(l);
         } else if (zero_seen > 2) {
             putc_or_die('*');
             putc_or_die('\n');
+            fputs_or_die(l);
+        } else if (zero_seen == 2) {
+            fputs_or_die(z);
+            fputs_or_die(l);
         }
-        fputs_or_die(l);
+    } else if (nz < 0) {
+        zero_seen--;
+        if (zero_seen > 2) {
+            putc_or_die('*');
+            putc_or_die('\n');
+            fputs_or_die(l);
+        } else if (zero_seen < 2) {
+            zero_seen = 0;
+        } else if (zero_seen == 2) {
+            fputs_or_die(z);
+            fputs_or_die(l);
+        }
     } else if (!nz) {
         if (!zero_seen) {
             zero_seen++; // zero_seen == 1
             fputs_or_die(l);
         } else if (zero_seen == 1) {
             strcpy(z, l);
-        }
-    } else if (nz < 0) {
-        zero_seen--;
-        if (zero_seen == 2) {
-            fputs_or_die(z);
-            fputs_or_die(l);
-        } else if (zero_seen > 2) {
-            putc_or_die('*');
-            putc_or_die('\n');
-            fputs_or_die(l);
-        } else {
-            zero_seen = 0;
         }
     }
 }
@@ -566,7 +569,7 @@ int hex_normal(const bool colsgiven, int cols, int octspergrp, const bool revert
     static char l[LLEN + 1]; // static because it may be too big for stack
     char color_digit = 0;
     int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
-    if (!colsgiven || !cols) {
+    if (!cols || !colsgiven) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
         exit_with_col_error();
