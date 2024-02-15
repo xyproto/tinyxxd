@@ -48,6 +48,7 @@ Module.symvers
 callgrind.*
 dkms.conf
 fuzz_output/
+log.txt
 main
 modules.order
 og_xxd
