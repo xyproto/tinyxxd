@@ -1,6 +1,6 @@
 .PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -fPIC -Wall -Wextra -Wpedantic -Wfatal-errors
+CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wfatal-errors
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt
