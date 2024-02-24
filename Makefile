@@ -9,6 +9,7 @@ else ifeq ($(OS),Windows_NT)
 else
 	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt -Wl,-z,now
 endif
+CFLAGS += -I stringzilla/include
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin

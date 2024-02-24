@@ -1,0 +1,3 @@
+[submodule "stringzilla"]
+	path = stringzilla
+	url = https://github.com/ashvardanian/stringzilla.git
