@@ -79,7 +79,7 @@ jobs:
         fi
 
     - name: Run bench.py
-      run: python3 bench.py -s
+      run: python3 bench.py
 
     - name: Archive results for Git operations
       uses: actions/upload-artifact@v4

@@ -24,10 +24,8 @@ base_path = tempfile.gettempdir() #if platform.system() != "Linux" else "/dev/sh
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
-elif len(sys.argv) > 1 and sys.argv[1] == "-s":
-    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 else:
-    sample_sizes = [128, 64, 32, 16, 8, 4, 2, 1]  # in MiB
+    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 
 
 def run_command(command, capture_output=False):
