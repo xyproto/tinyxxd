@@ -10,6 +10,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
     - name: Update system and Install dependencies
       run: |
@@ -28,6 +30,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
     - name: Build
       run: make
@@ -41,6 +45,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
 
       - name: Setup environment
         run: |
@@ -57,6 +63,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
     - name: Cache benchmark results
       uses: actions/cache@v4
@@ -98,6 +106,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
     - name: Download benchmark results
       uses: actions/download-artifact@v4
