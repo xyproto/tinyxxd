@@ -14,7 +14,7 @@ jobs:
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm --needed curl diffutils gcc make
+        pacman -S --noconfirm --needed curl diffutils gcc git make
 
     - name: Checkout submodules
       run: |
