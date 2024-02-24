@@ -10,13 +10,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        submodules: 'true'
 
     - name: Update system and Install dependencies
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm --needed curl diffutils gcc make
+
+    - name: Checkout submodules
+      run: |
+        git submodule update --init --recursive
 
     - name: Build
       run: make
