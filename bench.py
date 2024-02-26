@@ -353,11 +353,12 @@ def analyze_performance(threshold=0.05):
     """
     global results
     summaries = []
-
     # Group results by flags and size for comparison
     grouped = defaultdict(lambda: defaultdict(list))
     for result in results:
-        grouped[(result["flags"], result["size"])][result["program"]].append(
+        # Explicitly handle empty flags as a distinct category
+        flag_key = result["flags"] if result["flags"] != "" else "no flag"
+        grouped[(flag_key, result["size"])][result["program"]].append(
             result["conversion_time"]
         )
 
@@ -375,7 +376,11 @@ def analyze_performance(threshold=0.05):
             percent_faster = (
                 diff / (1 - diff)
             ) * 100  # Calculate percentage faster relative to the slower program
-            summary = f"With flags '{flags}' and size {size}MiB, {better_program} was {percent_faster:.2f}% faster."
+            # Adjust summary text for cases with no flags
+            flag_text = (
+                f"with flags '{flags}'" if flags != "no flag" else "with no flag"
+            )
+            summary = f"For size {size}MiB, {better_program} was {percent_faster:.2f}% faster {flag_text}."
             summaries.append(summary)
 
     return summaries
