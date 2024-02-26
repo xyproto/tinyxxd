@@ -540,6 +540,18 @@ def generate_html_report():
     """
     html_content += "<hr>"
 
+    html_content += "<h2>Graphs</h2>\n"
+    html_content += "<h3>Graph by sample size</h3>\n"
+    html_content += '<img src="img/graph_by_size.svg" alt="Graph by sample size">\n'
+    for flag in bench_flags:
+        flag_modified = flag.replace("-", "").replace("E", "e_upper")
+        flag_suffix = flag if flag else "none"
+        if flag_modified:
+            html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
+        else:
+            html_content += f"<h3>Graph for no flag</h3>\n"
+        html_content += f'<img src="img/graph_flag_{flag_modified}.svg" alt="Graph Flag {flag_suffix}">\n'
+
     performance_summaries = analyze_performance()
     for summary in performance_summaries:
         html_content += f"<p>{summary}</p>"
@@ -556,24 +568,13 @@ def generate_html_report():
     for summary in performance_summaries_by_flag:
         html_content += f"<p>{summary}</p>"
     html_content += "<hr>"
-
     if previous_results:
         performance_change_summaries = summarize_performance_change()
         for summary in performance_change_summaries:
             html_content += f"<p>{summary}</p>"
         html_content += "<hr>"
 
-    html_content += "<h2>Graphs</h2>\n"
-    html_content += "<h3>Graph by sample size</h3>\n"
-    html_content += '<img src="img/graph_by_size.svg" alt="Graph by sample size">\n'
-    for flag in bench_flags:
-        flag_modified = flag.replace("-", "").replace("E", "e_upper")
-        flag_suffix = flag if flag else "none"
-        if flag_modified:
-            html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
-        else:
-            html_content += f"<h3>Graph for no flag</h3>\n"
-        html_content += f'<img src="img/graph_flag_{flag_modified}.svg" alt="Graph Flag {flag_suffix}">\n'
+    html_content += "<hr>"
 
     html_content += f"<p>Report generated on: {current_datetime_iso}</p>"
     html_content += "</body></html>"
@@ -591,36 +592,6 @@ def generate_markdown_report():
     current_datetime_iso = datetime.now().isoformat()
     md_content = "# Benchmark results\n\n"
 
-    # Add the table header
-    md_content += "| Program | Size (MiB) | Conversion Time (s) | Flags |\n"
-    md_content += "|---------|------------|----------------------|-------|\n"
-
-    # Add the table rows with the benchmark results
-    for result in results:
-        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags']} |\n"
-
-    # Add performance summaries
-    md_content += "\n## Performance Summaries\n"
-    performance_summaries = analyze_performance()
-    for summary in performance_summaries:
-        md_content += f"- {summary}\n"
-
-    md_content += "\n### Performance by sample size\n"
-    performance_summaries_by_size = summarize_performance_by_size()
-    for summary in performance_summaries_by_size:
-        md_content += f"- {summary}\n"
-
-    md_content += "\n### Performance by flag\n"
-    performance_summaries_by_flag = summarize_performance_by_flag()
-    for summary in performance_summaries_by_flag:
-        md_content += f"- {summary}\n"
-
-    if previous_results:
-        md_content += "\n### Performance compared to last run\n"
-        performance_change_summaries = summarize_performance_change()
-        for summary in performance_change_summaries:
-            md_content += f"- {summary}\n"
-
     md_content += "\n## Graphs\n\n"
     md_content += "### Graph by sample size\n"
     md_content += "![Graph by sample size](img/graph_by_size.svg)\n\n"
@@ -634,9 +605,34 @@ def generate_markdown_report():
             f"![Graph Flag {flag_suffix}](img/graph_flag_{flag_suffix}.svg)\n\n"
         )
 
+    # Add the table header
+    md_content += "| Program | Size (MiB) | Conversion Time (s) | Flags |\n"
+    md_content += "|---------|------------|----------------------|-------|\n"
+    # Add the table rows with the benchmark results
+    for result in results:
+        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags']} |\n"
+    # Add performance summaries
+    md_content += "\n## Performance Summaries\n"
+    performance_summaries = analyze_performance()
+    for summary in performance_summaries:
+        md_content += f"- {summary}\n"
+    md_content += "\n### Performance by sample size\n"
+    performance_summaries_by_size = summarize_performance_by_size()
+    for summary in performance_summaries_by_size:
+        md_content += f"- {summary}\n"
+    md_content += "\n### Performance by flag\n"
+    performance_summaries_by_flag = summarize_performance_by_flag()
+    for summary in performance_summaries_by_flag:
+        md_content += f"- {summary}\n"
+    if previous_results:
+        md_content += "\n### Performance compared to last run\n"
+        performance_change_summaries = summarize_performance_change()
+        for summary in performance_change_summaries:
+            md_content += f"- {summary}\n"
+
     md_content = md_content.replace("xxd", "xxd")
 
-    md_content += f"\nReport generated on: {current_datetime_iso}\n"
+    md_content += f"---\nReport generated on: {current_datetime_iso}\n"
 
     # Write the Markdown content to a file
     filename = "benchmark_results.md"
