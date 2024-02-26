@@ -20,7 +20,7 @@ results = []
 previous_results = []
 compilation_command = "make xxd tinyxxd"
 bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E"]
-base_path = tempfile.gettempdir() #if platform.system() != "Linux" else "/dev/shm"
+base_path = tempfile.gettempdir()  # if platform.system() != "Linux" else "/dev/shm"
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
@@ -58,7 +58,7 @@ def create_sample_files():
     global base_path
     print("Generating sample files...")
     for size in sample_sizes:
-        print(f"Creating {size}mb.bin ({size} MiB)")
+        print(f"Generating a {size} MiB sample file with random data.")
         filename = os.path.join(base_path, f"{size}mb.bin")
         with open(filename, "wb") as f:
             f.write(os.urandom(size * 1024 * 1024))
@@ -88,7 +88,7 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
     command_message = f"{program} {flags} // {input_file}"
     # Update progress bar with command being run
-    progress_bar(current, total, message=command_message)
+    progress_bar(current + 1, total, message=command_message)
     start_time = time.time()
     result = subprocess.run(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -420,27 +420,30 @@ def summarize_performance_by_flag(threshold=0.05):
 
     # Collect data
     for result in results:
-        summary_data[result["flags"]][result["program"]].append(
-            result["conversion_time"]
-        )
+        # Ensure even no flag case is treated as a distinct category
+        flag_key = result["flags"] if result["flags"] != "" else "no flag"
+        summary_data[flag_key][result["program"]].append(result["conversion_time"])
 
     # Analyze and prepare summaries
     performance_summaries_by_flag = []
     for flag, data in summary_data.items():
         if "xxd" not in data or "tinyxxd" not in data:
-            # Skip if data for either program is missing
-            continue
+            continue  # Skip if data for either program is missing
 
         avg_xxd = sum(data["xxd"]) / len(data["xxd"])
         avg_tinyxxd = sum(data["tinyxxd"]) / len(data["tinyxxd"])
 
         # Calculate the percentage faster relative to the slower program
-        if avg_xxd != avg_tinyxxd:  # Check to ensure division by zero doesn't occur
+        if avg_xxd != avg_tinyxxd:  # Ensure division by zero doesn't occur
             diff = abs(avg_xxd - avg_tinyxxd) / max(avg_xxd, avg_tinyxxd)
             if diff > threshold:
                 better_program = "xxd" if avg_xxd < avg_tinyxxd else "tinyxxd"
                 percent_faster = (diff / (1 - diff)) * 100
-                summary = f"With flag '{flag}', {better_program} was {percent_faster:.2f}% faster."
+                # Handle summary text for no flag case explicitly
+                flag_text = f"'{flag}'" if flag != "no flag" else "with no flag"
+                summary = (
+                    f"{better_program} was {percent_faster:.2f}% faster {flag_text}."
+                )
                 performance_summaries_by_flag.append(summary)
 
     return performance_summaries_by_flag
