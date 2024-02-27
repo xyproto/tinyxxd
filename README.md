@@ -57,7 +57,7 @@ Tested on Arch Linux, where it builds, runs and all tests passes.
 
 ## Fuzzing
 
-`make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with varied input design to find edge cases in the program.
+`make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with varied input designed to find edge cases in the program.
 
 ### General info
 
