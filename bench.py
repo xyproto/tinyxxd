@@ -330,12 +330,12 @@ def print_final_comparison():
     if avg_xxd_time and avg_tinyxxd_time:  # Check if both times are non-zero
         if avg_xxd_time < avg_tinyxxd_time:
             percent_faster = ((avg_tinyxxd_time - avg_xxd_time) / avg_xxd_time) * 100
-            message = f"For {largest_size}MiB files, xxd was {percent_faster:.2f}% faster than tinyxxd."
+            message = f"For sample size {largest_size} MiB, xxd was {percent_faster:.2f}% faster than tinyxxd."
         else:
             percent_faster = (
                 (avg_xxd_time - avg_tinyxxd_time) / avg_tinyxxd_time
             ) * 100
-            message = f"For {largest_size}MiB files, tinyxxd was {percent_faster:.2f}% faster than xxd."
+            message = f"For sample size {largest_size} MiB, tinyxxd was {percent_faster:.2f}% faster than xxd."
         print(message)
     else:
         print("No valid comparison data available.")
@@ -380,7 +380,7 @@ def analyze_performance(threshold=0.05):
             flag_text = (
                 f"with flags '{flags}'" if flags != "no flag" else "with no flag"
             )
-            summary = f"For size {size}MiB, {better_program} was {percent_faster:.2f}% faster {flag_text}."
+            summary = f"For sample size {size} MiB, {better_program} was {percent_faster:.2f}% faster {flag_text}."
             summaries.append(summary)
 
     return summaries
@@ -408,12 +408,12 @@ def summarize_performance_by_size(threshold=0.05):
         if avg_xxd < avg_tinyxxd:
             percent_faster = ((avg_tinyxxd - avg_xxd) / avg_xxd) * 100
             if percent_faster > threshold:
-                summary = f"For {size}MiB files, xxd was {percent_faster:.2f}% faster than tinyxxd."
+                summary = f"For sample size {size} MiB, xxd was {percent_faster:.2f}% faster than tinyxxd."
                 performance_summaries_by_size.append(summary)
         else:
             percent_faster = ((avg_xxd - avg_tinyxxd) / avg_tinyxxd) * 100
             if percent_faster > threshold:
-                summary = f"For {size}MiB files, tinyxxd was {percent_faster:.2f}% faster than xxd."
+                summary = f"For sample {size} MiB, tinyxxd was {percent_faster:.2f}% faster than xxd."
                 performance_summaries_by_size.append(summary)
 
     return performance_summaries_by_size
@@ -479,11 +479,11 @@ def summarize_performance_change():
             change_percent = ((current_time - prev_time) / prev_time) * 100
             if change_percent < 0:
                 performance_change_summaries.append(
-                    f"For {size}MiB files with flags '{flags}', {program} improved by {abs(change_percent):.2f}% compared to the last run."
+                    f"For sample {size} MiB with flags '{flags}', {program} improved by {abs(change_percent):.2f}% compared to the last run."
                 )
             elif change_percent > 0:
                 performance_change_summaries.append(
-                    f"For {size}MiB files with flags '{flags}', {program} slowed down by {change_percent:.2f}% compared to the last run."
+                    f"For sample {size} MiB with flags '{flags}', {program} slowed down by {change_percent:.2f}% compared to the last run."
                 )
             # If change_percent is 0, you might choose not to add a summary for no change or handle it differently.
 
