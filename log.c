@@ -1,6 +1,6 @@
 static FILE* log_file;
 
-// append_to_log is used for finding the most use execution paths
+// append_to_log is a utility function that can be used for finding the most used execution paths
 static void append_to_log(char logChar)
 {
     log_file = fopen("log.txt", "a");
