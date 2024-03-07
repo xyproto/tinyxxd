@@ -4,19 +4,21 @@ on:
   push:
     paths-ignore:
       - '**/.gitignore'
-      - '**/*.md'
+      - '**/README.md'
+      - '**/TODO.md'
       - '**/*.txt'
       - '**/*.sh'
-      - '**/*.png'
-      - '**/*.svg'
+      - '**/tinyxxd*.png'
+      - '**/tinyxxd*.svg'
   pull_request:
     paths-ignore:
       - '**/.gitignore'
-      - '**/*.md'
+      - '**/README.md'
+      - '**/TODO.md'
       - '**/*.txt'
       - '**/*.sh'
-      - '**/*.png'
-      - '**/*.svg'
+      - '**/tinyxxd*.png'
+      - '**/tinyxxd*.svg'
 
 jobs:
   build-linux:
