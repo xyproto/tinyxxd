@@ -1,6 +1,22 @@
 name: Build and benchmark
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - '**/.gitignore'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/*.sh'
+      - '**/*.png'
+      - '**/*.svg'
+  pull_request:
+    paths-ignore:
+      - '**/.gitignore'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/*.sh'
+      - '**/*.png'
+      - '**/*.svg'
 
 jobs:
   build-linux:
