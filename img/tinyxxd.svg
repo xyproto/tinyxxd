@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="125.20103mm"
+   height="32.477676mm"
+   viewBox="0 0 125.20103 32.477676"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="tinyxxd.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   sodipodi:docname="tinyxxd.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.92737795"
+     inkscape:cx="305.70061"
+     inkscape:cy="263.1074"
+     inkscape:window-width="3200"
+     inkscape:window-height="1297"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#shading6"
+       preserveAspectRatio="xMidYMid"
+       id="pattern87"
+       patternTransform="matrix(0.2,0,0,0.2,-1.1412104,2.2824207)"
+       x="72"
+       y="0"
+       height="172.07787933" />
+    <pattern
+       patternUnits="userSpaceOnUse"
+       width="372.6899"
+       height="66.1838"
+       patternTransform="scale(0.2)"
+       preserveAspectRatio="xMidYMid"
+       id="shading6"
+       style="fill:#000000"
+       inkscape:label="Lines shading small"
+       inkscape:collect="always"
+       inkscape:isstock="true">
+      <path
+         id="path34"
+         style="stroke-width:0.487199;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000"
+         d="m 371.6961,0 h 0.9938 v 66.1838 h -0.9938 z m -7.9084,0 h 1.1312 v 66.1838 h -1.1312 z m -7.9085,0 h 1.2687 v 66.1838 h -1.2687 z m -7.9084,0 h 1.4062 v 66.1838 h -1.4062 z m -7.9084,0 h 1.5436 v 66.1838 h -1.5436 z m -7.9084,0 h 1.681 v 66.1838 h -1.681 z m -7.9085,0 h 1.8185 v 66.1838 h -1.8185 z m -7.9084,0 h 1.9559 v 66.1838 h -1.9559 z m -7.9084,0 h 2.0934 v 66.1838 h -2.0934 z m -7.9085,0 h 2.2309 v 66.1838 h -2.2309 z m -7.9084,0 h 2.3683 v 66.1838 h -2.3683 z m -7.9084,0 h 2.5057 v 66.1838 h -2.5057 z m -7.9084,0 h 2.6431 v 66.1838 h -2.6431 z m -7.9085,0 h 2.7807 v 66.1838 h -2.7807 z m -7.9084,0 h 2.9181 v 66.1838 h -2.9181 z m -7.9084,0 h 3.0555 v 66.1838 h -3.0555 z m -7.9084,0 h 3.1929 v 66.1838 h -3.1929 z m -7.9085,0 h 3.3304 v 66.1838 h -3.3304 z m -7.9084,0 h 3.4679 v 66.1838 h -3.4679 z m -7.9084,0 h 3.6053 v 66.1838 h -3.6053 z m -7.9085,0 h 3.7428 v 66.1838 h -3.7428 z m -7.9084,0 h 3.8802 v 66.1838 h -3.8802 z m -7.9084,0 h 4.0176 v 66.1838 h -4.0176 z m -7.9084,0 h 4.1551 v 66.1838 h -4.1551 z m -7.9085,0 h 4.2926 v 66.1838 h -4.2926 z m -7.9084,0 h 4.43 v 66.1838 h -4.43 z m -7.9084,0 h 4.5674 v 66.1838 h -4.5674 z m -7.9084,0 h 4.7048 v 66.1838 h -4.7048 z m -7.9085,0 h 4.8424 v 66.1838 h -4.8424 z m -7.9084,0 h 4.9798 v 66.1838 h -4.9798 z m -7.9084,0 h 5.1172 v 66.1838 h -5.1172 z m -7.9084,0 h 5.2546 v 66.1838 h -5.2546 z m -7.9085,0 h 5.3921 v 66.1838 h -5.3921 z m -7.9084,0 h 5.5295 v 66.1838 h -5.5295 z m -7.9084,0 h 5.667 v 66.1838 h -5.667 z m -7.9085,0 h 5.8045 v 66.1838 h -5.8045 z m -7.9084,0 h 5.9419 v 66.1838 h -5.9419 z m -7.9084,0 h 6.0793 v 66.1838 h -6.0793 z m -7.9084,0 h 6.2167 v 66.1838 h -6.2167 z m -7.9085,0 h 6.3543 V 66.1838 H 63.2674 Z M 55.359,0 h 6.4917 V 66.1838 H 55.359 Z m -7.9084,0 h 6.6291 v 66.1838 h -6.6291 z m -7.9084,0 h 6.7665 v 66.1838 h -6.7665 z m -7.9085,0 h 6.904 v 66.1838 h -6.904 z m -7.9084,0 h 7.0415 v 66.1838 h -7.0415 z m -7.9084,0 h 7.1789 V 66.1838 H 15.8169 Z M 7.9084,0 h 7.3164 V 66.1838 H 7.9084 Z M 0,0 H 7.4538 V 66.1838 H 0 Z" />
+    </pattern>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath54">
+      <path
+         id="path54"
+         style="stroke-width:0.0999999;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000"
+         d="m 1691.1994,-792.32001 h 1634.8919 v 92.82806 H 1691.1994 Z" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath51">
+      <path
+         id="path51"
+         style="stroke-width:0.0999999;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000"
+         d="m 1806.4991,-753.5228 h 1637.2646 v 66.90533 H 1806.4991 Z" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath27">
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.999999;stroke-linecap:butt;stroke-linejoin:bevel;paint-order:stroke markers fill;stop-color:#000000"
+         id="rect28-6"
+         width="46.160622"
+         height="39.922417"
+         x="86.574379"
+         y="420.06253" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath24">
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.999999;stroke-linecap:butt;stroke-linejoin:bevel;paint-order:stroke markers fill;stop-color:#000000"
+         id="rect24"
+         width="44.999748"
+         height="77.937294"
+         x="251.53429"
+         y="222.73541" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="Lag 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-24.27413,-78.766926)">
+    <rect
+       style="fill:url(#pattern87);fill-opacity:1;stroke:#000000;stroke-width:1.665;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="rect7"
+       width="123.53603"
+       height="30.812677"
+       x="25.10663"
+       y="79.599426" />
+    <text
+       xml:space="preserve"
+       style="font-size:25.4px;letter-spacing:-2.10604px;fill:#000000;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+       x="37.089336"
+       y="104.42075"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:Silom;-inkscape-font-specification:Silom;letter-spacing:-2.10604px;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+         x="37.089336"
+         y="104.42075"><tspan
+   style="letter-spacing:-2.10604px;fill:#fa7e00;fill-opacity:1;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+   id="tspan2">T</tspan>I<tspan
+   style="letter-spacing:-2.10604px;fill:#008bfa;fill-opacity:1;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+   id="tspan6">N</tspan><tspan
+   style="letter-spacing:-2.10604px;fill:#fa7e00;fill-opacity:1;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+   id="tspan3">Y<tspan
+   style="letter-spacing:-2.10604px;fill:#008bfa;fill-opacity:1;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+   id="tspan5">X</tspan>X</tspan><tspan
+   style="letter-spacing:-2.10604px;fill:#008bfa;fill-opacity:1;stroke:#666666;stroke-width:0.665;stroke-dasharray:none;stroke-opacity:1"
+   id="tspan7">D</tspan></tspan></text>
+  </g>
+</svg>
