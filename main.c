@@ -72,9 +72,7 @@ void exit_with_usage(const char* program_name, const char* version)
     exit(1);
 }
 
-/* exit_with_error will print the message and exit if the message is not NULL.
- * Otherwise, it will print the perror and exit.
- */
+// exit_with_error will print the message if it's not NULL, or print the perror, and then exit
 void exit_with_error(const int exit_code, const char* message, const char* program_name)
 {
     if (message) {
