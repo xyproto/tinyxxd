@@ -65,4 +65,4 @@ The performance is mostly IO bound, which is reflected in the [benchmark graphs]
 ### General info
 
 * License: GPL2
-* Version: 1.3.1
+* Version: 1.3.2
