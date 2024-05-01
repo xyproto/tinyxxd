@@ -8,8 +8,8 @@
 #include <string.h>
 #include <unistd.h>
 
-// For static declarations of buffers. 256 is "COLS"
-#define LLENP1 ((2 * (int)sizeof(unsigned long)) + 4 + (9 * 256 - 1) + 256 + 2) + 1
+// For static declarations of buffers. 256 is "COLS". This is an alternative to using a #define.
+enum { LLENP1 = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * 256 - 1) + 256 + 2) + 1 };
 
 static FILE* input_file;
 static FILE* output_file;
