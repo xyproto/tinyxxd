@@ -798,7 +798,6 @@ int main(int argc, char* argv[])
     int cols = 0, relseek = 0, negseek = 0, octspergrp = -1;
     unsigned long displayoff = 0;
     long seekoff = 0, length = -1;
-
     const char* program_name = base_name(argv[0]);
 
     while (argc >= 2) {
