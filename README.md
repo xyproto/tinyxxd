@@ -1,4 +1,4 @@
-<p align="center"><img src="img/tinyxxd.png" alt="tinyxxd logo" /></p>
+# TinyXXD
 
 [![Build and benchmark](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml/badge.svg)](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml)
 
