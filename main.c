@@ -8,8 +8,9 @@
 #include <string.h>
 #include <unistd.h>
 
-// For static declarations of buffers. 256 is "COLS". This is an alternative to using a #define.
-enum { LLENP1 = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * 256 - 1) + 256 + 2) + 1 };
+// For static declarations of buffers
+enum { COLS = 256 };
+enum { LLENP1 = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2) + 1 };
 
 static FILE* input_file;
 static FILE* output_file;
@@ -85,9 +86,9 @@ void exit_with_error(const int exit_code, const char* message, const char* progr
     exit(exit_code);
 }
 
-void exit_with_col_error(const char* program_name, const int cols)
+void exit_with_col_error(const char* program_name)
 {
-    fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, cols);
+    fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
     exit(1);
 }
 
@@ -399,12 +400,12 @@ inline enum ColorDigit ascii_char_color(const unsigned char e)
     return COLOR_RED;
 }
 
-int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name, const int given_cols)
+int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name)
 {
     if (!colsgiven) {
         cols = 30;
     } else if (cols < 0) {
-        exit_with_col_error(program_name, given_cols);
+        exit_with_col_error(program_name);
     }
     if (revert) {
         return decode_hex_stream_postscript(negseek ? -seekoff : seekoff, program_name);
@@ -430,13 +431,13 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     return 0;
 }
 
-int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name, const int given_cols)
+int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name)
 {
     int p = 0;
     if (!colsgiven || !cols) {
         cols = 12;
     } else if (cols < 1) {
-        exit_with_col_error(program_name, given_cols);
+        exit_with_col_error(program_name);
     }
     if (revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", program_name);
@@ -491,13 +492,13 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
     return 0;
 }
 
-int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name, const int given_cols)
+int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name)
 {
     int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 6;
-    } else if (cols < 1 || cols > given_cols) {
-        exit_with_col_error(program_name, given_cols);
+    } else if (cols < 1 || cols > COLS) {
+        exit_with_col_error(program_name);
     }
     if (revert) {
         return decode_hex_stream_bits(cols, program_name);
@@ -558,14 +559,14 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     return 0;
 }
 
-int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip, const char* program_name, const int given_cols)
+int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip, const char* program_name)
 {
     char color_digit = 0;
     int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!cols || !colsgiven) {
         cols = 16;
-    } else if (cols < 1 || cols > given_cols) {
-        exit_with_col_error(program_name, given_cols);
+    } else if (cols < 1 || cols > COLS) {
+        exit_with_col_error(program_name);
     }
     if (revert) {
         return decode_hex_stream_normal(cols, negseek ? -seekoff : seekoff, program_name);
@@ -679,13 +680,13 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     return 0;
 }
 
-int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip, const char* program_name, const int given_cols)
+int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip, const char* program_name)
 {
     int grplen = 0, nonzero = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 16;
-    } else if (cols < 1 || cols > given_cols) {
-        exit_with_col_error(program_name, given_cols);
+    } else if (cols < 1 || cols > COLS) {
+        exit_with_col_error(program_name);
     }
     if (revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", program_name);
@@ -781,7 +782,6 @@ const char* base_name(const char* path)
 
 int main(int argc, char* argv[])
 {
-    const int given_cols = 256;
     const char* version = "tinyxxd 1.3.1";
     enum HexType {
         HEX_NORMAL,
@@ -1001,14 +1001,14 @@ int main(int argc, char* argv[])
     static char z[LLENP1]; // static because it may be too big for stack
     switch (hextype) {
     case HEX_NORMAL:
-        return hex_normal(buffer, z, colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip, program_name, given_cols);
+        return hex_normal(buffer, z, colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip, program_name);
     case HEX_BITS:
-        return hex_bits(buffer, z, colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip, program_name, given_cols);
+        return hex_bits(buffer, z, colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip, program_name);
     case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name, given_cols);
+        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name);
     case HEX_LITTLEENDIAN:
-        return hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name, given_cols);
+        return hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name);
     case HEX_POSTSCRIPT:
-        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits, program_name, given_cols);
+        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits, program_name);
     }
 }
