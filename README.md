@@ -8,12 +8,12 @@
 
 `tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is slightly faster.
 
-## Platforms
+## Platforms**
 
 * `tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms.
 * It has been manually tested on Arch Linux and macOS.
-* The CI system builds and tests `tinyxxd` on Arch Linux, macOS and builds `tinyxxd` using Mingw on Windows.
-* The behavior of `tinyxxd` is a bit different on macOS from the `xxd` utility that comes with the system.
+* The CI system builds and tests tinyxxd on Arch Linux and macOS, and compiles it using Mingw for Windows.
+* There are minor behavioral differences on macOS compared to the native `xxd` utility.
 
 ## Performance
 
