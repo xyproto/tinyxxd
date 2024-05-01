@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 // For static declarations of buffers. 256 is "COLS"
-#define LLEN ((2 * (int)sizeof(unsigned long)) + 4 + (9 * 256 - 1) + 256 + 2)
+#define LLENP1 ((2 * (int)sizeof(unsigned long)) + 4 + (9 * 256 - 1) + 256 + 2) + 1
 
 static FILE* input_file;
 static FILE* output_file;
@@ -511,8 +511,8 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     getc_or_die(&e, program_name);
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLEN + 1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c < LLEN; buffer[c++] = ' ')
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
                 ;
         }
         c = addrlen + 1 + (grplen * p) / octspergrp;
@@ -580,8 +580,8 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     if (color) {
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
-                addrlen = snprintf(buffer, LLEN + 1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; buffer[c++] = ' ')
+                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
                     ;
             }
             c = addrlen + 1 + (p * grplen) / octspergrp;
@@ -625,8 +625,8 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     } else if (!color) { // no color
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
-                addrlen = snprintf(buffer, LLEN + 1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLEN; buffer[c++] = ' ')
+                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+                for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
                     ;
             }
             c = addrlen + 1 + (grplen * p) / octspergrp;
@@ -702,8 +702,8 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     int n = 0, p = 0, x = 0;
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLEN + 1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c < LLEN; buffer[c++] = ' ')
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
                 ;
         }
         x = p ^ (octspergrp - 1);
@@ -997,8 +997,8 @@ int main(int argc, char* argv[])
     }
     const char* decimal_format_string = decimal_offset ? "%08ld:" : "%08lx:";
     const char* hex_digits = uppercase_hex ? "0123456789ABCDEF" : "0123456789abcdef";
-    static char buffer[LLEN + 1]; // static because it may be too big for stack
-    static char z[LLEN + 1]; // static because it may be too big for stack
+    static char buffer[LLENP1]; // static because it may be too big for stack
+    static char z[LLENP1]; // static because it may be too big for stack
     switch (hextype) {
     case HEX_NORMAL:
         return hex_normal(buffer, z, colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip, program_name, given_cols);
