@@ -43,6 +43,7 @@ fmt: main.c
 test: tinyxxd
 	@echo 'Running tests...'
 	@echo -n 'This is a test file' > sample.bin
+	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
 	@$(MAKE) run_test CMD='-c 8 sample.bin' DESC='Hex dump with 8 columns'
 	@$(MAKE) run_test CMD='-p sample.bin' DESC='Plain hex dump (PostScript style)'
 	@$(MAKE) run_test CMD='-i sample.bin' DESC='C include file style'
