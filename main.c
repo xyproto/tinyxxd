@@ -310,34 +310,26 @@ int decode_hex_stream_bits(const int cols, const char* program_name)
 static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const char* program_name)
 {
     static int zero_seen = 0;
-    if (nz > 0) {
-        if (zero_seen < 2) {
-            fputs_or_die(buffer, program_name);
+
+    if (nz) {
+        if (nz < 0) {
+            zero_seen--;
+        }
+        if (zero_seen == 2) {
+            fputs_or_die(z, program_name);
         } else if (zero_seen > 2) {
             putc_or_die('*', program_name);
             putc_or_die('\n', program_name);
-            fputs_or_die(buffer, program_name);
-        } else if (zero_seen == 2) {
-            fputs_or_die(z, program_name);
+        }
+        if (nz >= 0 || zero_seen > 0) {
             fputs_or_die(buffer, program_name);
         }
-    } else if (nz < 0) {
-        zero_seen--;
-        if (zero_seen > 2) {
-            putc_or_die('*', program_name);
-            putc_or_die('\n', program_name);
+        zero_seen = 0;
+    } else {
+        zero_seen++;  // we have a nul-line
+        if (zero_seen == 1) {
             fputs_or_die(buffer, program_name);
-        } else if (zero_seen < 2) {
-            zero_seen = 0;
         } else if (zero_seen == 2) {
-            fputs_or_die(z, program_name);
-            fputs_or_die(buffer, program_name);
-        }
-    } else if (!nz) {
-        if (!zero_seen) {
-            zero_seen++; // zero_seen == 1
-            fputs_or_die(buffer, program_name);
-        } else if (zero_seen == 1) {
             strcpy(z, buffer);
         }
     }
