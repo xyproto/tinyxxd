@@ -584,23 +584,20 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
                     ;
             }
             c = addrlen + 1 + (p * grplen) / octspergrp;
+            if (e) {
+                nonzero++;
+            }
             if (ascii) { // ASCII
                 color_digit = ascii_char_color(e);
                 set_color(buffer, &c, color_digit);
                 buffer[c++] = hex_digits[(e >> 4) & 0xf];
                 buffer[c++] = hex_digits[e & 0xf];
-                if (e) {
-                    nonzero++;
-                }
             } else { // EBCDIC
                 color_digit = ebcdic_char_color(e);
                 set_color(buffer, &c, color_digit);
                 buffer[c++] = hex_digits[(e >> 4) & 0xf];
                 buffer[c++] = hex_digits[e & 0xf];
-                if (e == 0) {
-                    nonzero++;
-                    e = '.';
-                } else if (e < 64) {
+                if (e < 64) {
                     e = '.';
                 } else {
                     e = etoa64[e - 64];
