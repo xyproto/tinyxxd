@@ -42,7 +42,7 @@ For more details, take a look at the latest [benchmark results](benchmark_result
 
 The source code for the program is a single `main.c` source file, written in C11.
 
-Some of the code has been neatly refactored into separate functions, and two enums have been introduced.
+Some of the code has been neatly refactored into separate functions, and a couple of enums have been introduced.
 
 ## Testing
 
