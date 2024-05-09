@@ -10,7 +10,15 @@
 
 // For static declarations of buffers
 enum { COLS = 256 };
-enum { LLENP1 = ((2 * (int)sizeof(unsigned long)) + 4 + (9 * COLS - 1) + COLS + 2) + 1 };
+enum { LLENP1 =
+    39             /* addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128 */
+    + 2            /* ": " */
+    + 13 * COLS    /* hex dump with colors */
+    + (COLS - 1)   /* whitespace between groups if "-g1" option given and "-c" maxed out */
+    + 2            /* whitespace */
+    + 12 * COLS    /* ASCII dump with colors */
+    + 2            /* "\n\0" */
+};
 
 static FILE* input_file;
 static FILE* output_file;
@@ -503,7 +511,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
+            for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
         c = addrlen + 1 + (grplen * p) / octspergrp;
@@ -572,7 +580,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
                 addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
+                for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                     ;
             }
             c = addrlen + 1 + (p * grplen) / octspergrp;
@@ -617,7 +625,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
                 addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
+                for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                     ;
             }
             c = addrlen + 1 + (grplen * p) / octspergrp;
@@ -694,7 +702,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-            for (c = addrlen; c <= LLENP1; buffer[c++] = ' ')
+            for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
         x = p ^ (octspergrp - 1);

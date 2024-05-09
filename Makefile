@@ -25,6 +25,9 @@ tinyxxd: main.c
 tinyxxd_debug: main.c
 	$(CC) $(CFLAGS) -g -o $@ $<
 
+tinyxxd_asan: main.c
+	$(CC) $(CFLAGS) -g -fsanitize=address,undefined -o $@ $<
+
 profile: tinyxxd_debug
 	dd if=/dev/random of=sample.bin bs=1M count=1
 	valgrind --dump-instr=yes --collect-jumps=yes --tool=callgrind ./tinyxxd_debug sample.bin
@@ -40,10 +43,14 @@ quick_bench:
 fmt: main.c
 	clang-format -style=WebKit -i main.c
 
-test: tinyxxd
+test: tinyxxd_asan
 	@echo 'Running tests...'
 	@echo -n 'This is a test file' > sample.bin
 	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
+	@$(MAKE) run_test CMD='-Ralways -g1 -c256 -d -o 9223372036854775808 testfiles/somezeros.bin' DESC='Test for buffer overflow'
+	@$(MAKE) run_test CMD='-s +5 sample.bin' DESC='Seek +5'
+	@$(MAKE) run_test CMD='-s -5 sample.bin' DESC='Seek -5'
+	@$(MAKE) run_test CMD='-l 7 sample.bin' DESC='Stop after len=7'
 	@$(MAKE) run_test CMD='-c 8 sample.bin' DESC='Hex dump with 8 columns'
 	@$(MAKE) run_test CMD='-p sample.bin' DESC='Plain hex dump (PostScript style)'
 	@$(MAKE) run_test CMD='-i sample.bin' DESC='C include file style'
@@ -52,12 +59,12 @@ test: tinyxxd
 	@$(MAKE) run_test CMD='-u sample.bin' DESC='Capitalized hex output'
 	@$(MAKE) run_test CMD='-E sample.bin' DESC='Show EBCDIC'
 	@$(MAKE) verify_conversion_test
-	@rm -f *.hex sample.bin tinyxxd_output.txt xxd_output.txt
+	@rm -f -- *.hex sample.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
 
 run_test: xxd
 	@echo "Running test: $(DESC)"
-	@./tinyxxd $(CMD) > tinyxxd_output.txt
+	@./tinyxxd_asan $(CMD) > tinyxxd_output.txt
 	@./xxd $(CMD) > xxd_output.txt
 	@if diff -q tinyxxd_output.txt xxd_output.txt > /dev/null; then \
 		echo 'Test passed'; \
@@ -68,8 +75,8 @@ run_test: xxd
 
 verify_conversion_test:
 	@echo "Running conversion and verification test..."
-	@./tinyxxd sample.bin > sample_tinyxxd.bin
-	@./tinyxxd -r sample_tinyxxd.bin > sample_restored.bin
+	@./tinyxxd_asan sample.bin > sample_tinyxxd.bin
+	@./tinyxxd_asan -r sample_tinyxxd.bin > sample_restored.bin
 	@if diff -q sample.bin sample_restored.bin > /dev/null; then \
 		echo -e "\033[0;32mConversion and verification test passed\033[0m"; \
 	else \
@@ -114,4 +121,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd xxd.c xxd_*
+	rm -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd xxd.c xxd_*
