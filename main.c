@@ -77,7 +77,7 @@ void exit_with_usage(const char* program_name, const char* version)
         "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"
         "    -v          show version: \"%s\".\n",
         program_name, program_name, version);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 // exit_with_error will print the message if it's not NULL, or print the perror, and then exit
@@ -95,7 +95,7 @@ void exit_with_error(const int exit_code, const char* message, const char* progr
 void exit_with_col_error(const char* program_name)
 {
     fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static inline void getc_or_die(int* ch, const char* program_name)
