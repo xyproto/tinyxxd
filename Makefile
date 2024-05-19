@@ -43,12 +43,10 @@ quick_bench:
 fmt: main.c
 	clang-format -style=WebKit -i main.c
 
-test: tinyxxd_asan
+test: xxd tinyxxd_asan
 	@echo 'Preparing tests...'
 	@echo -n 'This is a test file' > sample.bin
-	curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
-	$(CC) $(CFLAGS) -o xxd xxd.c
-
+    
 	@echo 'Running tests...'
 	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
 	@$(MAKE) run_test CMD='-Ralways -g1 -c256 -d -o 9223372036854775808 testfiles/somezeros.bin' DESC='Test for buffer overflow'
@@ -111,6 +109,12 @@ fuzz: tinyxxd_fuzz
 	@mkdir -p input_dir
 	@dd if=/dev/urandom of=input_dir/sample.bin count=1 bs=128
 	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
+
+xxd.c:
+  curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
+
+xxd: xxd.c
+  $(CC) $(CFLAGS) -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
