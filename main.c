@@ -11,13 +11,13 @@
 // For static declarations of buffers
 enum { COLS = 256 };
 enum { LLENP1 =
-    39             /* addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128 */
-    + 2            /* ": " */
-    + 13 * COLS    /* hex dump with colors */
-    + (COLS - 1)   /* whitespace between groups if "-g1" option given and "-c" maxed out */
-    + 2            /* whitespace */
-    + 12 * COLS    /* ASCII dump with colors */
-    + 2            /* "\n\0" */
+    39             // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
+    + 2            // ": "
+    + 13 * COLS    // hex dump with colors
+    + (COLS - 1)   // whitespace between groups if "-g1" option given and "-c" maxed out
+    + 2            // whitespace
+    + 12 * COLS    // ASCII dump with colors
+    + 2            // "\n\0"
 };
 
 static FILE* input_file;
