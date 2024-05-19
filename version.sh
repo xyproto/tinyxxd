@@ -13,3 +13,4 @@ fi
 
 echo "Setting the version to $VERSION"
 sed -i "s/tinyxxd [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/tinyxxd $VERSION/g" main.c
+sed -i "s/VERSION ?= [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/VERSION ?= $VERSION/g" Makefile
