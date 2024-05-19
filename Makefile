@@ -46,6 +46,7 @@ fmt: main.c
 test: xxd tinyxxd_asan
 	@echo 'Preparing tests...'
 	@echo -n 'This is a test file' > sample.bin
+
 	@echo 'Running tests...'
 	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
 	@$(MAKE) run_test CMD='-Ralways -g1 -c256 -d -o 9223372036854775808 testfiles/somezeros.bin' DESC='Test for buffer overflow'
