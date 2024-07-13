@@ -33,6 +33,7 @@ jobs:
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm --needed curl diffutils gcc make
+        pacman -Scc --noconfirm
 
     - name: Build
       run: make
@@ -87,6 +88,7 @@ jobs:
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python
+        pacman -Scc --noconfirm
 
     - name: Check for cached results
       run: |
