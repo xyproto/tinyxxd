@@ -25,7 +25,7 @@ The performance is mostly IO bound.
 
 ![performance graph](img/graph_by_size.svg)
 
-For more details, take a look at the latest [benchmark results](benchmark_results.md), which is added by the CI benchmark.
+For more details, take a look at the latest [benchmark results](benchmark_results.md), which are added by the CI benchmark.
 
 ## Requirements
 
