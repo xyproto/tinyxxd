@@ -21,7 +21,7 @@ The performance is mostly IO bound.
 
 `tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
 
-`tinyxxd` is just a tiny bit faster than `xxd`. As the size of the input data grows, the performance advantage appears to be increasing, though:
+`tinyxxd` is just a tiny bit faster than `xxd`, but as the size of the input data grows, the performance advantage appears to be increasing.
 
 ![performance graph](img/graph_by_size.svg)
 
