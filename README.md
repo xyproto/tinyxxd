@@ -12,7 +12,7 @@
 
 * `tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms.
 * It has been manually tested on Arch Linux and macOS.
-* The CI system builds and tests tinyxxd on Arch Linux and macOS, and compiles it using Mingw for Windows.
+* The CI system builds and tests tinyxxd on Arch Linux and macOS. The Windows executables are built with Mingw.
 * There are minor behavioral differences on macOS compared to the native `xxd` utility.
 
 ## Performance
