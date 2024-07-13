@@ -25,7 +25,7 @@ base_path = tempfile.gettempdir()  # if platform.system() != "Linux" else "/dev/
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
 else:
-    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
+    sample_sizes = [128, 64, 32, 16, 8, 4, 2, 1]  # in MiB
 
 
 def run_command(command, capture_output=False):
@@ -445,7 +445,7 @@ def summarize_performance_by_flag(threshold=0.05):
                 better_program = "xxd" if avg_xxd < avg_tinyxxd else "tinyxxd"
                 percent_faster = (diff / (1 - diff)) * 100
                 # Handle summary text for no flag case explicitly
-                flag_text = f"'{flag}'" if flag != "no flag" else "with no flag"
+                flag_text = f"with flag '{flag}'" if flag != "no flag" else "with no flag"
                 summary = (
                     f"{better_program} was {percent_faster:.2f}% faster {flag_text}."
                 )
