@@ -61,7 +61,7 @@ def create_sample_files():
         print(f"Generating a {size} MiB sample file with random data.")
         filename = os.path.join(base_path, f"{size}mb.bin")
         with open(filename, "wb") as f:
-            f.write(os.urandom(size * 1024 * 1024))
+            f.write(os.urandom(int(size * 1024 * 1024)))
     print("Sample file generation complete.")
 
 
