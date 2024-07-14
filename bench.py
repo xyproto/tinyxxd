@@ -25,7 +25,7 @@ base_path = tempfile.gettempdir() if platform.system() != "Linux" else "/dev/shm
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
 else:
-    sample_sizes = [55, 34, 21, 13, 8, 5, 3, 2, 1, 1]  # in MiB
+    sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 
 noprogressbar = len(sys.argv) > 1 and sys.argv[1] == "-s"
 
