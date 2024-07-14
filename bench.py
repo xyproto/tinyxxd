@@ -27,6 +27,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "-q":
 else:
     sample_sizes = [55, 34, 21, 13, 8, 5, 3, 2, 1, 1]  # in MiB
 
+noprogressbar = len(sys.argv) > 1 and sys.argv[1] == "-s"
 
 def run_command(command, capture_output=False):
     """Executes a shell command, optionally capturing output, with enhanced error handling."""
@@ -114,8 +115,8 @@ def verify_files(file1, file2, chunk_size=1024 * 1024):
 
 def progress_bar(current, total, message="", length=50):
     """Prints a simple progress bar with percentage completion and an additional message."""
-
-    if sys.argv[1] == "-s":
+    global noprogressbar
+    if noprogressbar:
         return
     
     fraction = current / total
