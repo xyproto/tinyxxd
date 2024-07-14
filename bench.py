@@ -20,12 +20,12 @@ results = []
 previous_results = []
 compilation_command = "make xxd tinyxxd"
 bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E"]
-base_path = tempfile.gettempdir()  # if platform.system() != "Linux" else "/dev/shm"
+base_path = tempfile.gettempdir() if platform.system() != "Linux" else "/dev/shm"
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
     sample_sizes = [3, 2, 1]  # in MiB
 else:
-    sample_sizes = [160, 80, 40, 20, 10, 5, 2.5, 1.25]  # in MiB
+    sample_sizes = [55, 34, 21, 13, 8, 5, 3, 2, 1, 1]  # in MiB
 
 
 def run_command(command, capture_output=False):
@@ -114,6 +114,10 @@ def verify_files(file1, file2, chunk_size=1024 * 1024):
 
 def progress_bar(current, total, message="", length=50):
     """Prints a simple progress bar with percentage completion and an additional message."""
+
+    if sys.argv[1] == "-s":
+        return
+    
     fraction = current / total
     percent = int(fraction * 100)
     percent = min(percent, 100)
