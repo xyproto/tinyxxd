@@ -31,8 +31,8 @@ jobs:
 
     - name: Update system and Install dependencies
       run: |
-        pacman -Syu --noconfirm
-        pacman -S --noconfirm --needed curl diffutils gcc make
+        pacman -Syu --noconfirm && \
+        pacman -S --noconfirm --needed curl diffutils gcc make && \
         pacman -Scc --noconfirm
 
     - name: Build
@@ -86,8 +86,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pacman -Syu --noconfirm
-        pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python
+        pacman -Syu --noconfirm && \
+        pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python && \
         pacman -Scc --noconfirm
 
     - name: Check for cached results
