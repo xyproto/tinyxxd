@@ -47,9 +47,7 @@ Tested on Arch Linux, where it builds, runs and all tests passes.
 
 ## Platforms
 
-The CI system builds and tests tinyxxd on Arch Linux and macOS. The Windows executables are built with Mingw.
-
-`tinyxxd` also builds for macOS and Windows, but it has not been tested properly on those platforms yet, and there might be variations of how it behaves compared to Linux.
+`tinyxxd` also builds for macOS and Windows (using Mingw), but it has not been tested properly on those platforms yet, and there might be variations on how it behaves compared to Linux.
 
 ## Benchmarking
 
