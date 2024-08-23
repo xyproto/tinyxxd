@@ -59,6 +59,10 @@ The performance is mostly IO bound, which is reflected in the [benchmark graphs]
 
 `make fuzz` can be used to build `tinyxxd` with `afl-gcc` and then start fuzzing the executable with varied input designed to find edge cases in the program.
 
+## Packaging
+
+In connection with packaging for Linux distros, letting this utility provide and replace `xxd`, possibly by providing a `/usr/bin/xxd` symlink that points to `/usr/bin/tinyxxd`, is recommended.
+
 ### General info
 
 * License: GPL2
