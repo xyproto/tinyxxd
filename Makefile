@@ -14,7 +14,7 @@ PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 DESTDIR ?=
 
-VERSION ?= 1.3.3
+VERSION ?= 1.3.4
 RELEASE_DIR := tinyxxd-$(VERSION)
 RELEASE_TARBALL := $(RELEASE_DIR).tar.gz
 RELEASE_FILES := main.c Makefile COPYING README.md

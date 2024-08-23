@@ -776,7 +776,7 @@ const char* base_name(const char* path)
 
 int main(int argc, char* argv[])
 {
-    const char* version = "tinyxxd 1.3.3";
+    const char* version = "tinyxxd 1.3.4";
     enum HexType {
         HEX_NORMAL,
         HEX_BITS,

@@ -65,5 +65,5 @@ In connection with packaging for Linux distros, letting this utility provide and
 
 ### General info
 
-* License: GPL2
-* Version: 1.3.3
+* License: GPL-2.0-only
+* Version: 1.3.4
