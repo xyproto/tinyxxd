@@ -1,0 +1,183 @@
+.\"             -*-Nroff-*-
+.\"
+.TH "tinyxxd" 1 "23 Aug 2024" "" ""
+.SH NAME
+tinyxxd \- A hexadecimal, binary, and ASCII dump utility with color support
+.SH SYNOPSIS
+.B tinyxxd
+[options] [infile [outfile]]
+.sp
+.B tinyxxd
+\-r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]
+.sp
+.SH DESCRIPTION
+.B tinyxxd
+is a versatile utility for creating hex, binary, and ASCII dumps from binary files. It can also reverse these dumps back into binary form. Additionally, it supports various output formats, including C include files and PostScript. 
+.B tinyxxd
+enhances readability by optionally colorizing the output, respecting the NO_COLOR environment variable.
+.sp
+.SH OPTIONS
+.TP
+.B \-a | \-autoskip
+Toggle autoskip mode. In this mode, a single `*` replaces lines that consist only of zeros. Default is off.
+.TP
+.B \-b | \-bits
+Output a binary digit dump instead of hexadecimal. This option is incompatible with \-ps and \-i.
+.TP
+.B \-c cols | \-cols cols
+Format the output to include cols octets per line. Default is 16 (12 in C include style, 30 in PostScript).
+.TP
+.B \-C | \-capitalize
+Capitalize variable names in C include file style (\-i).
+.TP
+.B \-d
+Show the offset in decimal instead of hexadecimal.
+.TP
+.B \-e
+Create a little-endian dump. This option is incompatible with \-ps, \-i, and \-r.
+.TP
+.B \-g bytes | \-groupsize bytes
+Group output into octets of bytes size in the normal output mode. Default is 2 (4 for little-endian).
+.TP
+.B \-E | \-EBCDIC
+Display the characters in EBCDIC encoding instead of ASCII.
+.TP
+.B \-h | \-help
+Print a summary of the options.
+.TP
+.B \-i | \-include
+Output in C include file style.
+.TP
+.B \-l len | \-len len
+Stop after len octets.
+.TP
+.B \-n name | \-name name
+Set the variable name used in C include output (\-i).
+.TP
+.B \-o offset
+Add offset to the displayed file position.
+.TP
+.B \-p | \-ps | \-postscript | \-plain
+Output in PostScript plain hexdump style.
+.TP
+.B \-r | \-revert
+Reverse operation: convert (or patch) hexdump into binary.
+.TP
+.B \-R when
+Colorize the output. when can be 'always', 'auto', or 'never'. Default: 'auto'.
+.TP
+.B \-seek offset
+When used after \-r: revert with offset added to file positions found in hex dump.
+.TP
+.B \-s [+][-]seek
+Start at seek bytes absolute or relative (with \\+ for relative offset).
+.TP
+.B \-u
+Use uppercase letters for hexadecimal output. Default is lowercase.
+.TP
+.B \-v | \-version
+Show version information.
+.sp
+.SH EXAMPLES
+.TP
+.B Create a standard hex dump with color:
+.nf
+tinyxxd file.bin
+.fi
+.TP
+.B Create a little-endian hex dump:
+.nf
+tinyxxd \-e file.bin
+.fi
+.TP
+.B Output in binary digit format:
+.nf
+tinyxxd \-b file.bin
+.fi
+.TP
+.B Create a C include file:
+.nf
+tinyxxd \-i file.bin > file.h
+.fi
+.TP
+.B Reverse a hex dump into binary:
+.nf
+tinyxxd \-r dump.hex > file.bin
+.fi
+.sp
+.SH EXIT STATUS
+.B 0
+\- Success.
+.B 1-5
+\- Various errors (e.g., file I/O errors, invalid arguments).
+.sp
+.SH ENVIRONMENT VARIABLES
+.TP
+.B NO_COLOR
+If set, disables color output.
+.sp
+.SH CAVEATS
+.TP
+.B Little-endian dumps
+The \-e option only affects the hexadecimal representation and not the ASCII (or EBCDIC) characters on the right side of the dump. The option is incompatible with \-r, \-p, or \-i.
+.TP
+.B Reverse Operation (\-r)
+The reverse operation may encounter difficulties with lines that are not formatted as expected. It will skip over non-conforming lines and continue processing. Line numbers are used for positioning when writing output, so the order and completeness of lines are important.
+.sp
+.SH BUGS
+No known bugs so far. Issues can be reported at: https://github.com/xyproto/tinyxxd/issues
+.sp
+.SH AUTHOR
+.B tinyxxd
+was written by:
+.sp
+Bram Moolenaar <Bram@vim.org>
+.br
+Jürgen Weigert <jnweiger@gmail.com>
+.br
+DungSaga <dungsaga@users.noreply.github.com>
+.br
+Atsushi SUGAWARA <peanutsjamjam@gmail.com>
+.br
+Yegappan Lakshmanan <yegappan@yahoo.com>
+.br
+Erik Auerswald <auerswal@unix-ag.uni-kl.de>
+.br
+David Gow <david@ingeniumdigital.com>
+.br
+Philip H <47042125+pheiduck@users.noreply.github.com>
+.br
+Aapo Rantalainen <aapo.rantalainen@gmail.com>
+.br
+Christian Brabandt <cb@256bit.org>
+.br
+Ken Takata <kentkt@csc.jp>
+.br
+tristhaus <tristhaus@yahoo.de>
+.br
+Christian Brabandt <cb@256bit.org>
+.br
+OldWorldOrdr <joey.t.reinhart@gmail.com>
+.br
+Keith Thompson <Keith.S.Thompson@gmail.com>
+.br
+Igor Todorovski <itodorov@ca.ibm.com>
+.br
+Kuratius <Kuratius@gmx.net>
+.br
+Goffredo Baroncelli <kreijack@inwind.it>
+.br
+Lennard Hofmann <lennard.hofmann@web.de>
+.br
+Alexander F. Rødseth <xyproto@archlinux.org>
+.br
+Husam Harazi <i@vimmer.dev>
+.br
+Oliver Webb <aquahobbyist@proton.me>
+.sp
+.SH VERSION
+.B tinyxxd 1.3.3
+.sp
+.SH SEE ALSO
+.B xxd(1)
+\- Original hex dump utility.
