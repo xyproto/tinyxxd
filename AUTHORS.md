@@ -19,6 +19,7 @@ Igor Todorovski <itodorov@ca.ibm.com>
 Kuratius <Kuratius@gmx.net>
 Goffredo Baroncelli <kreijack@inwind.it>
 Lennard Hofmann <lennard.hofmann@web.de>
+RestorerZ <restorer@mail2k.ru>
 Alexander F. Rødseth <xyproto@archlinux.org>
 Husam Harazi <i@vimmer.dev>
 Oliver Webb <aquahobbyist@proton.me>
