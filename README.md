@@ -61,7 +61,7 @@ The performance is mostly IO bound, which is reflected in the [benchmark graphs]
 
 ## Packaging
 
-In connection with packaging for Linux distros, letting this utility provide and replace `xxd`, possibly by providing a `/usr/bin/xxd` symlink that points to `/usr/bin/tinyxxd`, is recommended.
+In connection with packaging, letting this utility provide and replace `xxd`, possibly by providing a `/usr/bin/xxd` symlink that points to `/usr/bin/tinyxxd`, is recommended.
 
 ### General info
 
