@@ -1,6 +1,8 @@
 name: Build and benchmark
 
 on:
+  branches:
+    - main
   push:
     paths-ignore:
       - '**/.gitignore'
