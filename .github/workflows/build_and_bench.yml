@@ -13,6 +13,8 @@ on:
       - '**/tinyxxd*.png'
       - '**/tinyxxd*.svg'
   pull_request:
+    branches-ignore:
+      - 'src-*-update*'
     paths-ignore:
       - '**/.gitignore'
       - '**/README.md'
