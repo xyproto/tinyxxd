@@ -23,3 +23,4 @@
 * Alexander F. Rødseth <xyproto@archlinux.org>
 * Husam Harazi <i@vimmer.dev>
 * Oliver Webb <aquahobbyist@proton.me>
+* Andre Chang <andre@augmentcode.com>

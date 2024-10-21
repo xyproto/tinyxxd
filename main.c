@@ -56,7 +56,7 @@ void exit_with_usage(const char* program_name, const char* version)
         "       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n"
         "Options:\n"
         "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n"
-        "    -b          binary digit dump (incompatible with -ps,-i). Default hex.\n"
+        "    -b          binary digit dump (incompatible with -ps). Default hex.\n"
         "    -C          capitalize variable names in C include file style (-i).\n"
         "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n"
         "    -E          show characters in EBCDIC. Default ASCII.\n"
@@ -483,6 +483,71 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
     return 0;
 }
 
+int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const long length, const char* program_name)
+{
+    int p = 0;
+    if (!colsgiven || !cols) {
+        cols = 6;
+    } else if (cols < 1) {
+        exit_with_col_error(program_name);
+    }
+    if (revert) {
+        exit_with_error(-1, "Sorry, cannot revert this type of hexdump", program_name);
+    }
+    if (!varname && input_file != stdin) {
+        varname = argv1; // argv[1]
+    }
+    if (varname) {
+        if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            exit_with_error(3, NULL, program_name);
+        }
+        for (e = 0; (c = varname[e]); e++) {
+            if (!capitalize) {
+                putc_or_die(isalnum((unsigned char)c) ? c : '_', program_name);
+            } else {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_', program_name);
+            }
+        }
+        fputs_or_die("[] = {\n", program_name);
+    }
+    getc_or_die(&c, program_name);
+    while ((length < 0 || p < length) && c != EOF) {
+        if (p == 0) {
+            fputs_or_die("  ", program_name);
+        } else if (p % cols == 0) {
+            fputs_or_die(",\n  ", program_name);
+        } else {
+            fputs_or_die(", ", program_name);
+        }
+        fputs_or_die("0b", program_name);
+        for (int bit = 7; bit >= 0; bit--) {
+            putc_or_die(((c >> bit) & 1) + '0', program_name);
+        }
+        p++;
+        getc_or_die(&c, program_name);
+    }
+    if (p) {
+        putc_or_die('\n', program_name);
+    }
+    if (varname) {
+        fputs_or_die("};\n", program_name);
+        if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
+            exit_with_error(3, NULL, program_name);
+        }
+        for (e = 0; (c = varname[e]); e++) {
+            if (!capitalize) {
+                putc_or_die(isalnum((unsigned char)c) ? c : '_', program_name);
+            } else {
+                putc_or_die(isalnum((unsigned char)c) ? toupper((unsigned char)(c)) : '_', program_name);
+            }
+        }
+        if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
+            exit_with_error(3, NULL, program_name);
+        }
+    }
+    return 0;
+}
+
 int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name)
 {
     int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
@@ -777,7 +842,8 @@ int main(int argc, char* argv[])
         HEX_BITS,
         HEX_CINCLUDE,
         HEX_LITTLEENDIAN,
-        HEX_POSTSCRIPT
+        HEX_POSTSCRIPT,
+        HEX_BITS_AND_CINCLUDE
     };
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
@@ -796,7 +862,11 @@ int main(int argc, char* argv[])
         if (!strncmp(pp, "-a", 2)) {
             autoskip = !autoskip;
         } else if (!strncmp(pp, "-b", 2)) {
-            hextype = HEX_BITS;
+            if (hextype == HEX_CINCLUDE) {
+                hextype = HEX_BITS_AND_CINCLUDE;
+            } else {
+                hextype = HEX_BITS;
+            }
         } else if (!strncmp(pp, "-e", 2)) {
             hextype = HEX_LITTLEENDIAN;
         } else if (!strncmp(pp, "-u", 2)) {
@@ -804,7 +874,11 @@ int main(int argc, char* argv[])
         } else if (!strncmp(pp, "-p", 2)) {
             hextype = HEX_POSTSCRIPT;
         } else if (!strncmp(pp, "-i", 2)) {
-            hextype = HEX_CINCLUDE;
+            if (hextype == HEX_BITS) {
+                hextype = HEX_BITS_AND_CINCLUDE;
+            } else {
+                hextype = HEX_CINCLUDE;
+            }
         } else if (!strncmp(pp, "-C", 2)) {
             capitalize = true;
         } else if (!strncmp(pp, "-d", 2)) {
@@ -998,5 +1072,7 @@ int main(int argc, char* argv[])
         return hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name);
     case HEX_POSTSCRIPT:
         return hex_postscript(colsgiven, cols, revert, e, length, negseek, seekoff, hex_digits, program_name);
+    case HEX_BITS_AND_CINCLUDE:
+        return hex_cinclude_bits(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], length, program_name);
     }
 }
