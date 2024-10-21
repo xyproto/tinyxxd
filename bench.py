@@ -19,7 +19,16 @@ from urllib.request import urlretrieve
 results = []
 previous_results = []
 compilation_command = "make xxd tinyxxd"
-bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E", "-b -i"]
+bench_flags = [
+    "",
+    "-p",
+    "-i",
+    "-e",
+    "-b",
+    "-u",
+    "-E",
+    "-b_-i",
+]  # use underscore if there are multiple flags
 base_path = tempfile.gettempdir()  # if platform.system() != "Linux" else "/dev/shm"
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
@@ -87,8 +96,8 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     cmd_prefix = ""
     if platform.system() == "Linux" and os.path.exists("/usr/bin/tinyionice"):
         cmd_prefix = "sudo tinyionice -c1 -n0 nice -n -20"
-    cmd = f"{cmd_prefix} ./{program} {flags} {input_file} > {output_file}"
-    command_message = f"{program} {flags} // {input_file}"
+    cmd = f"{cmd_prefix} ./{program} {flags.replace("_", " ")} {input_file} > {output_file}"
+    command_message = f"{program} {flags.replace("_", " ")} // {input_file}"
     # Update progress bar with command being run
     progress_bar(current + 1, total, message=command_message)
     start_time = time.time()
@@ -162,8 +171,8 @@ def cleanup_files_for_size(size):
     file_patterns = [
         f"{size}mb.bin",
         f"{size}mb_recreated.bin",
-        *[f"{size}mb{flag.replace(" ", "_")}_xxd.hex" for flag in bench_flags],
-        *[f"{size}mb{flag.replace(" ", "_")}_tinyxxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag}_xxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags],
     ]
     for pattern in file_patterns:
         file_path = os.path.join(base_path, pattern)
@@ -273,7 +282,7 @@ def perform_benchmarks():
 
             for flags in bench_flags:
                 current_benchmark += 1
-                output_file = f"{size}mb{flags.replace(" ", "_")}_{program}.hex"
+                output_file = f"{size}mb{flags}_{program}.hex"
                 conversion_time = benchmark_conversion(
                     program,
                     flags,
@@ -282,7 +291,7 @@ def perform_benchmarks():
                     current_benchmark,
                     total_benchmarks,
                 )
-                flags = flags.replace(" ", "_")
+                flags = flags
                 results.append(
                     {
                         "program": program,
@@ -384,6 +393,7 @@ def analyze_performance(threshold=0.05):
                 diff / (1 - diff)
             ) * 100  # Calculate percentage faster relative to the slower program
             # Adjust summary text for cases with no flags
+            flags = flags.replace("_", " ")
             flag_text = (
                 f"with flags '{flags}'" if flags != "no flag" else "with no flag"
             )
@@ -452,6 +462,7 @@ def summarize_performance_by_flag(threshold=0.05):
                 better_program = "xxd" if avg_xxd < avg_tinyxxd else "tinyxxd"
                 percent_faster = (diff / (1 - diff)) * 100
                 # Handle summary text for no flag case explicitly
+                flag = flag.replace("_", " ")
                 flag_text = (
                     f"with flag '{flag}'" if flag != "no flag" else "with no flag"
                 )
@@ -538,7 +549,7 @@ def generate_html_report():
                 <td>{result['program']}</td>
                 <td>{result['size']}</td>
                 <td>{result['conversion_time']:.2f}</td>
-                <td>{result['flags']}</td>
+                <td>{result['flags'].replace('_', ' ')}</td>
             </tr>
         """
 
@@ -556,7 +567,11 @@ def generate_html_report():
         flag_modified = flag.replace("-", "").replace("E", "e_upper")
         flag_suffix = flag if flag else "none"
         if flag_modified:
-            html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
+            if "_" in flag:
+                flag = flag.replace("_", " ")
+                html_content += f"<h3>Graph for flags '{flag}'</h3>\n"
+            else:
+                html_content += f"<h3>Graph for flag '{flag}'</h3>\n"
         else:
             html_content += f"<h3>Graph for no flag</h3>\n"
         html_content += f'<img src="img/graph_flag_{flag_modified}.svg" alt="Graph Flag {flag_suffix}">\n'
@@ -607,6 +622,7 @@ def generate_markdown_report():
     for flag in bench_flags:
         flag_suffix = flag.replace("-", "").replace("E", "e_upper") if flag else "none"
         if flag:
+            flag = flag.replace("_", " ")
             md_content += f"### Graph for flag '{flag}'\n"
         else:
             md_content += f"### Graph for no flag\n"
