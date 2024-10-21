@@ -19,7 +19,7 @@ from urllib.request import urlretrieve
 results = []
 previous_results = []
 compilation_command = "make xxd tinyxxd"
-bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E"]
+bench_flags = ["", "-p", "-i", "-e", "-b", "-u", "-E", "-b -i"]
 base_path = tempfile.gettempdir()  # if platform.system() != "Linux" else "/dev/shm"
 
 if len(sys.argv) > 1 and sys.argv[1] == "-q":
@@ -28,6 +28,7 @@ else:
     sample_sizes = [64, 32, 16, 8, 4, 2, 1]  # in MiB
 
 noprogressbar = len(sys.argv) > 1 and sys.argv[1] == "-s"
+
 
 def run_command(command, capture_output=False):
     """Executes a shell command, optionally capturing output, with enhanced error handling."""
@@ -118,7 +119,7 @@ def progress_bar(current, total, message="", length=50):
     global noprogressbar
     if noprogressbar:
         return
-    
+
     fraction = current / total
     percent = int(fraction * 100)
     percent = min(percent, 100)
@@ -161,8 +162,8 @@ def cleanup_files_for_size(size):
     file_patterns = [
         f"{size}mb.bin",
         f"{size}mb_recreated.bin",
-        *[f"{size}mb{flag}_xxd.hex" for flag in bench_flags],
-        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag.replace(" ", "_")}_xxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag.replace(" ", "_")}_tinyxxd.hex" for flag in bench_flags],
     ]
     for pattern in file_patterns:
         file_path = os.path.join(base_path, pattern)
@@ -272,7 +273,7 @@ def perform_benchmarks():
 
             for flags in bench_flags:
                 current_benchmark += 1
-                output_file = f"{size}mb{flags}_{program}.hex"
+                output_file = f"{size}mb{flags.replace(" ", "_")}_{program}.hex"
                 conversion_time = benchmark_conversion(
                     program,
                     flags,
@@ -281,6 +282,7 @@ def perform_benchmarks():
                     current_benchmark,
                     total_benchmarks,
                 )
+                flags = flags.replace(" ", "_")
                 results.append(
                     {
                         "program": program,
