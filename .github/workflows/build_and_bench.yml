@@ -1,4 +1,4 @@
-name: Build and benchmark
+name: Build & Benchmark
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - '**/.gitignore'
+      - '**/AUTHORS.md'
       - '**/README.md'
       - '**/TODO.md'
       - '**/*.txt'
@@ -17,6 +18,7 @@ on:
       - 'src-*-update*'
     paths-ignore:
       - '**/.gitignore'
+      - '**/AUTHORS.md'
       - '**/README.md'
       - '**/TODO.md'
       - '**/*.txt'
