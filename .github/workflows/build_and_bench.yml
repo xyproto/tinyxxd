@@ -1,9 +1,10 @@
 name: Build&bench
+
 on:
   push:
     branches:
       - main
-    paths-ignore:
+    paths-ignore: &common-paths-ignore
       - '**/.gitignore'
       - '**/AUTHORS.md'
       - '**/README.md'
@@ -15,15 +16,7 @@ on:
   pull_request:
     branches-ignore:
       - 'src-*-update*'
-    paths-ignore:
-      - '**/.gitignore'
-      - '**/AUTHORS.md'
-      - '**/README.md'
-      - '**/TODO.md'
-      - '**/*.txt'
-      - '**/*.sh'
-      - '**/tinyxxd*.png'
-      - '**/tinyxxd*.svg'
+    paths-ignore: *common-paths-ignore
 
 jobs:
   build-linux:
@@ -31,33 +24,33 @@ jobs:
     container: archlinux:latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Update system and Install dependencies
-      run: |
-        pacman -Syu --noconfirm && \
-        pacman -S --noconfirm --needed curl diffutils gcc make && \
-        pacman -Scc --noconfirm
+      - name: Update system and Install dependencies
+        run: |
+          pacman -Syu --noconfirm && \
+          pacman -S --noconfirm --needed curl diffutils gcc make && \
+          pacman -Scc --noconfirm
 
-    - name: Build
-      run: make
+      - name: Build
+        run: make
 
-    - name: Test
-      run: make test
+      - name: Test
+        run: make test
 
   build-macos:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Build
-      run: make
+      - name: Build
+        run: make
 
-    - name: Test
-      run: make test
+      - name: Test
+        run: make test
 
   build-windows:
     runs-on: windows-latest
@@ -79,40 +72,41 @@ jobs:
     container: archlinux:latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Cache benchmark results
-      uses: actions/cache@v4
-      with:
-        path: ./results.pkl
-        key: results-${{ github.ref }}-${{ github.run_id }}
-        restore-keys: results-${{ github.ref }}-
+      - name: Cache benchmark results
+        uses: actions/cache@v4
+        with:
+          path: ./results.pkl
+          key: results-${{ github.ref }}-${{ github.run_id }}
+          restore-keys: |
+            results-${{ github.ref }}-
 
-    - name: Install dependencies
-      run: |
-        pacman -Syu --noconfirm && \
-        pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python && \
-        pacman -Scc --noconfirm
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm && \
+          pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python && \
+          pacman -Scc --noconfirm
 
-    - name: Check for cached results
-      run: |
-        if [ -f results.pkl ]; then
-          echo "Cached results.pkl found."
-        else
-          echo "No cached results.pkl found."
-        fi
+      - name: Check for cached results
+        run: |
+          if [ -f results.pkl ]; then
+            echo "Cached results.pkl found."
+          else
+            echo "No cached results.pkl found."
+          fi
 
-    - name: Run bench.py
-      run: python3 bench.py -s
+      - name: Run bench.py
+        run: python3 bench.py -s
 
-    - name: Archive results for Git operations
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark-results
-        path: |
-          bench*.md
-          img/
+      - name: Archive results for Git operations
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            bench*.md
+            img/
 
   benchmark-commit:
     needs: benchmark-linux
@@ -121,33 +115,33 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Download benchmark results
-      uses: actions/download-artifact@v4
-      with:
-        name: benchmark-results
+      - name: Download benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
 
-    - name: Configure Git
-      run: |
-        git config user.name 'GitHub Actions'
-        git config user.email 'actions@github.com'
+      - name: Configure Git
+        run: |
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
 
-    - name: Check for changes
-      id: git-check
-      run: |
-        git add bench*.md img/
-        if git diff --staged --quiet; then
-          echo "No changes to the content."
-          echo "::set-output name=changes::false"
-        else
-          echo "Content changes detected."
-          echo "::set-output name=changes::true"
-        fi
+      - name: Check for changes
+        id: git-check
+        run: |
+          git add bench*.md img/
+          if git diff --staged --quiet; then
+            echo "No changes to the content."
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "Content changes detected."
+            echo "changes=true" >> $GITHUB_ENV
+          fi
 
-    - name: Commit benchmark updates
-      if: steps.git-check.outputs.changes == 'true'
-      run: |
-        git commit -m "Update benchmarks and images" -a
-        git push
+      - name: Commit benchmark updates
+        if: env.changes == 'true'
+        run: |
+          git commit -m "Update benchmarks and images" -a
+          git push
