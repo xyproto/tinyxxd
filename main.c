@@ -783,7 +783,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            c += addrlen + 3 + p;
+            c += addrlen + 2 + p;
             buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
         }
         n++;
