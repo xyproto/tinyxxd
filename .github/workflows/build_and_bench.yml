@@ -1,4 +1,4 @@
-name: Build + bench
+name: Build&bench
 on:
   push:
     branches:
