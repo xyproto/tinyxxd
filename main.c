@@ -397,7 +397,7 @@ inline enum ColorDigit ascii_char_color(const unsigned char e)
     return COLOR_RED;
 }
 
-int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name)
+int hex_postscript(const bool colsgiven, int cols, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name)
 {
     if (!colsgiven) {
         cols = 30;
@@ -406,9 +406,6 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     }
     if (revert) {
         return decode_hex_stream_postscript(negseek ? -seekoff : seekoff, program_name);
-    }
-    if (octspergrp < 1 || octspergrp > cols) {
-        octspergrp = cols;
     }
     int n = 0, p = cols;
     getc_or_die(&e, program_name);
@@ -428,7 +425,7 @@ int hex_postscript(const bool colsgiven, int cols, int octspergrp, const bool re
     return 0;
 }
 
-int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name)
+int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name)
 {
     int p = 0;
     if (!colsgiven || !cols) {
@@ -438,9 +435,6 @@ int hex_cinclude(const bool colsgiven, int cols, int octspergrp, const bool reve
     }
     if (revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", program_name);
-    }
-    if (octspergrp < 1 || octspergrp > cols) {
-        octspergrp = cols;
     }
     if (!varname && input_file != stdin) {
         varname = argv1; // argv[1]
@@ -998,10 +992,10 @@ int main(int argc, char* argv[])
     case HEX_BITS:
         return hex_bits(buffer, z, colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip, program_name);
     case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, octspergrp, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name);
+        return hex_cinclude(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name);
     case HEX_LITTLEENDIAN:
         return hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name);
     case HEX_POSTSCRIPT:
-        return hex_postscript(colsgiven, cols, octspergrp, revert, e, length, negseek, seekoff, hex_digits, program_name);
+        return hex_postscript(colsgiven, cols, revert, e, length, negseek, seekoff, hex_digits, program_name);
     }
 }
