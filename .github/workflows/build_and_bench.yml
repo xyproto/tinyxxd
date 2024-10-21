@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    paths-ignore: &common-paths-ignore
+    paths-ignore:
       - '**/.gitignore'
       - '**/AUTHORS.md'
       - '**/README.md'
@@ -16,7 +16,15 @@ on:
   pull_request:
     branches-ignore:
       - 'src-*-update*'
-    paths-ignore: *common-paths-ignore
+    paths-ignore:
+      - '**/.gitignore'
+      - '**/AUTHORS.md'
+      - '**/README.md'
+      - '**/TODO.md'
+      - '**/*.txt'
+      - '**/*.sh'
+      - '**/tinyxxd*.png'
+      - '**/tinyxxd*.svg'
 
 jobs:
   build-linux:
