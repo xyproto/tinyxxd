@@ -317,7 +317,6 @@ int decode_hex_stream_bits(const int cols, const char* program_name)
 static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const char* program_name)
 {
     static int zero_seen = 0;
-
     if (nz) {
         if (nz < 0) {
             zero_seen--;
