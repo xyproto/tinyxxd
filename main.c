@@ -509,8 +509,9 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
         }
         c = addrlen + 1 + (grplen * p) / octspergrp;
         for (int i = 7; i >= 0; i--) {
-            buffer[c++] = (e & (1 << i)) ? '1' : '0';
+            buffer[c++] = ((e >> i) & 1) + '0';
         }
+
         if (color) {
             c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
             nonzero += e ? 1 : 0;
