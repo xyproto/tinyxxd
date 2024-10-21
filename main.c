@@ -47,6 +47,26 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
+// parse_hex_digit is a lookup table for finding the numeric values of a hex characters, or otherwise -1
+static const int parse_hex_digit[256] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0..15
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 16..31
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 32..47
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -1, -1, -1, -1, -1, // 48..63
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 64..79
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 80..95
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 96..111
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 112..127
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 128..143
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 144..159
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 160..175
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 176 .. 191
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 192..207
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 208..223
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 224..239
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 // 240..255
+};
+
 void exit_with_usage(const char* program_name, const char* version)
 {
     fprintf(stderr,
@@ -134,19 +154,13 @@ void fclose_or_die(const char* program_name)
     }
 }
 
-// parse_hex_digit returns the decimal value if c is a hex digit, or otherwise -1.
-inline int parse_hex_digit(const int ch)
-{
-    return (ch >= '0' && ch <= '9') ? ch - '0'
-        : (ch >= 'a' && ch <= 'f')  ? ch - 'a' + 10
-        : (ch >= 'A' && ch <= 'F')  ? ch - 'A' + 10
-                                    : -1;
-}
-
-// parse_bin_digit returns the decimal value if c is a binary digit, or otherwise -1.
+// parse_bin_digit returns 0 if the given character is '0', 1 if it is '1' and otherwise -1
 inline int parse_bin_digit(const int ch)
 {
-    return (ch < '0' || ch > '1') ? -1 : ch - '0';
+    if (ch == '0') {
+        return 0;
+    }
+    return (ch == '1' ? 1 : -1);
 }
 
 // skip_to_eol_or_die will ignore text from the input file, until EOL or EOF
@@ -185,7 +199,7 @@ int decode_hex_stream_postscript(const long base_off, const char* program_name)
     long have_off = 0, want_off = 0;
     rewind(input_file);
     while (((c = getc(input_file)) != EOF) && c != ' ' && c != '\n' && c != '\t' && c != '\r') {
-        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
+        if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -218,7 +232,7 @@ int decode_hex_stream_normal(const int cols, const long base_off, const char* pr
     long have_off = 0, want_off = 0;
     rewind(input_file);
     while (((c = getc(input_file)) != EOF) && c != '\r') {
-        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
+        if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -269,7 +283,7 @@ int decode_hex_stream_bits(const int cols, const char* program_name)
     long want_off = 0;
     rewind(input_file);
     while (((c = getc(input_file)) != EOF) && c != '\r') {
-        if ((n1 = parse_hex_digit(c)) == -1 && ignore) {
+        if ((n1 = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
         bit = parse_bin_digit(c);
