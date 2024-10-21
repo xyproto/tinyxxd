@@ -24,3 +24,4 @@
 * Husam Harazi <i@vimmer.dev>
 * Oliver Webb <aquahobbyist@proton.me>
 * Andre Chang <andre@augmentcode.com>
+* Aapo Rantalainen <aapo.rantalainen@gmail.com>
