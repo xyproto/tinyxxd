@@ -1,5 +1,4 @@
-name: Build & Benchmark
-
+name: Build + bench
 on:
   push:
     branches:
