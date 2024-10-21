@@ -2,11 +2,9 @@
 
 # Test if tinyxxd passes the Test_xxd_little_endian_with_cols() test
 
-# Path to the tinyxxd binary
-XXD="./tinyxxd"
 #XXD="./xxd"
+XXD=./tinyxxd
 
-# Ensure tinyxxd is executable
 if [ ! -x "$XXD" ]; then
     echo "Error: tinyxxd binary not found or not executable at $XXD"
     exit 1

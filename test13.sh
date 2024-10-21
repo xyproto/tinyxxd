@@ -4,8 +4,8 @@
 
 # Path to the xxd binary in the current directory
 #XXD_CMD="/usr/bin/xxd"
-XXD_CMD="$PWD/xxd"
-#XXD_CMD="$PWD/tinyxxd"
+#XXD_CMD="$PWD/xxd"
+XXD_CMD=./tinyxxd
 
 # Create the file XXDfile with the content 'TESTabcd09' and a newline
 echo "TESTabcd09" > XXDfile
