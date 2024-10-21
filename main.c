@@ -134,7 +134,7 @@ void fclose_or_die(const char* program_name)
     }
 }
 
-// parse_hex_digits returns the decimal value if c is a hex digit, or otherwise -1.
+// parse_hex_digit returns the decimal value if c is a hex digit, or otherwise -1.
 inline int parse_hex_digit(const int ch)
 {
     return (ch >= '0' && ch <= '9') ? ch - '0'
