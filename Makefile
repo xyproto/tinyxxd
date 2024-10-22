@@ -35,10 +35,12 @@ profile: tinyxxd_debug
 	@kcachegrind || echo 'Profile generated. Use kcachegrind or a similar tool to view the callgrind output.'
 
 bench:
-	@python3 bench.py
-
-quick_bench:
+	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
 	@python3 bench.py -q
+
+slowbench:
+	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
+	@python3 bench.py
 
 fmt: main.c
 	clang-format -style=WebKit -i main.c
