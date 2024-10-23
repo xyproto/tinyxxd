@@ -38,9 +38,9 @@ bench:
 	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
 	@python3 bench.py -q
 
-slowbench:
+bench_full:
 	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
-	@python3 bench.py
+	@python3 bench.py -q
 
 fmt: main.c
 	clang-format -style=WebKit -i main.c
