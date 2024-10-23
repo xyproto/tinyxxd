@@ -211,7 +211,10 @@ int decode_hex_stream_postscript(const long base_off, const char* program_name)
     int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && c != ' ' && c != '\n' && c != '\t' && c != '\r') {
+    while (((c = getc(input_file)) != EOF)) {
+        if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
+            continue;
+        }
         if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
