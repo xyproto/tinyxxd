@@ -635,7 +635,7 @@ def generate_markdown_report():
     md_content += "|---------|------------|----------------------|-------|\n"
     # Add the table rows with the benchmark results
     for result in results:
-        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags']} |\n"
+        md_content += f"| {result['program']} | {result['size']} | {result['conversion_time']:.2f} | {result['flags'].replace('_', ' ')} |\n"
     # Add performance summaries
     md_content += "\n## Performance Summaries\n"
     performance_summaries = analyze_performance()
