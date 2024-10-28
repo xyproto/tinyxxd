@@ -857,10 +857,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
 const char* base_name(const char* path)
 {
     const char* lastSlash = strrchr(path, '/');
-    if (lastSlash == NULL) {
-        return path;
-    }
-    return lastSlash + 1;
+    return (lastSlash == NULL) ? path : lastSlash + 1;
 }
 
 int main(int argc, char* argv[])
