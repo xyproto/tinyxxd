@@ -8,19 +8,18 @@
 #include <string.h>
 #include <unistd.h>
 
+static FILE* input_file;
+static FILE* output_file;
+
 // For static declarations of buffers
-enum { COLS = 256 };
-enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
+constexpr int COLS = 256;
+constexpr int LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
         + 2 // ": "
         + 13 * COLS // hex dump with colors
         + (COLS - 1) // whitespace between groups if "-g1" option given and "-c" maxed out
         + 2 // whitespace
         + 12 * COLS // ASCII dump with colors
-        + 2 // "\n\0"
-};
-
-static FILE* input_file;
-static FILE* output_file;
+        + 2; // "\n\0"
 
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
@@ -32,7 +31,7 @@ enum ColorDigit {
 };
 
 // This is an EBCDIC to ASCII conversion table from a proposed BTL standard, 16th of April 1979
-const unsigned char etoa64[] = {
+constexpr unsigned char etoa64[] = {
     0040, 0240, 0241, 0242, 0243, 0244, 0245, 0246, 0247, 0250, 0325, 0056, 0074, 0050, 0053, 0174,
     0046, 0251, 0252, 0253, 0254, 0255, 0256, 0257, 0260, 0261, 0041, 0044, 0052, 0051, 0073, 0176,
     0055, 0057, 0262, 0263, 0264, 0265, 0266, 0267, 0270, 0271, 0313, 0054, 0045, 0137, 0076, 0077,
@@ -49,7 +48,7 @@ const unsigned char etoa64[] = {
 
 // parse_hex_digit is a lookup table for finding the numeric values of a hex characters, or otherwise -1
 // it's a bit verbose, but it's fast and it doesn't use ranges
-static const int parse_hex_digit[256] = {
+constexpr int parse_hex_digit[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0..15
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 16..31
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 32..47
@@ -70,7 +69,7 @@ static const int parse_hex_digit[256] = {
 
 // parse_binary_digit is a lookup table for finding the numeric values of binary characters, or otherwise -1
 // it's a bit verbose, but it's fast and it doesn't use ranges
-static const int parse_binary_digit[256] = {
+constexpr int parse_binary_digit[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0..15
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 16..31
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 32..47
@@ -121,7 +120,7 @@ void exit_with_usage(const char* program_name, const char* version)
     exit(EXIT_FAILURE);
 }
 
-// exit_with_error will print the message if it's not NULL, or print the perror, and then exit
+// exit_with_error will print the message if it's not nullptr, or print the perror, and then exit
 void exit_with_error(const int exit_code, const char* message, const char* program_name)
 {
     if (message) {
@@ -129,7 +128,7 @@ void exit_with_error(const int exit_code, const char* message, const char* progr
         exit(exit_code);
     }
     fprintf(stderr, "%s: ", program_name);
-    perror(NULL);
+    perror(nullptr);
     exit(exit_code);
 }
 
@@ -142,37 +141,37 @@ void exit_with_col_error(const char* program_name)
 static inline void getc_or_die(int* ch, const char* program_name)
 {
     if ((*ch = getc(input_file)) == EOF && ferror(input_file)) {
-        exit_with_error(2, NULL, program_name);
+        exit_with_error(2, nullptr, program_name);
     }
 }
 
 static inline void putc_or_die(int ch, const char* program_name)
 {
     if (putc(ch, output_file) == EOF) {
-        exit_with_error(3, NULL, program_name);
+        exit_with_error(3, nullptr, program_name);
     }
 }
 
 static inline void fputs_or_die(const char* s, const char* program_name)
 {
     if (fputs(s, output_file) == EOF) {
-        exit_with_error(3, NULL, program_name);
+        exit_with_error(3, nullptr, program_name);
     }
 }
 
 static inline void fflush_or_die(const char* program_name)
 {
     if (fflush(output_file)) {
-        exit_with_error(3, NULL, program_name);
+        exit_with_error(3, nullptr, program_name);
     }
 }
 
 void fclose_or_die(const char* program_name)
 {
     if (fclose(output_file)) {
-        exit_with_error(3, NULL, program_name);
+        exit_with_error(3, nullptr, program_name);
     } else if (fclose(input_file)) {
-        exit_with_error(2, NULL, program_name);
+        exit_with_error(2, nullptr, program_name);
     }
 }
 
@@ -470,7 +469,7 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
     }
     if (varname) {
         if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
         for (e = 0; (c = varname[e]); e++) {
             if (!capitalize) {
@@ -485,7 +484,7 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
     const char* hex_format_string = uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((length < 0 || p < length) && c != EOF) {
         if (fprintf(output_file, hex_format_string, (p % cols) ? ", " : (!p ? "  " : ",\n  "), c) < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
         p++;
         getc_or_die(&c, program_name);
@@ -496,7 +495,7 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
     if (varname) {
         fputs_or_die("};\n", program_name);
         if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
         for (e = 0; (c = varname[e]); e++) {
             if (!capitalize) {
@@ -506,7 +505,7 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
             }
         }
         if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
     }
     return 0;
@@ -528,7 +527,7 @@ int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, 
     }
     if (varname) {
         if (fprintf(output_file, "unsigned char %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
         for (e = 0; (c = varname[e]); e++) {
             if (!capitalize) {
@@ -561,7 +560,7 @@ int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, 
     if (varname) {
         fputs_or_die("};\n", program_name);
         if (fprintf(output_file, "unsigned int %s", isdigit((unsigned char)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
         for (e = 0; (c = varname[e]); e++) {
             if (!capitalize) {
@@ -571,7 +570,7 @@ int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, 
             }
         }
         if (fprintf(output_file, "_%s = %d;\n", capitalize ? "LEN" : "len", p) < 0) {
-            exit_with_error(3, NULL, program_name);
+            exit_with_error(3, nullptr, program_name);
         }
     }
     return 0;
@@ -857,7 +856,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
 const char* base_name(const char* path)
 {
     const char* lastSlash = strrchr(path, '/');
-    return (lastSlash == NULL) ? path : lastSlash + 1;
+    return (lastSlash == nullptr) ? path : lastSlash + 1;
 }
 
 int main(int argc, char* argv[])
@@ -873,9 +872,9 @@ int main(int argc, char* argv[])
     };
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
-    bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
-    char* pp = NULL;
-    char* varname = NULL;
+    bool color = (no_color == nullptr || no_color[0] == '\0') && isatty(STDOUT_FILENO);
+    char* pp = nullptr;
+    char* varname = nullptr;
     bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
     bool ascii = true, revert = false, uppercase_hex = false;
     int cols = 0, relseek = 0, negseek = 0, octspergrp = -1;
@@ -921,31 +920,31 @@ int main(int argc, char* argv[])
                 capitalize = true;
             } else if (pp[2] && strncmp("ols", pp + 2, 3)) {
                 colsgiven = true;
-                cols = (int)strtol(pp + 2, NULL, 0);
+                cols = (int)strtol(pp + 2, nullptr, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(program_name, version);
                 }
                 colsgiven = true;
-                cols = (int)strtol(argv[2], NULL, 0);
+                cols = (int)strtol(argv[2], nullptr, 0);
                 argv++;
                 argc--;
             }
         } else if (!strncmp(pp, "-g", 2)) {
             if (pp[2] && strncmp("roup", pp + 2, 4)) {
-                octspergrp = (int)strtol(pp + 2, NULL, 0);
+                octspergrp = (int)strtol(pp + 2, nullptr, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(program_name, version);
                 }
-                octspergrp = (int)strtol(argv[2], NULL, 0);
+                octspergrp = (int)strtol(argv[2], nullptr, 0);
                 argv++;
                 argc--;
             }
         } else if (!strncmp(pp, "-o", 2)) {
             int reloffset = 0, negoffset = 0;
             if (pp[2] && strncmp("ffset", pp + 2, 5)) {
-                displayoff = strtoul(pp + 2, NULL, 0);
+                displayoff = strtoul(pp + 2, nullptr, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(program_name, version);
@@ -957,9 +956,9 @@ int main(int argc, char* argv[])
                     negoffset++;
                 }
                 if (negoffset) {
-                    displayoff = ULONG_MAX - strtoul(argv[2] + reloffset + negoffset, NULL, 0) + 1;
+                    displayoff = ULONG_MAX - strtoul(argv[2] + reloffset + negoffset, nullptr, 0) + 1;
                 } else {
-                    displayoff = strtoul(argv[2] + reloffset + negoffset, NULL, 0);
+                    displayoff = strtoul(argv[2] + reloffset + negoffset, nullptr, 0);
                 }
                 argv++;
                 argc--;
@@ -974,7 +973,7 @@ int main(int argc, char* argv[])
                 if (pp[2 + relseek] == '-') {
                     negseek++;
                 }
-                seekoff = strtol(pp + 2 + relseek + negseek, (char**)NULL, 0);
+                seekoff = strtol(pp + 2 + relseek + negseek, (char**)nullptr, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(program_name, version);
@@ -985,18 +984,18 @@ int main(int argc, char* argv[])
                 if (argv[2][relseek] == '-') {
                     negseek++;
                 }
-                seekoff = strtol(argv[2] + relseek + negseek, (char**)NULL, 0);
+                seekoff = strtol(argv[2] + relseek + negseek, (char**)nullptr, 0);
                 argv++;
                 argc--;
             }
         } else if (!strncmp(pp, "-l", 2)) {
             if (pp[2] && strncmp("en", pp + 2, 2)) {
-                length = strtol(pp + 2, (char**)NULL, 0);
+                length = strtol(pp + 2, (char**)nullptr, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(program_name, version);
                 }
-                length = strtol(argv[2], (char**)NULL, 0);
+                length = strtol(argv[2], (char**)nullptr, 0);
                 argv++;
                 argc--;
             }
