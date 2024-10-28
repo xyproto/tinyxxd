@@ -35,11 +35,11 @@ profile: tinyxxd_debug
 	@kcachegrind || echo 'Profile generated. Use kcachegrind or a similar tool to view the callgrind output.'
 
 bench:
-	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
+	@rm -f -- *.bin *.dat *.hex *.pkl xxd testfiles/xxd.c
 	@python3 bench.py -q
 
 bench_full:
-	@rm -f -- *.bin *.dat *.hex *.pkl xxd xxd.c
+	@rm -f -- *.bin *.dat *.hex *.pkl xxd testfiles/xxd.c
 	@python3 bench.py -q
 
 fmt: main.c
@@ -116,10 +116,10 @@ fuzz: tinyxxd_fuzz
 	@dd if=/dev/urandom of=input_dir/sample.bin count=1 bs=128
 	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
 
-xxd.c:
-	curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
+testfiles/xxd.c:
+	cd testfiles && curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 
-xxd: xxd.c
+xxd: testfiles/xxd.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 install: tinyxxd
@@ -129,4 +129,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd xxd.c xxd_*
+	rm -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd testfiles/xxd.c xxd_*
