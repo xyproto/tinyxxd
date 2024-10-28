@@ -579,7 +579,7 @@ int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, 
 
 int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name)
 {
-    int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
+    int n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!colsgiven || !cols) {
         cols = 6;
     } else if (cols < 1 || cols > COLS) {
@@ -593,8 +593,8 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     } else if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     }
-    grplen = 8 * octspergrp + 1;
     getc_or_die(&e, program_name);
+    const int grplen = 8 * octspergrp + 1;
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
@@ -648,7 +648,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
 int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip, const char* program_name)
 {
     char color_digit = 0;
-    int grplen = 0, n = 0, nonzero = 0, p = 0, addrlen = 9;
+    int n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!cols || !colsgiven) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -663,7 +663,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
         octspergrp = cols;
     }
     getc_or_die(&e, program_name);
-    grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
+    const int grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     if (color) {
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
@@ -765,7 +765,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
 
 int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip, const char* program_name)
 {
-    int grplen = 0, nonzero = 0, addrlen = 9;
+    int nonzero = 0, addrlen = 9, n = 0, p = 0, x = 0;
     if (!colsgiven || !cols) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -781,9 +781,8 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     } else if (octspergrp & (octspergrp - 1)) {
         exit_with_error(1, "number of octets per group must be a power of 2 with -e.", program_name);
     }
-    grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     getc_or_die(&e, program_name);
-    int n = 0, p = 0, x = 0;
+    const int grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
