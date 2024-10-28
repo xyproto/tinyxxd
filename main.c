@@ -9,10 +9,7 @@
 #include <unistd.h>
 
 // 16 MiB
-//#define BUFFER_SIZE 16777216
-
-// 4 KiB
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 16777216
 
 // Static buffer for the stream
 static unsigned char buffer[BUFFER_SIZE];
