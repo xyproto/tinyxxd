@@ -8,6 +8,17 @@
 #include <string.h>
 #include <unistd.h>
 
+// 16 MiB
+//#define BUFFER_SIZE 16777216
+
+// 4 KiB
+#define BUFFER_SIZE 4096
+
+// Static buffer for the stream
+static unsigned char buffer[BUFFER_SIZE];
+static size_t buffer_pos = 0;
+static size_t buffer_end = 0;
+
 // For static declarations of buffers
 enum { COLS = 256 };
 enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
@@ -139,11 +150,20 @@ void exit_with_col_error(const char* program_name)
     exit(EXIT_FAILURE);
 }
 
-static inline void getc_or_die(int* ch, const char* program_name)
+static void getc_or_die(int* ch, const char* program_name)
 {
-    if ((*ch = getc(input_file)) == EOF && ferror(input_file)) {
-        exit_with_error(2, NULL, program_name);
+    if (buffer_pos >= buffer_end) {
+        buffer_end = fread(buffer, 1, BUFFER_SIZE, input_file);
+        buffer_pos = 0;
+        if (buffer_end == 0) {
+            *ch = EOF;
+            if (ferror(input_file)) {
+                exit_with_error(2, NULL, program_name);
+            }
+            return;
+        }
     }
+    *ch = buffer[buffer_pos++];
 }
 
 static inline void putc_or_die(int ch, const char* program_name)
@@ -169,6 +189,8 @@ static inline void fflush_or_die(const char* program_name)
 
 void fclose_or_die(const char* program_name)
 {
+    buffer_pos = 0;
+    buffer_end = 0;
     if (fclose(output_file)) {
         exit_with_error(3, NULL, program_name);
     } else if (fclose(input_file)) {
@@ -211,7 +233,22 @@ int decode_hex_stream_postscript(const long base_off, const char* program_name)
     int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF)) {
+    buffer_pos = 0;
+    buffer_end = 0;
+    // Loop to process the buffer, refill using fread when necessary
+    while (1) {
+        // If buffer is exhausted, refill it
+        if (buffer_pos >= buffer_end) {
+            buffer_end = fread(buffer, 1, BUFFER_SIZE, input_file);
+            buffer_pos = 0;
+            // If fread returns 0, we've hit EOF or an error occurred
+            if (buffer_end == 0) {
+                break; // End of file, exit the loop
+            }
+        }
+        // Get the next character from the buffer
+        c = buffer[buffer_pos++];
+        // Process character 'c'
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
@@ -247,7 +284,25 @@ int decode_hex_stream_normal(const int cols, const long base_off, const char* pr
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && c != '\r') {
+    buffer_pos = 0;
+    buffer_end = 0;
+    // Loop to process the buffer, refill using fread when necessary
+    while (1) {
+        // If buffer is exhausted, refill it
+        if (buffer_pos >= buffer_end) {
+            buffer_end = fread(buffer, 1, BUFFER_SIZE, input_file);
+            buffer_pos = 0;
+            // If fread returns 0, we've hit EOF or an error occurred
+            if (buffer_end == 0) {
+                break; // End of file, exit the loop
+            }
+        }
+        // Get the next character from the buffer
+        c = buffer[buffer_pos++];
+        // Process character 'c'
+        if (c == '\r') {
+            break;
+        }
         if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
@@ -298,7 +353,25 @@ int decode_hex_stream_bits(const int cols, const char* program_name)
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(input_file);
-    while (((c = getc(input_file)) != EOF) && c != '\r') {
+    buffer_pos = 0;
+    buffer_end = 0;
+    // Loop to process the buffer, refill using fread when necessary
+    while (1) {
+        // If buffer is exhausted, refill it
+        if (buffer_pos >= buffer_end) {
+            buffer_end = fread(buffer, 1, BUFFER_SIZE, input_file);
+            buffer_pos = 0;
+            // If fread returns 0, we've hit EOF or an error occurred
+            if (buffer_end == 0) {
+                break; // End of file, exit the loop
+            }
+        }
+        // Get the next character from the buffer
+        c = buffer[buffer_pos++];
+        // Process character 'c'
+        if (c == '\r') {
+            break;
+        }
         if ((n1 = parse_hex_digit[c]) == -1 && ignore) {
             continue;
         }
