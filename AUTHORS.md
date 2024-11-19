@@ -12,7 +12,6 @@
 * Christian Brabandt <cb@256bit.org>
 * Ken Takata <kentkt@csc.jp>
 * tristhaus <tristhaus@yahoo.de>
-* Christian Brabandt <cb@256bit.org>
 * OldWorldOrdr <joey.t.reinhart@gmail.com>
 * Keith Thompson <Keith.S.Thompson@gmail.com>
 * Igor Todorovski <itodorov@ca.ibm.com>
