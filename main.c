@@ -1109,6 +1109,8 @@ int main(int argc, char* argv[])
         status = hex_cinclude_bits(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], length, program_name);
         break;
     }
-    fclose_or_die(program_name);
+    if (!revert) {
+        fclose_or_die(program_name);
+    }
     return status;
 }
