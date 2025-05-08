@@ -873,6 +873,7 @@ int main(int argc, char* argv[])
     enum HexType hextype = HEX_NORMAL;
     const char* no_color = getenv("NO_COLOR"); // Respect the NO_COLOR environment variable
     bool color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
+    errno = 0;
     char* pp = NULL;
     char* varname = NULL;
     bool autoskip = false, capitalize = false, colsgiven = false, decimal_offset = false;
@@ -1026,6 +1027,7 @@ int main(int argc, char* argv[])
                 color = false;
             } else if (!strncmp(pw, "auto", 4)) {
                 color = isatty(STDOUT_FILENO);
+                errno = 0;
             } else {
                 exit_with_usage(program_name, version);
             }
