@@ -1086,18 +1086,27 @@ int main(int argc, char* argv[])
     const char* hex_digits = uppercase_hex ? "0123456789ABCDEF" : "0123456789abcdef";
     static char buffer[LLENP1]; // static because it may be too big for stack
     static char z[LLENP1]; // static because it may be too big for stack
+    int status = 0;
     switch (hextype) {
     case HEX_NORMAL:
-        return hex_normal(buffer, z, colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip, program_name);
+        status = hex_normal(buffer, z, colsgiven, cols, octspergrp, revert, negseek, seekoff, e, color, ascii, length, decimal_format_string, displayoff, ch, hex_digits, autoskip, program_name);
+        break;
     case HEX_BITS:
-        return hex_bits(buffer, z, colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip, program_name);
+        status = hex_bits(buffer, z, colsgiven, cols, octspergrp, revert, ch, e, length, decimal_format_string, seekoff, displayoff, color, ascii, autoskip, program_name);
+        break;
     case HEX_CINCLUDE:
-        return hex_cinclude(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name);
+        status = hex_cinclude(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], uppercase_hex, length, program_name);
+        break;
     case HEX_LITTLEENDIAN:
-        return hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name);
+        status = hex_littleendian(buffer, z, colsgiven, cols, octspergrp, revert, seekoff, color, e, length, decimal_format_string, displayoff, ch, ascii, hex_digits, autoskip, program_name);
+        break;
     case HEX_POSTSCRIPT:
-        return hex_postscript(colsgiven, cols, revert, e, length, negseek, seekoff, hex_digits, program_name);
+        status = hex_postscript(colsgiven, cols, revert, e, length, negseek, seekoff, hex_digits, program_name);
+        break;
     case HEX_BITS_AND_CINCLUDE:
-        return hex_cinclude_bits(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], length, program_name);
+        status = hex_cinclude_bits(colsgiven, cols, revert, e, ch, capitalize, varname, argv[1], length, program_name);
+        break;
     }
+    fclose_or_die(program_name);
+    return status;
 }
