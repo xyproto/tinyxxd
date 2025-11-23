@@ -599,7 +599,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     const int grplen = 8 * octspergrp + 1;
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, decimal_format_string, (unsigned long)n + (unsigned long)seekoff + (unsigned long)displayoff);
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
             for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
@@ -611,11 +611,11 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
         if (color) {
             c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
             nonzero += e ? 1 : 0;
-            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
+            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(buffer, &c);
         } else {
             c = (grplen * cols - 1) / octspergrp;
@@ -624,7 +624,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
         }
         n++;
         if (++p == cols) {
@@ -669,7 +669,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     if (color) {
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
-                addrlen = snprintf(buffer, LLENP1, decimal_format_string, (unsigned long)n + (unsigned long)seekoff + (unsigned long)displayoff);
+                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
                 for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                     ;
             }
@@ -678,12 +678,12 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
                 nonzero++;
             }
             if (ascii) { // ASCII
-                color_digit = ascii_char_color((unsigned char)e);
+                color_digit = ascii_char_color(e);
                 set_color(buffer, &c, color_digit);
                 buffer[c++] = hex_digits[(e >> 4) & 0xf];
                 buffer[c++] = hex_digits[e & 0xf];
             } else { // EBCDIC
-                color_digit = ebcdic_char_color((unsigned char)e);
+                color_digit = ebcdic_char_color(e);
                 set_color(buffer, &c, color_digit);
                 buffer[c++] = hex_digits[(e >> 4) & 0xf];
                 buffer[c++] = hex_digits[e & 0xf];
@@ -696,7 +696,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
             clear_color(buffer, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
             set_color(buffer, &c, color_digit);
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(buffer, &c);
             n++;
             if (++p == cols) {
@@ -711,7 +711,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     } else if (!color) { // no color
         while ((length < 0 || n < length) && e != EOF) {
             if (!p) {
-                addrlen = snprintf(buffer, LLENP1, decimal_format_string, (unsigned long)n + (unsigned long)seekoff + (unsigned long)displayoff);
+                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
                 for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                     ;
             }
@@ -735,7 +735,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
                 }
             }
             c += addrlen + 3 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
             n++;
             if (++p == cols) {
                 buffer[c++] = '\n';
@@ -787,24 +787,24 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     const int grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, decimal_format_string, (unsigned long)n + (unsigned long)seekoff + (unsigned long)displayoff);
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
             for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
         x = p ^ (octspergrp - 1);
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (color) {
-            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
+            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             buffer[c++] = hex_digits[(e >> 4) & 0xf];
             buffer[c++] = hex_digits[e & 0xf];
             clear_color(buffer, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
             nonzero += e ? 1 : 0;
-            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
+            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
             clear_color(buffer, &c);
         } else { // no color
             buffer[c] = hex_digits[(e >> 4) & 0xf];
@@ -815,7 +815,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 2 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
         }
         n++;
         if (++p == cols) {
