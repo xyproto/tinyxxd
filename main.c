@@ -9,7 +9,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
 // For static declarations of buffers
 enum { COLS = 256 };
 enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
