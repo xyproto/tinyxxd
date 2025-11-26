@@ -48,82 +48,29 @@ const unsigned char etoa64[] = {
     0060, 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0070, 0071, 0372, 0373, 0374, 0375, 0376, 0377
 };
 
-// parse_hex_digit is a lookup table for finding the numeric values of a hex characters, or otherwise -1
-// it's a bit verbose, but it's fast and it doesn't use ranges
-static const int parse_hex_digit[256] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0..15
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 16..31
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 32..47
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -1, -1, -1, -1, -1, // 48..63, '0'-'9'
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 64..79, 'A'-'F'
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 80..95
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 96..111, 'a'-'f'
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 112..127
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 128..143
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 144..159
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 160..175
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 176..191
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 192..207
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 208..223
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 224..239
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 // 240..255
-};
-
-// parse_binary_digit is a lookup table for finding the numeric values of binary characters, or otherwise -1
-// it's a bit verbose, but it's fast and it doesn't use ranges
-static const int parse_binary_digit[256] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0..15
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 16..31
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 32..47
-    0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 48..63, '0'-'1'
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 64..79
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 80..95
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 96..111
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 112..127
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 128..143
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 144..159
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 160..175
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 176..191
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 192..207
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 208..223
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 224..239
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 // 240..255
-};
-
-void exit_with_usage(const char* program_name, const char* version)
+static inline int parse_hex_digit(int c)
 {
-    fprintf(stderr,
-        "Usage:\n"
-        "       %s [options] [infile [outfile]]\n"
-        "    or\n"
-        "       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\n"
-        "Options:\n"
-        "    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n"
-        "    -b          binary digit dump (incompatible with -ps). Default hex.\n"
-        "    -C          capitalize variable names in C include file style (-i).\n"
-        "    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n"
-        "    -E          show characters in EBCDIC. Default ASCII.\n"
-        "    -e          little-endian dump (incompatible with -ps,-i,-r).\n"
-        "    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n"
-        "    -h          print this summary.\n"
-        "    -i          output in C include file style.\n"
-        "    -l len      stop after <len> octets.\n"
-        "    -n name     set the variable name used in C include output (-i).\n"
-        "    -o off      add <off> to the displayed file position.\n"
-        "    -ps         output in postscript plain hexdump style.\n"
-        "    -r          reverse operation: convert (or patch) hexdump into binary.\n"
-        "    -r -s off   revert with <off> added to file positions found in hexdump.\n"
-        "    -d          show offset in decimal instead of hex.\n"
-        "    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n"
-        "    -u          use upper case hex letters.\n"
-        "    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n"
-        "    -v          show version: \"%s\".\n",
-        program_name, program_name, version);
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    return -1;
+}
+
+static inline int parse_binary_digit(int c)
+{
+    return (c == '0' || c == '1') ? c - '0' : -1;
+}
+
+static void exit_with_usage(const char* program_name, const char* version)
+{
+    fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h          print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n", program_name, program_name, version);
     exit(EXIT_FAILURE);
 }
 
-// exit_with_error will print the message if it's not NULL, or print the perror, and then exit
-void exit_with_error(const int exit_code, const char* message, const char* program_name)
+static void exit_with_error(const int exit_code, const char* message, const char* program_name)
 {
     if (message) {
         fprintf(stderr, "%s: %s\n", program_name, message);
@@ -134,7 +81,7 @@ void exit_with_error(const int exit_code, const char* message, const char* progr
     exit(exit_code);
 }
 
-void exit_with_col_error(const char* program_name)
+static void exit_with_col_error(const char* program_name)
 {
     fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
     exit(EXIT_FAILURE);
@@ -168,7 +115,7 @@ static inline void fflush_or_die(const char* program_name)
     }
 }
 
-void fclose_or_die(const char* program_name)
+static void fclose_or_die(const char* program_name)
 {
     if (fclose(output_file)) {
         exit_with_error(3, NULL, program_name);
@@ -206,7 +153,7 @@ static inline void fflush_fseek_and_putc(const long* base_off, const long* want_
 /* decode_hex_stream_postscript decodes hex data from an input stream within 'cols' characters per line.
  * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream_postscript(const long base_off, const char* program_name)
+static int decode_hex_stream_postscript(const long base_off, const char* program_name)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
@@ -216,7 +163,7 @@ int decode_hex_stream_postscript(const long base_off, const char* program_name)
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
-        if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
+        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -242,14 +189,14 @@ int decode_hex_stream_postscript(const long base_off, const char* program_name)
 /* decode_hex_stream_normal decodes hex data from an input stream within 'cols' characters per line.
  * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream_normal(const int cols, const long base_off, const char* program_name)
+static int decode_hex_stream_normal(const int cols, const long base_off, const char* program_name)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
     long have_off = 0, want_off = 0;
     rewind(input_file);
     while (((c = getc(input_file)) != EOF) && c != '\r') {
-        if ((tmp = parse_hex_digit[c]) == -1 && ignore) {
+        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -293,17 +240,17 @@ int decode_hex_stream_normal(const int cols, const long base_off, const char* pr
 /* decode_hex_stream_bits decodes binary data from an input stream within 'cols' characters per line.
  * It aligns data in the output stream, filling with zeroes as needed to maintain the base offset.
  */
-int decode_hex_stream_bits(const int cols, const char* program_name)
+static int decode_hex_stream_bits(const int cols, const char* program_name)
 {
     bool ignore = true;
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(input_file);
     while (((c = getc(input_file)) != EOF) && c != '\r') {
-        if ((n1 = parse_hex_digit[c]) == -1 && ignore) {
+        if ((n1 = parse_hex_digit(c)) == -1 && ignore) {
             continue;
         }
-        bit = parse_binary_digit[c];
+        bit = parse_binary_digit(c);
         if (bit != -1) {
             bit_buffer = ((bit_buffer << 1) | bit);
             bit_count++;
@@ -427,7 +374,7 @@ inline enum ColorDigit ascii_char_color(const unsigned char e)
     return COLOR_RED;
 }
 
-int hex_postscript(const bool colsgiven, int cols, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name)
+static int hex_postscript(const bool colsgiven, int cols, const bool revert, int e, const long length, const int negseek, const long seekoff, const char* hex_digits, const char* program_name)
 {
     if (!colsgiven) {
         cols = 30;
@@ -455,7 +402,7 @@ int hex_postscript(const bool colsgiven, int cols, const bool revert, int e, con
     return 0;
 }
 
-int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name)
+static int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const bool uppercase_hex, const long length, const char* program_name)
 {
     int p = 0;
     if (!colsgiven || !cols) {
@@ -513,7 +460,7 @@ int hex_cinclude(const bool colsgiven, int cols, const bool revert, int e, int c
     return 0;
 }
 
-int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const long length, const char* program_name)
+static int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, int c, const bool capitalize, const char* varname, const char* argv1, const long length, const char* program_name)
 {
     int p = 0;
     if (!colsgiven || !cols) {
@@ -578,7 +525,7 @@ int hex_cinclude_bits(const bool colsgiven, int cols, const bool revert, int e, 
     return 0;
 }
 
-int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name)
+static int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, int c, int e, const long length, const char* decimal_format_string, const long seekoff, const unsigned long displayoff, const bool color, const bool ascii, const bool autoskip, const char* program_name)
 {
     int n = 0, nonzero = 0, p = 0, addrlen = 9;
     if (!colsgiven || !cols) {
@@ -598,7 +545,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     const int grplen = 8 * octspergrp + 1;
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)n + (unsigned long)seekoff + displayoff));
             for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
@@ -608,13 +555,11 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
         }
 
         if (color) {
-            c = (grplen * cols - 1) / octspergrp + addrlen + 3 + p * 12;
-            nonzero += e ? 1 : 0;
-            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
             clear_color(buffer, &c);
         } else {
             c = (grplen * cols - 1) / octspergrp;
@@ -623,7 +568,7 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 3 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
         }
         n++;
         if (++p == cols) {
@@ -646,10 +591,13 @@ int hex_bits(char* buffer, char* z, const bool colsgiven, int cols, int octsperg
     return 0;
 }
 
-int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip, const char* program_name)
+static int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const int negseek, const long seekoff, int e, const bool color, const bool ascii, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const char* hex_digits, const bool autoskip, const char* program_name)
 {
-    char color_digit = 0;
-    int n = 0, nonzero = 0, p = 0, addrlen = 9;
+    (void)c;
+    char current_color = 0; // 0 means default/no color
+    int n = 0, nonzero = 0, p = 0;
+    unsigned char line_data[COLS];
+
     if (!cols || !colsgiven) {
         cols = 16;
     } else if (cols < 1 || cols > COLS) {
@@ -663,100 +611,221 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     } else if (octspergrp < 1 || octspergrp > cols) {
         octspergrp = cols;
     }
+
     getc_or_die(&e, program_name);
-    const int grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
-    if (color) {
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
-                    ;
-            }
-            c = addrlen + 1 + (p * grplen) / octspergrp;
-            if (e) {
+
+    while ((length < 0 || n < length) && e != EOF) {
+        line_data[p] = (unsigned char)e;
+
+        if (ascii) {
+            if (e)
                 nonzero++;
-            }
-            if (ascii) { // ASCII
-                color_digit = ascii_char_color(e);
-                set_color(buffer, &c, color_digit);
-                buffer[c++] = hex_digits[(e >> 4) & 0xf];
-                buffer[c++] = hex_digits[e & 0xf];
-            } else { // EBCDIC
-                color_digit = ebcdic_char_color(e);
-                set_color(buffer, &c, color_digit);
-                buffer[c++] = hex_digits[(e >> 4) & 0xf];
-                buffer[c++] = hex_digits[e & 0xf];
-                if (e < 64) {
-                    e = '.';
-                } else {
-                    e = etoa64[e - 64];
-                }
-            }
-            clear_color(buffer, &c);
-            c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12;
-            set_color(buffer, &c, color_digit);
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
-            clear_color(buffer, &c);
-            n++;
-            if (++p == cols) {
-                buffer[c++] = '\n';
-                buffer[c] = '\0';
-                print_or_suppress_zero_line(buffer, z, autoskip ? nonzero : 1, program_name);
-                nonzero = 0;
-                p = 0;
-            }
-            getc_or_die(&e, program_name);
+        } else {
+            if (e == 0 || e < 64)
+                nonzero++;
+            else
+                nonzero++;
         }
-    } else if (!color) { // no color
-        while ((length < 0 || n < length) && e != EOF) {
-            if (!p) {
-                addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
-                for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
-                    ;
-            }
-            c = addrlen + 1 + (grplen * p) / octspergrp;
-            buffer[c] = hex_digits[(e >> 4) & 0xf];
-            buffer[++c] = hex_digits[e & 0xf];
-            c = (grplen * cols - 1) / octspergrp;
-            if (ascii) { // ASCII
-                if (e) {
-                    nonzero++;
+
+        n++;
+        p++;
+
+        if (p == cols) {
+             int buf_idx = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n - p) + (unsigned long)seekoff + displayoff));
+            while (buf_idx < 9)
+                buffer[buf_idx++] = ' ';
+            buffer[buf_idx++] = ' ';
+
+            // Hex
+            for (int i = 0; i < p; i++) {
+                if (i > 0 && (i % octspergrp) == 0) {
+                    if (current_color != 0) {
+                        clear_color(buffer, &buf_idx);
+                        current_color = 0;
+                    }
+                    buffer[buf_idx++] = ' ';
                 }
-            } else { // EBCDIC
-                if (e == 0) {
-                    e = '.';
-                } else if (e < 64) {
-                    e = '.';
-                    nonzero++;
-                } else {
-                    e = etoa64[e - 64];
-                    nonzero++;
+
+                int val = line_data[i];
+                char new_color = 0;
+                if (color) {
+                    if (ascii)
+                        new_color = ascii_char_color((unsigned char)val);
+                    else
+                        new_color = ebcdic_char_color((unsigned char)val);
                 }
+
+                if (new_color != current_color) {
+                    if (current_color != 0)
+                        clear_color(buffer, &buf_idx);
+                    if (new_color != 0)
+                        set_color(buffer, &buf_idx, new_color);
+                    current_color = new_color;
+                }
+
+                buffer[buf_idx++] = hex_digits[(val >> 4) & 0xf];
+                buffer[buf_idx++] = hex_digits[val & 0xf];
             }
-            c += addrlen + 3 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
-            n++;
-            if (++p == cols) {
-                buffer[c++] = '\n';
-                buffer[c] = '\0';
-                print_or_suppress_zero_line(buffer, z, autoskip ? nonzero : 1, program_name);
-                nonzero = 0;
-                p = 0;
+
+            // ASCII
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
             }
-            getc_or_die(&e, program_name);
+            buffer[buf_idx++] = ' ';
+            buffer[buf_idx++] = ' ';
+
+            for (int i = 0; i < p; i++) {
+                int val = line_data[i];
+                int pval = val;
+                if (!ascii) {
+                    pval = (val < 64) ? '.' : etoa64[val - 64];
+                }
+
+                char new_color = 0;
+                if (color) {
+                    if (ascii)
+                        new_color = ascii_char_color((unsigned char)val);
+                    else
+                        new_color = ebcdic_char_color((unsigned char)val);
+                }
+
+                if (new_color != current_color) {
+                    if (current_color != 0)
+                        clear_color(buffer, &buf_idx);
+                    if (new_color != 0)
+                        set_color(buffer, &buf_idx, new_color);
+                    current_color = new_color;
+                }
+
+                buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+            }
+
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
+            }
+            buffer[buf_idx++] = '\n';
+            buffer[buf_idx] = '\0';
+            print_or_suppress_zero_line(buffer, z, autoskip ? nonzero : 1, program_name);
+
+            p = 0;
+            nonzero = 0;
         }
+        getc_or_die(&e, program_name);
     }
+
     if (p) {
-        buffer[c++] = '\n';
-        buffer[c] = '\0';
+        int buf_idx = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n - p) + (unsigned long)seekoff + displayoff));
+        while (buf_idx < 9)
+            buffer[buf_idx++] = ' ';
+        buffer[buf_idx++] = ' ';
+
+        // Hex Logic with Padding
+        // 1. Print valid hex data
+        for (int i = 0; i < p; i++) {
+            if (i > 0 && (i % octspergrp) == 0) {
+                if (current_color != 0) {
+                    clear_color(buffer, &buf_idx);
+                    current_color = 0;
+                }
+                buffer[buf_idx++] = ' ';
+            }
+
+            int val = line_data[i];
+            char new_color = 0;
+            if (color) {
+                if (ascii)
+                    new_color = ascii_char_color((unsigned char)val);
+                else
+                    new_color = ebcdic_char_color((unsigned char)val);
+            }
+
+            if (new_color != current_color) {
+                if (current_color != 0)
+                    clear_color(buffer, &buf_idx);
+                if (new_color != 0)
+                    set_color(buffer, &buf_idx, new_color);
+                current_color = new_color;
+            }
+
+            buffer[buf_idx++] = hex_digits[(val >> 4) & 0xf];
+            buffer[buf_idx++] = hex_digits[val & 0xf];
+        }
+
+        // 2. Print Padding (Default Spaces)
+        // xxd logic seems to shift padding by 1 char and maybe gap is 3 spaces?
+        if (current_color != 0) {
+            clear_color(buffer, &buf_idx);
+            current_color = 0;
+        }
+
+        int hex_pad_count = (cols - p);
+        int hex_pad_seps = (cols - p) / octspergrp;
+
+        // Add 1 to uncolored padding to shift Red block right
+        for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
+            buffer[buf_idx++] = ' ';
+        }
+
+        // 3. Print Red Padding
         if (color) {
-            c = addrlen + 1 + (grplen * p) / octspergrp + (cols - p) + (cols - p) / octspergrp;
-            for (int i = cols - p; i > 0; i--) {
-                set_color(buffer, &c, COLOR_RED);
-                buffer[c++] = ' ';
-                clear_color(buffer, &c);
+            if (COLOR_RED != current_color) {
+                if (current_color != 0)
+                    clear_color(buffer, &buf_idx);
+                set_color(buffer, &buf_idx, COLOR_RED);
+                current_color = COLOR_RED;
+            }
+            // Red padding original length. Now covers Gap 1 due to shift.
+            for (int i = 0; i < hex_pad_count; i++) {
+                buffer[buf_idx++] = ' ';
+            }
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
+            }
+        } else {
+            for (int i = 0; i < hex_pad_count; i++) {
+                buffer[buf_idx++] = ' ';
             }
         }
+
+        // Separator reduced to 1 space (Gap 2)
+        buffer[buf_idx++] = ' ';
+
+        // ASCII
+        for (int i = 0; i < p; i++) {
+            int val = line_data[i];
+            int pval = val;
+            if (!ascii) {
+                pval = (val < 64) ? '.' : etoa64[val - 64];
+            }
+
+            char new_color = 0;
+            if (color) {
+                if (ascii)
+                    new_color = ascii_char_color((unsigned char)val);
+                else
+                    new_color = ebcdic_char_color((unsigned char)val);
+            }
+
+            if (new_color != current_color) {
+                if (current_color != 0)
+                    clear_color(buffer, &buf_idx);
+                if (new_color != 0)
+                    set_color(buffer, &buf_idx, new_color);
+                current_color = new_color;
+            }
+
+            buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+        }
+
+        if (current_color != 0) {
+            clear_color(buffer, &buf_idx);
+            current_color = 0;
+        }
+        buffer[buf_idx++] = '\n';
+        buffer[buf_idx] = '\0';
         print_or_suppress_zero_line(buffer, z, 1, program_name);
     } else if (autoskip) {
         print_or_suppress_zero_line(buffer, z, -1, program_name); // last chance to flush out suppressed lines
@@ -764,7 +833,7 @@ int hex_normal(char* buffer, char* z, const bool colsgiven, int cols, int octspe
     return 0;
 }
 
-int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip, const char* program_name)
+static int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int octspergrp, const bool revert, const long seekoff, const bool color, int e, const long length, const char* decimal_format_string, const unsigned long displayoff, int c, const bool ascii, const char* hex_digits, const bool autoskip, const char* program_name)
 {
     int nonzero = 0, addrlen = 9, n = 0, p = 0, x = 0;
     if (!colsgiven || !cols) {
@@ -786,24 +855,24 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     const int grplen = octspergrp + octspergrp + 1 + (color ? 11 * octspergrp : 0); // chars per octet group
     while ((length < 0 || n < length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)(n + seekoff + displayoff)));
+            addrlen = snprintf(buffer, LLENP1, decimal_format_string, ((unsigned long)n + (unsigned long)seekoff + displayoff));
             for (c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
         }
         x = p ^ (octspergrp - 1);
         c = addrlen + 1 + (grplen * x) / octspergrp;
         if (color) {
-            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
             buffer[c++] = hex_digits[(e >> 4) & 0xf];
             buffer[c++] = hex_digits[e & 0xf];
             clear_color(buffer, &c);
             c = addrlen + 3 + (grplen * cols - 1) / octspergrp + p * 12 + 1;
             nonzero += e ? 1 : 0;
-            set_color(buffer, &c, ascii ? ascii_char_color(e) : ebcdic_char_color(e));
+            set_color(buffer, &c, ascii ? ascii_char_color((unsigned char)e) : ebcdic_char_color((unsigned char)e));
             if (!ascii) { // EBCDIC
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
             clear_color(buffer, &c);
         } else { // no color
             buffer[c] = hex_digits[(e >> 4) & 0xf];
@@ -814,7 +883,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
                 e = (e < 64) ? '.' : etoa64[e - 64];
             }
             c += addrlen + 2 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : e;
+            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
         }
         n++;
         if (++p == cols) {
@@ -854,7 +923,7 @@ int hex_littleendian(char* buffer, char* z, const bool colsgiven, int cols, int 
     return 0;
 }
 
-const char* base_name(const char* path)
+static const char* base_name(const char* path)
 {
     const char* lastSlash = strrchr(path, '/');
     return (lastSlash == NULL) ? path : lastSlash + 1;
