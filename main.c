@@ -326,7 +326,7 @@ static inline void set_color(char* buffer, int* c, const enum ColorDigit color_d
     buffer[(*c)++] = '1';
     buffer[(*c)++] = ';';
     buffer[(*c)++] = '3';
-    buffer[(*c)++] = color_digit;
+    buffer[(*c)++] = (char)color_digit;
     buffer[(*c)++] = 'm';
 }
 
