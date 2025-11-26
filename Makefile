@@ -1,6 +1,6 @@
 .PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors
+CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
 #CFLAGS += -Wconversion
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -121,7 +121,7 @@ testfiles/xxd.c:
 	cd testfiles && curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 
 xxd: testfiles/xxd.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) -std=c11 -O2 -pipe -D_GNU_SOURCE -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
