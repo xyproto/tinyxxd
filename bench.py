@@ -310,6 +310,15 @@ def perform_benchmarks():
                             f'Output verification failed: these files differ: "{size}mb{flags}_xxd.hex" and "{size}mb{flags}_tinyxxd.hex".',
                             91,
                         )
+                        try:
+                            diff_output = subprocess.run(
+                                ["diff", f"{size}mb{flags}_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"],
+                                capture_output=True, text=True, check=False
+                            )
+                            print(diff_output.stdout)
+                            print(diff_output.stderr)
+                        except Exception as e:
+                            print(f"Error running diff: {e}")
                         exit(1)
 
             progress_bar(
