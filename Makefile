@@ -1,6 +1,6 @@
 .PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -D_FORTIFY_SOURCE=3
 #CFLAGS += -Wconversion
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
