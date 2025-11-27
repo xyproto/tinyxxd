@@ -1,6 +1,8 @@
 .PHONY: clean fmt install profile test uninstall
 
-CFLAGS ?= -std=c11 -O2 -pipe -finline-functions -fPIC -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+OPTFLAGS ?= -O2 -finline-functions
+WARNFLAGS ?= -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+CFLAGS ?= -std=c11 -pipe -fPIC $(OPTFLAGS) $(WARNFLAGS)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -39,9 +41,9 @@ bench:
 	@rm -f -- *.bin *.dat *.hex *.pkl xxd testfiles/xxd.c
 	@python3 bench.py -q
 
-bench_full:
+benchfull:
 	@rm -f -- *.bin *.dat *.hex *.pkl xxd testfiles/xxd.c
-	@python3 bench.py -q
+	@python3 bench.py
 
 fmt: main.c
 	clang-format -style=WebKit -i main.c
@@ -121,7 +123,7 @@ testfiles/xxd.c:
 	cd testfiles && curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 
 xxd: testfiles/xxd.c
-	$(CC) -std=c11 -O2 -pipe -D_GNU_SOURCE -o $@ $<
+	$(CC) -std=c11 -pipe -D_GNU_SOURCE $(OPTFLAGS) -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"
