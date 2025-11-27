@@ -18,7 +18,7 @@ from urllib.request import urlretrieve
 
 results = []
 previous_results = []
-compilation_command = "make xxd tinyxxd"
+compilation_command = "make clean xxd tinyxxd"
 bench_flags = [
     "",
     "-p",
@@ -191,9 +191,15 @@ def perform_benchmarks():
 
     random.seed()
 
+    elapsed_time = {}
+    for program in programs:
+        elapsed_time[program] = 0
+
     for size in sample_sizes:
         random.shuffle(programs)
         for program in programs:
+            start_time = time.time()
+
             input_file = os.path.join(base_path, f"{size}mb.bin")
             output_file = os.path.join(base_path, f"{size}mb_{program}.hex")
             recon_file = os.path.join(base_path, f"{size}mb_recreated.bin")
@@ -326,11 +332,13 @@ def perform_benchmarks():
                 total_benchmarks,
                 message=f"Completed: {program} // {size}MiB",
             )
+            elapsed_time[program] += time.time() - start_time
 
         cleanup_files_for_size(size)
 
     progress_bar(total_benchmarks, total_benchmarks, message="complete!", length=50)
     print()
+    return elapsed_time
 
 
 def print_final_comparison():
@@ -880,7 +888,7 @@ def main():
     try:
         read_previous_results()
         compile_programs()
-        perform_benchmarks()
+        elapsed_time = perform_benchmarks()
         write_results_to_file()
         generate_html_report()
         generate_markdown_report()
@@ -897,7 +905,9 @@ def main():
             )
             export_benchmark_results_for_each_flag()
             generate_graphs_for_each_flag()
-            print_final_comparison()
+        print_final_comparison()
+        for program, duration in elapsed_time.items():
+            print(f"{program} runtime: {duration:.2f}")
     except KeyboardInterrupt:
         print("\nctrl-c")
     clean_all_hex_bin()
