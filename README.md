@@ -18,6 +18,8 @@ The performance is mostly IO bound.
 
 `tinyxxd` is just a tiny bit faster than `xxd`, but as the size of the input data grows, the performance advantage appears to be increasing.
 
+Note that this may be benchmarked as part of the CI test, which affects the benchmark results, especially for small amounts of test data:
+
 ![performance graph](img/graph_by_size.svg)
 
 For more details, take a look at the latest [benchmark results](benchmark_results.md), which are added by the CI benchmark.
