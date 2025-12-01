@@ -1,4 +1,4 @@
-#### TinyXXD
+## TinyXXD
 
 <img src="img/tinyxxd.svg" width="128" align="right">
 
