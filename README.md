@@ -1,6 +1,4 @@
-## TinyXXD
-
-<img src="img/tinyxxd.svg" width="128" align="right">
+## TinyXXD <img src="img/tinyxxd.svg" width="128" align="right">
 
 [![Build & Benchmark](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml/badge.svg)](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml)
 
