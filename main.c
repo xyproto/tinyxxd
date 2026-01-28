@@ -632,6 +632,7 @@ static int hex_bits(char* buffer, char* z, const Xxd* xxd, int e)
     }
     return 0;
 }
+
 static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
 {
     char current_color = 0;
