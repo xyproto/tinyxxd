@@ -16,7 +16,7 @@ The performance is mostly IO bound.
 
 `tinyxxd` can be profiled by running `make profile` or benchmarked by running `make bench`.
 
-`tinyxxd` is just a tiny bit faster than `xxd`, but as the size of the input data grows, the performance advantage appears to be increasing.
+`tinyxxd` is faster than `xxd`, and as the size of the input data grows, the performance advantage increases.
 
 Note that this may be benchmarked as part of the CI test, which affects the benchmark results, especially for small amounts of test data:
 
