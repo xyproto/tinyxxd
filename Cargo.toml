@@ -1,0 +1,15 @@
+[package]
+name = "tinyxxd"
+version = "1.3.8"
+edition = "2021"
+
+[[bin]]
+name = "tinyxxd"
+path = "src/main.rs"
+
+[dependencies]
+libc = "0.2"
+
+[profile.release]
+opt-level = 2
+lto = true

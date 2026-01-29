@@ -20,16 +20,19 @@ DESTDIR ?=
 VERSION ?= 1.3.8
 RELEASE_DIR := tinyxxd-$(VERSION)
 RELEASE_TARBALL := $(RELEASE_DIR).tar.gz
-RELEASE_FILES := main.c Makefile COPYING README.md
+RELEASE_FILES := src/main.rs Cargo.toml Makefile COPYING README.md
 
-tinyxxd: main.c
-	$(CC) $(CFLAGS) -o $@ $<
+tinyxxd: src/main.rs Cargo.toml
+	cargo build --release
+	cp target/release/tinyxxd $@
 
-tinyxxd_debug: main.c
-	$(CC) $(CFLAGS) -g -o $@ $<
+tinyxxd_debug: src/main.rs Cargo.toml
+	cargo build
+	cp target/debug/tinyxxd $@
 
-tinyxxd_asan: main.c
-	$(CC) $(CFLAGS) -g -fsanitize=address,undefined -o $@ $<
+tinyxxd_asan: src/main.rs Cargo.toml
+	cargo build --release
+	cp target/release/tinyxxd $@
 
 profile: tinyxxd_debug
 	dd if=/dev/random of=sample.bin bs=1M count=1
@@ -45,8 +48,8 @@ benchfull:
 	@rm -f -- *.bin *.dat *.hex *.pkl xxd testfiles/xxd.c
 	@python3 bench.py
 
-fmt: main.c
-	clang-format -style=WebKit -i main.c
+fmt: src/main.rs
+	rustfmt src/main.rs
 
 test: xxd tinyxxd_asan
 	@echo 'Preparing tests...'
@@ -132,4 +135,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -r -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd testfiles/xxd.c xxd_*
+	rm -r -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd testfiles/xxd.c xxd_* target/
