@@ -96,8 +96,8 @@ def benchmark_conversion(program, flags, input_file, output_file, current, total
     cmd_prefix = ""
     if platform.system() == "Linux" and os.path.exists("/usr/bin/tinyionice"):
         cmd_prefix = "sudo tinyionice -c1 -n0 nice -n -20"
-    cmd = f"{cmd_prefix} ./{program} {flags.replace("_", " ")} {input_file} > {output_file}"
-    command_message = f"{program} {flags.replace("_", " ")} // {input_file}"
+    cmd = f"{cmd_prefix} ./{program} {flags.replace('_', ' ')} {input_file} > {output_file}"
+    command_message = f"{program} {flags.replace('_', ' ')} // {input_file}"
     # Update progress bar with command being run
     progress_bar(current + 1, total, message=command_message)
     start_time = time.time()
@@ -260,7 +260,7 @@ def perform_benchmarks():
                     "program": program,
                     "size": size,
                     "conversion_time": conversion_time,
-                    "flags": "",
+                    "flags": "-b",
                 }
             )
             # Conversion back from hex to binary
@@ -282,13 +282,13 @@ def perform_benchmarks():
                     "program": program,
                     "size": size,
                     "conversion_time": reconversion_time,
-                    "flags": "-r",
+                    "flags": "-r_-b",
                 }
             )
 
             for flags in bench_flags:
                 current_benchmark += 1
-                output_file = f"{size}mb{flags}_{program}.hex"
+                output_file = os.path.join(base_path, f"{size}mb{flags}_{program}.hex")
                 conversion_time = benchmark_conversion(
                     program,
                     flags,
@@ -297,7 +297,6 @@ def perform_benchmarks():
                     current_benchmark,
                     total_benchmarks,
                 )
-                flags = flags
                 results.append(
                     {
                         "program": program,
@@ -306,20 +305,20 @@ def perform_benchmarks():
                         "flags": flags,
                     }
                 )
-                if os.path.exists(f"{size}mb{flags}_xxd.hex") and os.path.exists(
-                    f"{size}mb{flags}_tinyxxd.hex"
-                ):
-                    if not verify_files(
-                        f"{size}mb{flags}_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"
-                    ):
+                xxd_hex = os.path.join(base_path, f"{size}mb{flags}_xxd.hex")
+                tinyxxd_hex = os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex")
+                if os.path.exists(xxd_hex) and os.path.exists(tinyxxd_hex):
+                    if not verify_files(xxd_hex, tinyxxd_hex):
                         print_colored(
-                            f'Output verification failed: these files differ: "{size}mb{flags}_xxd.hex" and "{size}mb{flags}_tinyxxd.hex".',
+                            f'Output verification failed: these files differ: "{xxd_hex}" and "{tinyxxd_hex}".',
                             91,
                         )
                         try:
                             diff_output = subprocess.run(
-                                ["diff", f"{size}mb{flags}_xxd.hex", f"{size}mb{flags}_tinyxxd.hex"],
-                                capture_output=True, text=True, check=False
+                                ["diff", xxd_hex, tinyxxd_hex],
+                                capture_output=True,
+                                text=True,
+                                check=False,
                             )
                             print(diff_output.stdout)
                             print(diff_output.stderr)
@@ -672,8 +671,6 @@ def generate_markdown_report():
         for summary in performance_change_summaries:
             md_content += f"- {summary}\n"
 
-    md_content = md_content.replace("xxd", "xxd")
-
     md_content += f"---\nReport generated on: {current_datetime_iso}\n"
 
     # Write the Markdown content to a file
@@ -757,25 +754,28 @@ def export_benchmark_results_for_gnuplot(data_filename, group_by):
                 header_line += " previous_tinyxxd"
             f.write(header_line + "\n")
 
-        for flag in bench_flags:
-            modified_flag = flag.replace("-", "").replace("E", "e_upper")
-            if modified_flag == "":
-                modified_flag = "N/A"
-            data_line = f"'{modified_flag}' " + " ".join(  # Ensure flags are quoted for gnuplot
-                f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['flags'] == flag), 'NaN')}"
-                for prog in ["xxd", "tinyxxd"]
-            )
-            if include_previous:
-                prev_time = next(
-                    (
-                        x["conversion_time"]
-                        for x in previous_results
-                        if x["program"] == "tinyxxd" and x["flags"] == flag
-                    ),
-                    "NaN",
+            for flag in bench_flags:
+                modified_flag = flag.replace("-", "").replace("E", "e_upper")
+                if modified_flag == "":
+                    modified_flag = "N/A"
+                data_line = (
+                    f"'{modified_flag}' "
+                    + " ".join(  # Ensure flags are quoted for gnuplot
+                        f"{next((x['conversion_time'] for x in results if x['program'] == prog and x['flags'] == flag), 'NaN')}"
+                        for prog in ["xxd", "tinyxxd"]
+                    )
                 )
-                data_line += f" {prev_time}"
-            f.write(data_line + "\n")
+                if include_previous:
+                    prev_time = next(
+                        (
+                            x["conversion_time"]
+                            for x in previous_results
+                            if x["program"] == "tinyxxd" and x["flags"] == flag
+                        ),
+                        "NaN",
+                    )
+                    data_line += f" {prev_time}"
+                f.write(data_line + "\n")
 
     print(f"Wrote {data_filename}.")
 
