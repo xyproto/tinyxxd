@@ -88,12 +88,15 @@ const uint8_t etoa64[] = {
 
 static inline int parse_hex_digit(int c)
 {
-    if (c >= '0' && c <= '9')
+    if (c >= '0' && c <= '9') {
         return c - '0';
-    if (c >= 'a' && c <= 'f')
+    }
+    if (c >= 'a' && c <= 'f') {
         return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F')
+    }
+    if (c >= 'A' && c <= 'F') {
         return c - 'A' + 10;
+    }
     return -1;
 }
 
@@ -128,7 +131,6 @@ static void exit_with_col_error(const char* program_name)
 static inline int getc_or_die(int* ch, const Xxd* xxd_config)
 {
     Xxd* xxd = (Xxd*)xxd_config;
-
     if (xxd->input_buffer_pos >= xxd->input_buffer_len) {
         xxd->input_buffer_len = fread(xxd->input_buffer, 1, INPUT_BUFFER_SIZE, xxd->input);
         xxd->input_buffer_pos = 0;
@@ -414,9 +416,7 @@ static inline enum ColorDigit ascii_char_color(const uint8_t e)
 
 static int hex_postscript(const Xxd* xxd, int e)
 {
-    if (!xxd->colsgiven) {
-        // cols = 30; // handled in main init
-    } else if (xxd->cols < 0) {
+    if (xxd->colsgiven && xxd->cols < 0) {
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
@@ -449,7 +449,6 @@ static int hex_cinclude(const Xxd* xxd, int e)
     }
     const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
     int c;
-
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -502,7 +501,6 @@ static int hex_cinclude_bits(const Xxd* xxd, int e)
     }
     const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
     int c;
-
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -639,10 +637,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
     long n = 0;
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
-
-    if (!xxd->colsgiven || !xxd->cols) {
-        // cols = 16;
-    } else if (xxd->cols < 1 || xxd->cols > COLS) {
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
@@ -654,31 +649,24 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
     } else if (octspergrp < 1 || octspergrp > xxd->cols) {
         octspergrp = xxd->cols;
     }
-
     getc_or_die(&e, xxd);
-
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         line_data[p] = (uint8_t)e;
-
         if (xxd->ascii) {
-            if (e)
+            if (e) {
                 nonzero++;
+            }
         } else {
-            if (e == 0 || e < 64)
-                nonzero++;
-            else
-                nonzero++;
+            nonzero++;
         }
-
         n++;
         p++;
-
         if (p == xxd->cols) {
             int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff));
-            while (buf_idx < 9)
+            while (buf_idx < 9) {
                 buffer[buf_idx++] = ' ';
+            }
             buffer[buf_idx++] = ' ';
-
             for (int i = 0; i < p; i++) {
                 if (i > 0 && (i % octspergrp) == 0) {
                     if (current_color != 0) {
@@ -687,60 +675,58 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                     }
                     buffer[buf_idx++] = ' ';
                 }
-
                 int val = line_data[i];
                 char new_color = 0;
                 if (xxd->color) {
-                    if (xxd->ascii)
+                    if (xxd->ascii) {
                         new_color = (char)ascii_char_color((uint8_t)val);
-                    else
+                    } else {
                         new_color = (char)ebcdic_char_color((uint8_t)val);
+                    }
                 }
-
                 if (new_color != current_color) {
-                    if (current_color != 0)
+                    if (current_color != 0) {
                         clear_color(buffer, &buf_idx);
-                    if (new_color != 0)
+                    }
+                    if (new_color != 0) {
                         set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
+                    }
                     current_color = new_color;
                 }
-
                 buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
                 buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
             }
-
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
                 current_color = 0;
             }
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
-
             for (int i = 0; i < p; i++) {
                 int val = line_data[i];
                 int pval = val;
                 if (!xxd->ascii) { // If EBCDIC mode
                     pval = (val < 64) ? '.' : etoa64[val - 64];
                 }
-
                 char new_color = 0;
                 if (xxd->color && xxd->ascii) { // Only colorize if color is enabled AND in ASCII mode
-                    if (xxd->ascii)
+                    if (xxd->ascii) {
                         new_color = (char)ascii_char_color((uint8_t)val);
-                    else
+                    } else {
                         new_color = (char)ebcdic_char_color((uint8_t)val);
+                    }
                 }
                 if (new_color != current_color) {
-                    if (current_color != 0)
+                    if (current_color != 0) {
                         clear_color(buffer, &buf_idx);
-                    if (new_color != 0)
+                    }
+                    if (new_color != 0) {
                         set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
+                    }
                     current_color = new_color;
                 }
-
                 buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
             }
-
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
                 current_color = 0;
@@ -748,19 +734,17 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
             buffer[buf_idx++] = '\n';
             buffer[buf_idx] = '\0';
             print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
-
             p = 0;
             nonzero = 0;
         }
         getc_or_die(&e, xxd);
     }
-
     if (p) {
         int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff));
-        while (buf_idx < 9)
+        while (buf_idx < 9) {
             buffer[buf_idx++] = ' ';
+        }
         buffer[buf_idx++] = ' ';
-
         for (int i = 0; i < p; i++) {
             if (i > 0 && (i % octspergrp) == 0) {
                 if (current_color != 0) {
@@ -769,16 +753,15 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 }
                 buffer[buf_idx++] = ' ';
             }
-
             int val = line_data[i];
             char new_color = 0;
             if (xxd->color) {
-                if (xxd->ascii)
+                if (xxd->ascii) {
                     new_color = (char)ascii_char_color((uint8_t)val);
-                else
+                } else {
                     new_color = (char)ebcdic_char_color((uint8_t)val);
+                }
             }
-
             if (new_color != current_color) {
                 if (current_color != 0)
                     clear_color(buffer, &buf_idx);
@@ -786,27 +769,23 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                     set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
                 current_color = new_color;
             }
-
             buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
             buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
         }
-
         if (current_color != 0) {
             clear_color(buffer, &buf_idx);
             current_color = 0;
         }
-
         int hex_pad_count = (xxd->cols - p);
-        int hex_pad_seps = (xxd->cols - p) / octspergrp;
-
+        int hex_pad_seps = hex_pad_count / octspergrp;
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
         }
-
         if (xxd->color) {
             if (COLOR_RED != current_color) {
-                if (current_color != 0)
+                if (current_color != 0) {
                     clear_color(buffer, &buf_idx);
+                }
                 set_color(buffer, &buf_idx, COLOR_RED);
                 current_color = COLOR_RED;
             }
@@ -822,9 +801,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 buffer[buf_idx++] = ' ';
             }
         }
-
         buffer[buf_idx++] = ' ';
-
         for (int i = 0; i < p; i++) {
             int val = line_data[i];
             int pval = val; // Initialize pval
@@ -833,23 +810,23 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
             }
             char new_color = 0;
             if (xxd->color && xxd->ascii) {
-                if (xxd->ascii)
+                if (xxd->ascii) {
                     new_color = (char)ascii_char_color((uint8_t)val);
-                else
+                } else {
                     new_color = (char)ebcdic_char_color((uint8_t)val);
+                }
             }
-
             if (new_color != current_color) {
-                if (current_color != 0)
+                if (current_color != 0) {
                     clear_color(buffer, &buf_idx);
-                if (new_color != 0)
+                }
+                if (new_color != 0) {
                     set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
+                }
                 current_color = new_color;
             }
-
             buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
         }
-
         if (current_color != 0) {
             clear_color(buffer, &buf_idx);
             current_color = 0;
@@ -868,9 +845,7 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
     int nonzero = 0, addrlen = 9, p = 0, x = 0;
     int max_idx = 0;
     long n = 0;
-    if (!xxd->colsgiven || !xxd->cols) {
-        // cols = 16; // already defaults in main
-    } else if (xxd->cols < 1 || xxd->cols > COLS) {
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
@@ -900,9 +875,9 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             buffer[c++] = xxd->hex_digits[(e >> 4) & 0xf];
             buffer[c++] = xxd->hex_digits[e & 0xf];
             clear_color(buffer, &c);
-            if (c > max_idx)
+            if (c > max_idx) {
                 max_idx = c;
-
+            }
             c = addrlen + 3 + (grplen * xxd->cols - 1) / octspergrp + p * 12 + 1;
             nonzero += e ? 1 : 0;
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
@@ -911,14 +886,15 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             }
             buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
             clear_color(buffer, &c);
-            if (c > max_idx)
+            if (c > max_idx) {
                 max_idx = c;
+            }
         } else { // no color
             buffer[c] = xxd->hex_digits[(e >> 4) & 0xf];
             buffer[++c] = xxd->hex_digits[e & 0xf];
-            if (c + 1 > max_idx)
+            if (c + 1 > max_idx) {
                 max_idx = c + 1;
-
+            }
             c = grplen * ((xxd->cols + octspergrp - 1) / octspergrp);
             nonzero += e ? 1 : 0;
             if (!xxd->ascii) {
@@ -926,8 +902,9 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             }
             c += addrlen + 2 + p;
             buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
-            if (c > max_idx)
+            if (c > max_idx) {
                 max_idx = c;
+            }
         }
         n++;
         if (++p == xxd->cols) {
@@ -1002,7 +979,6 @@ int main(int argc, char* argv[])
         .input_buffer_pos = 0,
         .input_buffer_len = 0
     };
-
     enum HexType {
         HEX_NORMAL,
         HEX_BITS,
@@ -1017,7 +993,6 @@ int main(int argc, char* argv[])
     errno = 0;
     char* pp = NULL;
     int relseek = 0;
-
     while (argc >= 2) {
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
@@ -1103,7 +1078,6 @@ int main(int argc, char* argv[])
             char* seek_arg_ptr = pp + 2;
             xxd.negseek = false;
             xxd.relative_seek = false;
-
             if (*seek_arg_ptr == '+') {
                 xxd.relative_seek = true;
                 seek_arg_ptr++;
@@ -1113,7 +1087,6 @@ int main(int argc, char* argv[])
                 seek_arg_ptr++;
             }
             xxd.seekoff = strtol(seek_arg_ptr, (char**)NULL, 0);
-
             if (!pp[2]) { // This means -s was given without an argument following immediately
                 // Handle case where argument is in argv[2]
                 if (!argv[2]) {
@@ -1186,11 +1159,9 @@ int main(int argc, char* argv[])
         argv++; // advance to next argument
         argc--;
     }
-
     if (xxd.uppercase_hex) {
         xxd.hex_digits = "0123456789ABCDEF";
     }
-
     // Default cols logic
     if (!xxd.colsgiven || !xxd.cols) {
         switch (hextype) {
@@ -1215,7 +1186,6 @@ int main(int argc, char* argv[])
     } else if (hextype != HEX_POSTSCRIPT && xxd.cols < 1) {
         exit_with_col_error(xxd.program_name);
     }
-
     // Default octspergrp logic
     if (xxd.octspergrp < 0) {
         switch (hextype) {
@@ -1233,9 +1203,9 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    if (xxd.octspergrp < 1)
+    if (xxd.octspergrp < 1) {
         xxd.octspergrp = xxd.cols; // fallback if 0
-
+    }
     if (argc > 3) {
         exit_with_usage(xxd.program_name, version);
     } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
@@ -1248,7 +1218,6 @@ int main(int argc, char* argv[])
     } else {
         xxd.input_filename = argv[1];
     }
-
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         xxd.output = stdout;
     } else {
@@ -1261,7 +1230,6 @@ int main(int argc, char* argv[])
         }
         rewind(xxd.output);
     }
-
     int e = 0;
     if (xxd.seekoff || xxd.negseek || !relseek) {
         if (xxd.negseek) {
@@ -1283,7 +1251,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-
     static char buffer[LLENP1];
     static char z[LLENP1];
     int status = 0;
