@@ -64,3 +64,4 @@ tinyxxd_debug
 xxd
 xxd.c
 xxd_*
+__pycache__/
