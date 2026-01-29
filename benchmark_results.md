@@ -33,118 +33,106 @@
 | Program | Size (MiB) | Conversion Time (s) | Flags |
 |---------|------------|----------------------|-------|
 | xxd | 64 | 1.36 |  |
-| xxd | 64 | 2.26 | -r |
-| xxd | 64 | 4.06 | -b |
-| xxd | 64 | 4.72 | -r -b |
-| xxd | 64 | 1.75 |  |
-| xxd | 64 | 1.10 | -p |
-| xxd | 64 | 4.92 | -i |
-| xxd | 64 | 1.35 | -e |
-| xxd | 64 | 2.73 | -b |
-| xxd | 64 | 1.32 | -u |
-| xxd | 64 | 1.48 | -E |
+| xxd | 64 | 2.33 | -r |
+| xxd | 64 | 4.08 | -b |
+| xxd | 64 | 4.56 | -r -b |
+| xxd | 64 | 1.71 |  |
+| xxd | 64 | 1.07 | -p |
+| xxd | 64 | 4.86 | -i |
+| xxd | 64 | 1.32 | -e |
+| xxd | 64 | 2.67 | -b |
+| xxd | 64 | 1.34 | -u |
+| xxd | 64 | 1.45 | -E |
 | xxd | 64 | 5.84 | -b -i |
-| tinyxxd | 64 | 1.01 |  |
-| tinyxxd | 64 | 1.43 | -r |
-| tinyxxd | 64 | 4.56 | -b |
-| tinyxxd | 64 | 2.04 | -r -b |
-| tinyxxd | 64 | 1.26 |  |
-| tinyxxd | 64 | 0.92 | -p |
-| tinyxxd | 64 | 4.74 | -i |
-| tinyxxd | 64 | 1.10 | -e |
-| tinyxxd | 64 | 3.24 | -b |
+| tinyxxd | 64 | 1.00 |  |
+| tinyxxd | 64 | 1.47 | -r |
+| tinyxxd | 64 | 5.03 | -b |
+| tinyxxd | 64 | 2.03 | -r -b |
+| tinyxxd | 64 | 1.32 |  |
+| tinyxxd | 64 | 0.95 | -p |
+| tinyxxd | 64 | 4.65 | -i |
+| tinyxxd | 64 | 1.09 | -e |
+| tinyxxd | 64 | 3.19 | -b |
 | tinyxxd | 64 | 1.00 | -u |
-| tinyxxd | 64 | 1.10 | -E |
-| tinyxxd | 64 | 4.10 | -b -i |
+| tinyxxd | 64 | 1.09 | -E |
+| tinyxxd | 64 | 4.09 | -b -i |
 | xxd | 32 | 0.67 |  |
-| xxd | 32 | 1.15 | -r |
-| xxd | 32 | 1.81 | -b |
-| xxd | 32 | 2.34 | -r -b |
-| xxd | 32 | 0.76 |  |
+| xxd | 32 | 1.12 | -r |
+| xxd | 32 | 1.77 | -b |
+| xxd | 32 | 2.27 | -r -b |
+| xxd | 32 | 0.74 |  |
 | xxd | 32 | 0.55 | -p |
-| xxd | 32 | 2.47 | -i |
+| xxd | 32 | 2.39 | -i |
 | xxd | 32 | 0.67 | -e |
 | xxd | 32 | 1.33 | -b |
-| xxd | 32 | 0.66 | -u |
+| xxd | 32 | 0.64 | -u |
 | xxd | 32 | 0.73 | -E |
-| xxd | 32 | 2.92 | -b -i |
-| tinyxxd | 32 | 0.51 |  |
-| tinyxxd | 32 | 0.71 | -r |
-| tinyxxd | 32 | 3.14 | -b |
-| tinyxxd | 32 | 0.99 | -r -b |
+| xxd | 32 | 2.97 | -b -i |
+| tinyxxd | 32 | 0.52 |  |
+| tinyxxd | 32 | 0.65 | -r |
+| tinyxxd | 32 | 2.06 | -b |
+| tinyxxd | 32 | 1.02 | -r -b |
 | tinyxxd | 32 | 0.58 |  |
-| tinyxxd | 32 | 0.45 | -p |
-| tinyxxd | 32 | 2.30 | -i |
-| tinyxxd | 32 | 0.55 | -e |
-| tinyxxd | 32 | 1.60 | -b |
-| tinyxxd | 32 | 0.50 | -u |
-| tinyxxd | 32 | 0.59 | -E |
-| tinyxxd | 32 | 2.09 | -b -i |
+| tinyxxd | 32 | 0.47 | -p |
+| tinyxxd | 32 | 2.29 | -i |
+| tinyxxd | 32 | 0.57 | -e |
+| tinyxxd | 32 | 1.57 | -b |
+| tinyxxd | 32 | 0.49 | -u |
+| tinyxxd | 32 | 0.55 | -E |
+| tinyxxd | 32 | 2.07 | -b -i |
 | xxd | 16 | 0.33 |  |
-| xxd | 16 | 0.57 | -r |
-| xxd | 16 | 0.82 | -b |
-| xxd | 16 | 1.20 | -r -b |
-| xxd | 16 | 0.37 |  |
+| xxd | 16 | 0.58 | -r |
+| xxd | 16 | 0.78 | -b |
+| xxd | 16 | 1.13 | -r -b |
+| xxd | 16 | 0.36 |  |
 | xxd | 16 | 0.28 | -p |
-| xxd | 16 | 1.22 | -i |
+| xxd | 16 | 1.25 | -i |
 | xxd | 16 | 0.34 | -e |
-| xxd | 16 | 0.67 | -b |
+| xxd | 16 | 0.66 | -b |
 | xxd | 16 | 0.33 | -u |
-| xxd | 16 | 0.37 | -E |
-| xxd | 16 | 1.49 | -b -i |
-| tinyxxd | 16 | 0.25 |  |
-| tinyxxd | 16 | 0.36 | -r |
-| tinyxxd | 16 | 1.02 | -b |
-| tinyxxd | 16 | 0.50 | -r -b |
+| xxd | 16 | 0.36 | -E |
+| xxd | 16 | 1.45 | -b -i |
+| tinyxxd | 16 | 0.24 |  |
+| tinyxxd | 16 | 0.33 | -r |
+| tinyxxd | 16 | 1.01 | -b |
+| tinyxxd | 16 | 0.51 | -r -b |
 | tinyxxd | 16 | 0.29 |  |
-| tinyxxd | 16 | 0.23 | -p |
-| tinyxxd | 16 | 1.15 | -i |
+| tinyxxd | 16 | 0.24 | -p |
+| tinyxxd | 16 | 1.17 | -i |
 | tinyxxd | 16 | 0.28 | -e |
-| tinyxxd | 16 | 0.80 | -b |
+| tinyxxd | 16 | 0.79 | -b |
 | tinyxxd | 16 | 0.25 | -u |
 | tinyxxd | 16 | 0.27 | -E |
-| tinyxxd | 16 | 1.02 | -b -i |
+| tinyxxd | 16 | 1.05 | -b -i |
 | tinyxxd | 8 | 0.13 |  |
-| tinyxxd | 8 | 0.18 | -r |
+| tinyxxd | 8 | 0.16 | -r |
 | tinyxxd | 8 | 0.43 | -b |
-| tinyxxd | 8 | 0.25 | -r -b |
+| tinyxxd | 8 | 0.26 | -r -b |
 | tinyxxd | 8 | 0.15 |  |
 | tinyxxd | 8 | 0.12 | -p |
-| tinyxxd | 8 | 0.59 | -i |
+| tinyxxd | 8 | 0.58 | -i |
 | tinyxxd | 8 | 0.14 | -e |
 | tinyxxd | 8 | 0.40 | -b |
 | tinyxxd | 8 | 0.13 | -u |
-| tinyxxd | 8 | 0.14 | -E |
+| tinyxxd | 8 | 0.13 | -E |
 | tinyxxd | 8 | 0.51 | -b -i |
 | xxd | 8 | 0.17 |  |
 | xxd | 8 | 0.29 | -r |
 | xxd | 8 | 0.36 | -b |
-| xxd | 8 | 0.61 | -r -b |
+| xxd | 8 | 0.58 | -r -b |
 | xxd | 8 | 0.19 |  |
 | xxd | 8 | 0.14 | -p |
 | xxd | 8 | 0.61 | -i |
 | xxd | 8 | 0.17 | -e |
-| xxd | 8 | 0.34 | -b |
+| xxd | 8 | 0.33 | -b |
 | xxd | 8 | 0.17 | -u |
 | xxd | 8 | 0.19 | -E |
-| xxd | 8 | 0.75 | -b -i |
-| xxd | 4 | 0.09 |  |
-| xxd | 4 | 0.15 | -r |
-| xxd | 4 | 0.18 | -b |
-| xxd | 4 | 0.28 | -r -b |
-| xxd | 4 | 0.10 |  |
-| xxd | 4 | 0.07 | -p |
-| xxd | 4 | 0.31 | -i |
-| xxd | 4 | 0.09 | -e |
-| xxd | 4 | 0.17 | -b |
-| xxd | 4 | 0.08 | -u |
-| xxd | 4 | 0.09 | -E |
-| xxd | 4 | 0.38 | -b -i |
+| xxd | 8 | 0.73 | -b -i |
 | tinyxxd | 4 | 0.06 |  |
-| tinyxxd | 4 | 0.09 | -r |
+| tinyxxd | 4 | 0.08 | -r |
 | tinyxxd | 4 | 0.21 | -b |
 | tinyxxd | 4 | 0.13 | -r -b |
-| tinyxxd | 4 | 0.07 |  |
+| tinyxxd | 4 | 0.08 |  |
 | tinyxxd | 4 | 0.06 | -p |
 | tinyxxd | 4 | 0.29 | -i |
 | tinyxxd | 4 | 0.07 | -e |
@@ -152,8 +140,20 @@
 | tinyxxd | 4 | 0.06 | -u |
 | tinyxxd | 4 | 0.07 | -E |
 | tinyxxd | 4 | 0.26 | -b -i |
+| xxd | 4 | 0.08 |  |
+| xxd | 4 | 0.15 | -r |
+| xxd | 4 | 0.18 | -b |
+| xxd | 4 | 0.32 | -r -b |
+| xxd | 4 | 0.10 |  |
+| xxd | 4 | 0.07 | -p |
+| xxd | 4 | 0.31 | -i |
+| xxd | 4 | 0.09 | -e |
+| xxd | 4 | 0.17 | -b |
+| xxd | 4 | 0.08 | -u |
+| xxd | 4 | 0.09 | -E |
+| xxd | 4 | 0.37 | -b -i |
 | tinyxxd | 2 | 0.03 |  |
-| tinyxxd | 2 | 0.05 | -r |
+| tinyxxd | 2 | 0.04 | -r |
 | tinyxxd | 2 | 0.11 | -b |
 | tinyxxd | 2 | 0.07 | -r -b |
 | tinyxxd | 2 | 0.04 |  |
@@ -165,7 +165,7 @@
 | tinyxxd | 2 | 0.04 | -E |
 | tinyxxd | 2 | 0.13 | -b -i |
 | xxd | 2 | 0.04 |  |
-| xxd | 2 | 0.08 | -r |
+| xxd | 2 | 0.07 | -r |
 | xxd | 2 | 0.09 | -b |
 | xxd | 2 | 0.15 | -r -b |
 | xxd | 2 | 0.05 |  |
@@ -187,7 +187,7 @@
 | xxd | 1 | 0.04 | -b |
 | xxd | 1 | 0.02 | -u |
 | xxd | 1 | 0.03 | -E |
-| xxd | 1 | 0.09 | -b -i |
+| xxd | 1 | 0.10 | -b -i |
 | tinyxxd | 1 | 0.02 |  |
 | tinyxxd | 1 | 0.02 | -r |
 | tinyxxd | 1 | 0.06 | -b |
@@ -202,246 +202,261 @@
 | tinyxxd | 1 | 0.07 | -b -i |
 
 ## Performance Summaries
-- For sample size 64 MiB, tinyxxd was 37.20% faster with no flag.
-- For sample size 64 MiB, tinyxxd was 58.44% faster with flags '-r'.
-- For sample size 64 MiB, xxd was 14.63% faster with flags '-b'.
-- For sample size 64 MiB, tinyxxd was 131.01% faster with flags '-r -b'.
-- For sample size 64 MiB, tinyxxd was 19.28% faster with flags '-p'.
-- For sample size 64 MiB, tinyxxd was 23.09% faster with flags '-e'.
-- For sample size 64 MiB, tinyxxd was 32.55% faster with flags '-u'.
-- For sample size 64 MiB, tinyxxd was 34.42% faster with flags '-E'.
-- For sample size 64 MiB, tinyxxd was 42.40% faster with flags '-b -i'.
-- For sample size 32 MiB, tinyxxd was 30.95% faster with no flag.
-- For sample size 32 MiB, tinyxxd was 62.05% faster with flags '-r'.
-- For sample size 32 MiB, xxd was 50.94% faster with flags '-b'.
-- For sample size 32 MiB, tinyxxd was 135.60% faster with flags '-r -b'.
-- For sample size 32 MiB, tinyxxd was 20.83% faster with flags '-p'.
-- For sample size 32 MiB, tinyxxd was 7.39% faster with flags '-i'.
-- For sample size 32 MiB, tinyxxd was 22.94% faster with flags '-e'.
-- For sample size 32 MiB, tinyxxd was 31.41% faster with flags '-u'.
-- For sample size 32 MiB, tinyxxd was 23.93% faster with flags '-E'.
-- For sample size 32 MiB, tinyxxd was 39.80% faster with flags '-b -i'.
-- For sample size 16 MiB, tinyxxd was 29.71% faster with no flag.
-- For sample size 16 MiB, tinyxxd was 60.54% faster with flags '-r'.
-- For sample size 16 MiB, xxd was 22.21% faster with flags '-b'.
-- For sample size 16 MiB, tinyxxd was 140.92% faster with flags '-r -b'.
-- For sample size 16 MiB, tinyxxd was 20.75% faster with flags '-p'.
-- For sample size 16 MiB, tinyxxd was 5.76% faster with flags '-i'.
-- For sample size 16 MiB, tinyxxd was 22.33% faster with flags '-e'.
-- For sample size 16 MiB, tinyxxd was 32.46% faster with flags '-u'.
-- For sample size 16 MiB, tinyxxd was 34.32% faster with flags '-E'.
-- For sample size 16 MiB, tinyxxd was 45.96% faster with flags '-b -i'.
-- For sample size 8 MiB, tinyxxd was 28.77% faster with no flag.
-- For sample size 8 MiB, tinyxxd was 64.62% faster with flags '-r'.
-- For sample size 8 MiB, xxd was 20.40% faster with flags '-b'.
-- For sample size 8 MiB, tinyxxd was 142.06% faster with flags '-r -b'.
-- For sample size 8 MiB, tinyxxd was 15.31% faster with flags '-p'.
-- For sample size 8 MiB, tinyxxd was 21.74% faster with flags '-e'.
-- For sample size 8 MiB, tinyxxd was 34.39% faster with flags '-u'.
-- For sample size 8 MiB, tinyxxd was 32.85% faster with flags '-E'.
-- For sample size 8 MiB, tinyxxd was 45.35% faster with flags '-b -i'.
-- For sample size 4 MiB, tinyxxd was 30.91% faster with no flag.
-- For sample size 4 MiB, tinyxxd was 60.73% faster with flags '-r'.
-- For sample size 4 MiB, xxd was 17.71% faster with flags '-b'.
-- For sample size 4 MiB, tinyxxd was 118.61% faster with flags '-r -b'.
-- For sample size 4 MiB, tinyxxd was 19.97% faster with flags '-p'.
-- For sample size 4 MiB, tinyxxd was 19.91% faster with flags '-e'.
-- For sample size 4 MiB, tinyxxd was 32.50% faster with flags '-u'.
-- For sample size 4 MiB, tinyxxd was 31.85% faster with flags '-E'.
-- For sample size 4 MiB, tinyxxd was 45.71% faster with flags '-b -i'.
-- For sample size 2 MiB, tinyxxd was 26.41% faster with no flag.
-- For sample size 2 MiB, tinyxxd was 62.62% faster with flags '-r'.
-- For sample size 2 MiB, xxd was 19.83% faster with flags '-b'.
-- For sample size 2 MiB, tinyxxd was 122.59% faster with flags '-r -b'.
-- For sample size 2 MiB, tinyxxd was 17.99% faster with flags '-p'.
-- For sample size 2 MiB, tinyxxd was 15.97% faster with flags '-e'.
-- For sample size 2 MiB, tinyxxd was 31.12% faster with flags '-u'.
-- For sample size 2 MiB, tinyxxd was 31.25% faster with flags '-E'.
-- For sample size 2 MiB, tinyxxd was 44.97% faster with flags '-b -i'.
-- For sample size 1 MiB, tinyxxd was 26.65% faster with no flag.
-- For sample size 1 MiB, tinyxxd was 56.06% faster with flags '-r'.
-- For sample size 1 MiB, xxd was 17.57% faster with flags '-b'.
-- For sample size 1 MiB, tinyxxd was 118.76% faster with flags '-r -b'.
-- For sample size 1 MiB, tinyxxd was 16.97% faster with flags '-p'.
-- For sample size 1 MiB, tinyxxd was 18.68% faster with flags '-e'.
-- For sample size 1 MiB, tinyxxd was 30.47% faster with flags '-u'.
-- For sample size 1 MiB, tinyxxd was 32.25% faster with flags '-E'.
-- For sample size 1 MiB, tinyxxd was 36.74% faster with flags '-b -i'.
+- For sample size 64 MiB, tinyxxd was 32.60% faster with no flag.
+- For sample size 64 MiB, tinyxxd was 57.90% faster with flags '-r'.
+- For sample size 64 MiB, xxd was 21.71% faster with flags '-b'.
+- For sample size 64 MiB, tinyxxd was 124.84% faster with flags '-r -b'.
+- For sample size 64 MiB, tinyxxd was 11.76% faster with flags '-p'.
+- For sample size 64 MiB, tinyxxd was 20.99% faster with flags '-e'.
+- For sample size 64 MiB, tinyxxd was 33.57% faster with flags '-u'.
+- For sample size 64 MiB, tinyxxd was 33.58% faster with flags '-E'.
+- For sample size 64 MiB, tinyxxd was 42.90% faster with flags '-b -i'.
+- For sample size 32 MiB, tinyxxd was 28.12% faster with no flag.
+- For sample size 32 MiB, tinyxxd was 73.04% faster with flags '-r'.
+- For sample size 32 MiB, xxd was 17.20% faster with flags '-b'.
+- For sample size 32 MiB, tinyxxd was 123.47% faster with flags '-r -b'.
+- For sample size 32 MiB, tinyxxd was 15.57% faster with flags '-p'.
+- For sample size 32 MiB, tinyxxd was 17.06% faster with flags '-e'.
+- For sample size 32 MiB, tinyxxd was 30.44% faster with flags '-u'.
+- For sample size 32 MiB, tinyxxd was 32.91% faster with flags '-E'.
+- For sample size 32 MiB, tinyxxd was 43.79% faster with flags '-b -i'.
+- For sample size 16 MiB, tinyxxd was 29.91% faster with no flag.
+- For sample size 16 MiB, tinyxxd was 77.71% faster with flags '-r'.
+- For sample size 16 MiB, xxd was 24.17% faster with flags '-b'.
+- For sample size 16 MiB, tinyxxd was 122.37% faster with flags '-r -b'.
+- For sample size 16 MiB, tinyxxd was 15.50% faster with flags '-p'.
+- For sample size 16 MiB, tinyxxd was 6.97% faster with flags '-i'.
+- For sample size 16 MiB, tinyxxd was 21.57% faster with flags '-e'.
+- For sample size 16 MiB, tinyxxd was 29.95% faster with flags '-u'.
+- For sample size 16 MiB, tinyxxd was 34.81% faster with flags '-E'.
+- For sample size 16 MiB, tinyxxd was 37.85% faster with flags '-b -i'.
+- For sample size 8 MiB, tinyxxd was 28.45% faster with no flag.
+- For sample size 8 MiB, tinyxxd was 79.14% faster with flags '-r'.
+- For sample size 8 MiB, xxd was 20.23% faster with flags '-b'.
+- For sample size 8 MiB, tinyxxd was 128.21% faster with flags '-r -b'.
+- For sample size 8 MiB, tinyxxd was 14.04% faster with flags '-p'.
+- For sample size 8 MiB, tinyxxd was 5.73% faster with flags '-i'.
+- For sample size 8 MiB, tinyxxd was 19.41% faster with flags '-e'.
+- For sample size 8 MiB, tinyxxd was 31.78% faster with flags '-u'.
+- For sample size 8 MiB, tinyxxd was 37.95% faster with flags '-E'.
+- For sample size 8 MiB, tinyxxd was 43.87% faster with flags '-b -i'.
+- For sample size 4 MiB, tinyxxd was 32.46% faster with no flag.
+- For sample size 4 MiB, tinyxxd was 80.51% faster with flags '-r'.
+- For sample size 4 MiB, xxd was 18.64% faster with flags '-b'.
+- For sample size 4 MiB, tinyxxd was 146.38% faster with flags '-r -b'.
+- For sample size 4 MiB, tinyxxd was 12.89% faster with flags '-p'.
+- For sample size 4 MiB, tinyxxd was 5.69% faster with flags '-i'.
+- For sample size 4 MiB, tinyxxd was 16.82% faster with flags '-e'.
+- For sample size 4 MiB, tinyxxd was 34.41% faster with flags '-u'.
+- For sample size 4 MiB, tinyxxd was 35.68% faster with flags '-E'.
+- For sample size 4 MiB, tinyxxd was 45.69% faster with flags '-b -i'.
+- For sample size 2 MiB, tinyxxd was 26.25% faster with no flag.
+- For sample size 2 MiB, tinyxxd was 74.91% faster with flags '-r'.
+- For sample size 2 MiB, xxd was 17.56% faster with flags '-b'.
+- For sample size 2 MiB, tinyxxd was 119.26% faster with flags '-r -b'.
+- For sample size 2 MiB, tinyxxd was 11.03% faster with flags '-p'.
+- For sample size 2 MiB, tinyxxd was 19.14% faster with flags '-e'.
+- For sample size 2 MiB, tinyxxd was 30.17% faster with flags '-u'.
+- For sample size 2 MiB, tinyxxd was 34.05% faster with flags '-E'.
+- For sample size 2 MiB, tinyxxd was 41.71% faster with flags '-b -i'.
+- For sample size 1 MiB, tinyxxd was 27.48% faster with no flag.
+- For sample size 1 MiB, tinyxxd was 69.74% faster with flags '-r'.
+- For sample size 1 MiB, xxd was 15.75% faster with flags '-b'.
+- For sample size 1 MiB, tinyxxd was 115.01% faster with flags '-r -b'.
+- For sample size 1 MiB, tinyxxd was 13.89% faster with flags '-p'.
+- For sample size 1 MiB, tinyxxd was 18.27% faster with flags '-e'.
+- For sample size 1 MiB, tinyxxd was 32.83% faster with flags '-u'.
+- For sample size 1 MiB, tinyxxd was 39.49% faster with flags '-E'.
+- For sample size 1 MiB, tinyxxd was 45.61% faster with flags '-b -i'.
 
 ### Performance by sample size
-- For sample 64 MiB, tinyxxd was 24.22% faster than xxd.
-- For sample 32 MiB, tinyxxd was 14.61% faster than xxd.
-- For sample 16 MiB, tinyxxd was 24.43% faster than xxd.
-- For sample 8 MiB, tinyxxd was 25.21% faster than xxd.
-- For sample 4 MiB, tinyxxd was 24.49% faster than xxd.
-- For sample 2 MiB, tinyxxd was 23.65% faster than xxd.
-- For sample 1 MiB, tinyxxd was 22.08% faster than xxd.
+- For sample 64 MiB, tinyxxd was 21.09% faster than xxd.
+- For sample 32 MiB, tinyxxd was 23.39% faster than xxd.
+- For sample 16 MiB, tinyxxd was 22.24% faster than xxd.
+- For sample 8 MiB, tinyxxd was 25.08% faster than xxd.
+- For sample 4 MiB, tinyxxd was 27.74% faster than xxd.
+- For sample 2 MiB, tinyxxd was 23.70% faster than xxd.
+- For sample 1 MiB, tinyxxd was 24.97% faster than xxd.
 
 ### Performance by flag
-- tinyxxd was 33.75% faster with no flag.
-- tinyxxd was 60.12% faster with flag '-r'.
-- xxd was 24.95% faster with flag '-b'.
-- tinyxxd was 133.44% faster with flag '-r -b'.
-- tinyxxd was 19.57% faster with flag '-p'.
-- tinyxxd was 22.60% faster with flag '-e'.
-- tinyxxd was 32.33% faster with flag '-u'.
-- tinyxxd was 31.39% faster with flag '-E'.
-- tinyxxd was 42.46% faster with flag '-b -i'.
+- tinyxxd was 30.77% faster with no flag.
+- tinyxxd was 66.08% faster with flag '-r'.
+- xxd was 20.62% faster with flag '-b'.
+- tinyxxd was 124.91% faster with flag '-r -b'.
+- tinyxxd was 13.37% faster with flag '-p'.
+- tinyxxd was 19.75% faster with flag '-e'.
+- tinyxxd was 32.18% faster with flag '-u'.
+- tinyxxd was 33.96% faster with flag '-E'.
+- tinyxxd was 42.62% faster with flag '-b -i'.
 
 ### Performance compared to last run
-- For sample 64 MiB with flags '', xxd slowed down by 20.40% compared to the last run.
-- For sample 64 MiB with flags '-r', xxd improved by 36.04% compared to the last run.
-- For sample 64 MiB with flags '-b', xxd slowed down by 73.86% compared to the last run.
-- For sample 64 MiB with flags '', xxd slowed down by 54.90% compared to the last run.
-- For sample 64 MiB with flags '-p', xxd slowed down by 28.54% compared to the last run.
-- For sample 64 MiB with flags '-i', xxd slowed down by 19.40% compared to the last run.
-- For sample 64 MiB with flags '-e', xxd slowed down by 18.01% compared to the last run.
-- For sample 64 MiB with flags '-b', xxd slowed down by 16.90% compared to the last run.
-- For sample 64 MiB with flags '-u', xxd slowed down by 13.60% compared to the last run.
-- For sample 64 MiB with flags '-E', xxd improved by 6.12% compared to the last run.
-- For sample 64 MiB with flags '-b_-i', xxd slowed down by 33.39% compared to the last run.
-- For sample 64 MiB with flags '', tinyxxd slowed down by 19.30% compared to the last run.
-- For sample 64 MiB with flags '-r', tinyxxd improved by 24.29% compared to the last run.
-- For sample 64 MiB with flags '-b', tinyxxd slowed down by 100.28% compared to the last run.
-- For sample 64 MiB with flags '', tinyxxd slowed down by 49.04% compared to the last run.
-- For sample 64 MiB with flags '-p', tinyxxd slowed down by 25.01% compared to the last run.
-- For sample 64 MiB with flags '-i', tinyxxd slowed down by 16.10% compared to the last run.
-- For sample 64 MiB with flags '-e', tinyxxd slowed down by 24.73% compared to the last run.
-- For sample 64 MiB with flags '-b', tinyxxd slowed down by 42.25% compared to the last run.
-- For sample 64 MiB with flags '-u', tinyxxd slowed down by 15.40% compared to the last run.
-- For sample 64 MiB with flags '-E', tinyxxd slowed down by 10.15% compared to the last run.
-- For sample 64 MiB with flags '-b_-i', tinyxxd slowed down by 26.66% compared to the last run.
-- For sample 32 MiB with flags '', xxd slowed down by 18.70% compared to the last run.
-- For sample 32 MiB with flags '-r', xxd improved by 35.02% compared to the last run.
-- For sample 32 MiB with flags '-b', xxd slowed down by 53.37% compared to the last run.
-- For sample 32 MiB with flags '', xxd slowed down by 36.21% compared to the last run.
-- For sample 32 MiB with flags '-p', xxd slowed down by 29.17% compared to the last run.
-- For sample 32 MiB with flags '-i', xxd slowed down by 19.34% compared to the last run.
-- For sample 32 MiB with flags '-e', xxd slowed down by 17.24% compared to the last run.
-- For sample 32 MiB with flags '-b', xxd slowed down by 13.14% compared to the last run.
-- For sample 32 MiB with flags '-u', xxd slowed down by 10.69% compared to the last run.
-- For sample 32 MiB with flags '-E', xxd slowed down by 11.60% compared to the last run.
-- For sample 32 MiB with flags '-b_-i', xxd slowed down by 34.73% compared to the last run.
-- For sample 32 MiB with flags '', tinyxxd slowed down by 19.60% compared to the last run.
-- For sample 32 MiB with flags '-r', tinyxxd improved by 24.44% compared to the last run.
-- For sample 32 MiB with flags '-b', tinyxxd slowed down by 172.88% compared to the last run.
-- For sample 32 MiB with flags '', tinyxxd slowed down by 37.35% compared to the last run.
-- For sample 32 MiB with flags '-p', tinyxxd slowed down by 26.83% compared to the last run.
-- For sample 32 MiB with flags '-i', tinyxxd slowed down by 11.99% compared to the last run.
-- For sample 32 MiB with flags '-e', tinyxxd slowed down by 25.36% compared to the last run.
-- For sample 32 MiB with flags '-b', tinyxxd slowed down by 38.73% compared to the last run.
-- For sample 32 MiB with flags '-u', tinyxxd slowed down by 14.83% compared to the last run.
-- For sample 32 MiB with flags '-E', tinyxxd slowed down by 18.39% compared to the last run.
-- For sample 32 MiB with flags '-b_-i', tinyxxd slowed down by 28.73% compared to the last run.
-- For sample 16 MiB with flags '', xxd slowed down by 17.77% compared to the last run.
-- For sample 16 MiB with flags '-r', xxd improved by 34.68% compared to the last run.
-- For sample 16 MiB with flags '-b', xxd slowed down by 42.69% compared to the last run.
-- For sample 16 MiB with flags '', xxd slowed down by 31.97% compared to the last run.
-- For sample 16 MiB with flags '-p', xxd slowed down by 28.76% compared to the last run.
-- For sample 16 MiB with flags '-i', xxd slowed down by 18.42% compared to the last run.
-- For sample 16 MiB with flags '-e', xxd slowed down by 14.44% compared to the last run.
-- For sample 16 MiB with flags '-b', xxd slowed down by 16.73% compared to the last run.
-- For sample 16 MiB with flags '-u', xxd slowed down by 14.84% compared to the last run.
-- For sample 16 MiB with flags '-E', xxd slowed down by 8.52% compared to the last run.
-- For sample 16 MiB with flags '-b_-i', xxd slowed down by 38.37% compared to the last run.
-- For sample 16 MiB with flags '', tinyxxd slowed down by 17.17% compared to the last run.
-- For sample 16 MiB with flags '-r', tinyxxd improved by 23.79% compared to the last run.
-- For sample 16 MiB with flags '-b', tinyxxd slowed down by 77.89% compared to the last run.
-- For sample 16 MiB with flags '', tinyxxd slowed down by 38.49% compared to the last run.
-- For sample 16 MiB with flags '-p', tinyxxd slowed down by 26.53% compared to the last run.
-- For sample 16 MiB with flags '-i', tinyxxd slowed down by 14.04% compared to the last run.
-- For sample 16 MiB with flags '-e', tinyxxd slowed down by 21.00% compared to the last run.
-- For sample 16 MiB with flags '-b', tinyxxd slowed down by 38.79% compared to the last run.
-- For sample 16 MiB with flags '-u', tinyxxd slowed down by 16.41% compared to the last run.
-- For sample 16 MiB with flags '-E', tinyxxd slowed down by 9.76% compared to the last run.
-- For sample 16 MiB with flags '-b_-i', tinyxxd slowed down by 25.33% compared to the last run.
-- For sample 8 MiB with flags '', tinyxxd slowed down by 18.14% compared to the last run.
-- For sample 8 MiB with flags '-r', tinyxxd improved by 24.92% compared to the last run.
-- For sample 8 MiB with flags '-b', tinyxxd slowed down by 51.80% compared to the last run.
-- For sample 8 MiB with flags '', tinyxxd slowed down by 37.32% compared to the last run.
-- For sample 8 MiB with flags '-p', tinyxxd slowed down by 28.00% compared to the last run.
-- For sample 8 MiB with flags '-i', tinyxxd slowed down by 15.19% compared to the last run.
-- For sample 8 MiB with flags '-e', tinyxxd slowed down by 16.78% compared to the last run.
-- For sample 8 MiB with flags '-b', tinyxxd slowed down by 40.76% compared to the last run.
-- For sample 8 MiB with flags '-u', tinyxxd slowed down by 16.12% compared to the last run.
-- For sample 8 MiB with flags '-E', tinyxxd slowed down by 9.87% compared to the last run.
-- For sample 8 MiB with flags '-b_-i', tinyxxd slowed down by 23.07% compared to the last run.
-- For sample 8 MiB with flags '', xxd slowed down by 16.63% compared to the last run.
-- For sample 8 MiB with flags '-r', xxd improved by 33.87% compared to the last run.
-- For sample 8 MiB with flags '-b', xxd slowed down by 24.90% compared to the last run.
-- For sample 8 MiB with flags '', xxd slowed down by 31.35% compared to the last run.
-- For sample 8 MiB with flags '-p', xxd slowed down by 24.81% compared to the last run.
-- For sample 8 MiB with flags '-i', xxd slowed down by 16.86% compared to the last run.
-- For sample 8 MiB with flags '-e', xxd slowed down by 17.26% compared to the last run.
-- For sample 8 MiB with flags '-b', xxd slowed down by 18.38% compared to the last run.
-- For sample 8 MiB with flags '-u', xxd slowed down by 18.73% compared to the last run.
-- For sample 8 MiB with flags '-E', xxd slowed down by 13.15% compared to the last run.
-- For sample 8 MiB with flags '-b_-i', xxd slowed down by 33.20% compared to the last run.
-- For sample 4 MiB with flags '', xxd slowed down by 17.10% compared to the last run.
-- For sample 4 MiB with flags '-r', xxd improved by 33.79% compared to the last run.
-- For sample 4 MiB with flags '-b', xxd slowed down by 27.07% compared to the last run.
-- For sample 4 MiB with flags '', xxd slowed down by 32.08% compared to the last run.
-- For sample 4 MiB with flags '-p', xxd slowed down by 27.81% compared to the last run.
-- For sample 4 MiB with flags '-i', xxd slowed down by 17.58% compared to the last run.
-- For sample 4 MiB with flags '-e', xxd slowed down by 16.15% compared to the last run.
-- For sample 4 MiB with flags '-b', xxd slowed down by 17.71% compared to the last run.
-- For sample 4 MiB with flags '-u', xxd slowed down by 16.16% compared to the last run.
-- For sample 4 MiB with flags '-E', xxd slowed down by 7.73% compared to the last run.
-- For sample 4 MiB with flags '-b_-i', xxd slowed down by 34.05% compared to the last run.
-- For sample 4 MiB with flags '', tinyxxd slowed down by 16.19% compared to the last run.
-- For sample 4 MiB with flags '-r', tinyxxd improved by 23.32% compared to the last run.
-- For sample 4 MiB with flags '-b', tinyxxd slowed down by 47.99% compared to the last run.
-- For sample 4 MiB with flags '', tinyxxd slowed down by 35.71% compared to the last run.
-- For sample 4 MiB with flags '-p', tinyxxd slowed down by 24.80% compared to the last run.
-- For sample 4 MiB with flags '-i', tinyxxd slowed down by 14.35% compared to the last run.
-- For sample 4 MiB with flags '-e', tinyxxd slowed down by 22.95% compared to the last run.
-- For sample 4 MiB with flags '-b', tinyxxd slowed down by 40.89% compared to the last run.
-- For sample 4 MiB with flags '-u', tinyxxd slowed down by 15.15% compared to the last run.
-- For sample 4 MiB with flags '-E', tinyxxd slowed down by 10.30% compared to the last run.
-- For sample 4 MiB with flags '-b_-i', tinyxxd slowed down by 26.80% compared to the last run.
-- For sample 2 MiB with flags '', tinyxxd slowed down by 12.73% compared to the last run.
-- For sample 2 MiB with flags '-r', tinyxxd improved by 24.08% compared to the last run.
-- For sample 2 MiB with flags '-b', tinyxxd slowed down by 49.00% compared to the last run.
-- For sample 2 MiB with flags '', tinyxxd slowed down by 25.84% compared to the last run.
-- For sample 2 MiB with flags '-p', tinyxxd slowed down by 25.44% compared to the last run.
-- For sample 2 MiB with flags '-i', tinyxxd slowed down by 13.66% compared to the last run.
-- For sample 2 MiB with flags '-e', tinyxxd slowed down by 26.17% compared to the last run.
-- For sample 2 MiB with flags '-b', tinyxxd slowed down by 42.61% compared to the last run.
-- For sample 2 MiB with flags '-u', tinyxxd slowed down by 15.94% compared to the last run.
-- For sample 2 MiB with flags '-E', tinyxxd slowed down by 9.98% compared to the last run.
-- For sample 2 MiB with flags '-b_-i', tinyxxd slowed down by 26.92% compared to the last run.
-- For sample 2 MiB with flags '', xxd slowed down by 16.44% compared to the last run.
-- For sample 2 MiB with flags '-r', xxd improved by 32.39% compared to the last run.
-- For sample 2 MiB with flags '-b', xxd slowed down by 23.20% compared to the last run.
-- For sample 2 MiB with flags '', xxd slowed down by 29.15% compared to the last run.
-- For sample 2 MiB with flags '-p', xxd slowed down by 26.75% compared to the last run.
-- For sample 2 MiB with flags '-i', xxd slowed down by 17.84% compared to the last run.
-- For sample 2 MiB with flags '-e', xxd slowed down by 12.97% compared to the last run.
-- For sample 2 MiB with flags '-b', xxd slowed down by 15.27% compared to the last run.
-- For sample 2 MiB with flags '-u', xxd slowed down by 10.22% compared to the last run.
-- For sample 2 MiB with flags '-E', xxd slowed down by 10.92% compared to the last run.
-- For sample 2 MiB with flags '-b_-i', xxd slowed down by 33.51% compared to the last run.
-- For sample 1 MiB with flags '', xxd slowed down by 11.44% compared to the last run.
-- For sample 1 MiB with flags '-r', xxd improved by 33.76% compared to the last run.
-- For sample 1 MiB with flags '-b', xxd slowed down by 5.27% compared to the last run.
-- For sample 1 MiB with flags '', xxd slowed down by 20.40% compared to the last run.
-- For sample 1 MiB with flags '-p', xxd slowed down by 25.60% compared to the last run.
-- For sample 1 MiB with flags '-i', xxd slowed down by 15.26% compared to the last run.
-- For sample 1 MiB with flags '-e', xxd slowed down by 15.86% compared to the last run.
-- For sample 1 MiB with flags '-b', xxd improved by 1.79% compared to the last run.
-- For sample 1 MiB with flags '-u', xxd slowed down by 12.59% compared to the last run.
-- For sample 1 MiB with flags '-E', xxd slowed down by 7.23% compared to the last run.
-- For sample 1 MiB with flags '-b_-i', xxd slowed down by 32.35% compared to the last run.
-- For sample 1 MiB with flags '', tinyxxd slowed down by 14.55% compared to the last run.
-- For sample 1 MiB with flags '-r', tinyxxd improved by 22.69% compared to the last run.
-- For sample 1 MiB with flags '-b', tinyxxd slowed down by 45.92% compared to the last run.
-- For sample 1 MiB with flags '', tinyxxd slowed down by 29.26% compared to the last run.
-- For sample 1 MiB with flags '-p', tinyxxd slowed down by 21.26% compared to the last run.
-- For sample 1 MiB with flags '-i', tinyxxd slowed down by 14.07% compared to the last run.
-- For sample 1 MiB with flags '-e', tinyxxd slowed down by 18.07% compared to the last run.
-- For sample 1 MiB with flags '-b', tinyxxd slowed down by 39.49% compared to the last run.
-- For sample 1 MiB with flags '-u', tinyxxd slowed down by 10.96% compared to the last run.
-- For sample 1 MiB with flags '-E', tinyxxd slowed down by 7.24% compared to the last run.
-- For sample 1 MiB with flags '-b_-i', tinyxxd slowed down by 28.99% compared to the last run.
+- For sample 64 MiB with flags '', xxd improved by 22.21% compared to the last run.
+- For sample 64 MiB with flags '-r', xxd slowed down by 2.75% compared to the last run.
+- For sample 64 MiB with flags '-b', xxd slowed down by 49.49% compared to the last run.
+- For sample 64 MiB with flags '-r_-b', xxd improved by 3.28% compared to the last run.
+- For sample 64 MiB with flags '', xxd improved by 2.51% compared to the last run.
+- For sample 64 MiB with flags '-p', xxd improved by 2.73% compared to the last run.
+- For sample 64 MiB with flags '-i', xxd improved by 1.27% compared to the last run.
+- For sample 64 MiB with flags '-e', xxd improved by 2.21% compared to the last run.
+- For sample 64 MiB with flags '-b', xxd improved by 2.32% compared to the last run.
+- For sample 64 MiB with flags '-u', xxd slowed down by 1.02% compared to the last run.
+- For sample 64 MiB with flags '-E', xxd improved by 2.06% compared to the last run.
+- For sample 64 MiB with flags '-b_-i', xxd slowed down by 0.02% compared to the last run.
+- For sample 64 MiB with flags '', tinyxxd improved by 21.01% compared to the last run.
+- For sample 64 MiB with flags '-r', tinyxxd slowed down by 3.10% compared to the last run.
+- For sample 64 MiB with flags '-b', tinyxxd slowed down by 55.52% compared to the last run.
+- For sample 64 MiB with flags '-r_-b', tinyxxd improved by 0.62% compared to the last run.
+- For sample 64 MiB with flags '', tinyxxd slowed down by 4.76% compared to the last run.
+- For sample 64 MiB with flags '-p', tinyxxd slowed down by 3.81% compared to the last run.
+- For sample 64 MiB with flags '-i', tinyxxd improved by 1.83% compared to the last run.
+- For sample 64 MiB with flags '-e', tinyxxd improved by 0.51% compared to the last run.
+- For sample 64 MiB with flags '-b', tinyxxd improved by 1.45% compared to the last run.
+- For sample 64 MiB with flags '-u', tinyxxd slowed down by 0.26% compared to the last run.
+- For sample 64 MiB with flags '-E', tinyxxd improved by 1.45% compared to the last run.
+- For sample 64 MiB with flags '-b_-i', tinyxxd improved by 0.33% compared to the last run.
+- For sample 32 MiB with flags '', xxd improved by 12.20% compared to the last run.
+- For sample 32 MiB with flags '-r', xxd improved by 2.88% compared to the last run.
+- For sample 32 MiB with flags '-b', xxd slowed down by 33.06% compared to the last run.
+- For sample 32 MiB with flags '-r_-b', xxd improved by 3.08% compared to the last run.
+- For sample 32 MiB with flags '', xxd improved by 3.07% compared to the last run.
+- For sample 32 MiB with flags '-p', xxd improved by 0.20% compared to the last run.
+- For sample 32 MiB with flags '-i', xxd improved by 3.32% compared to the last run.
+- For sample 32 MiB with flags '-e', xxd improved by 0.82% compared to the last run.
+- For sample 32 MiB with flags '-b', xxd improved by 0.56% compared to the last run.
+- For sample 32 MiB with flags '-u', xxd improved by 2.44% compared to the last run.
+- For sample 32 MiB with flags '-E', xxd improved by 0.21% compared to the last run.
+- For sample 32 MiB with flags '-b_-i', xxd slowed down by 1.87% compared to the last run.
+- For sample 32 MiB with flags '', tinyxxd improved by 10.78% compared to the last run.
+- For sample 32 MiB with flags '-r', tinyxxd improved by 9.05% compared to the last run.
+- For sample 32 MiB with flags '-b', tinyxxd slowed down by 28.81% compared to the last run.
+- For sample 32 MiB with flags '-r_-b', tinyxxd slowed down by 2.18% compared to the last run.
+- For sample 32 MiB with flags '', tinyxxd improved by 0.46% compared to the last run.
+- For sample 32 MiB with flags '-p', tinyxxd slowed down by 4.34% compared to the last run.
+- For sample 32 MiB with flags '-i', tinyxxd improved by 0.21% compared to the last run.
+- For sample 32 MiB with flags '-e', tinyxxd slowed down by 4.16% compared to the last run.
+- For sample 32 MiB with flags '-b', tinyxxd improved by 1.43% compared to the last run.
+- For sample 32 MiB with flags '-u', tinyxxd improved by 1.71% compared to the last run.
+- For sample 32 MiB with flags '-E', tinyxxd improved by 6.95% compared to the last run.
+- For sample 32 MiB with flags '-b_-i', tinyxxd improved by 0.95% compared to the last run.
+- For sample 16 MiB with flags '', xxd improved by 12.30% compared to the last run.
+- For sample 16 MiB with flags '-r', xxd slowed down by 0.64% compared to the last run.
+- For sample 16 MiB with flags '-b', xxd slowed down by 17.17% compared to the last run.
+- For sample 16 MiB with flags '-r_-b', xxd improved by 6.17% compared to the last run.
+- For sample 16 MiB with flags '', xxd improved by 2.02% compared to the last run.
+- For sample 16 MiB with flags '-p', xxd improved by 0.29% compared to the last run.
+- For sample 16 MiB with flags '-i', xxd slowed down by 2.17% compared to the last run.
+- For sample 16 MiB with flags '-e', xxd improved by 0.30% compared to the last run.
+- For sample 16 MiB with flags '-b', xxd improved by 0.99% compared to the last run.
+- For sample 16 MiB with flags '-u', xxd improved by 1.16% compared to the last run.
+- For sample 16 MiB with flags '-E', xxd improved by 1.88% compared to the last run.
+- For sample 16 MiB with flags '-b_-i', xxd improved by 2.57% compared to the last run.
+- For sample 16 MiB with flags '', tinyxxd improved by 17.35% compared to the last run.
+- For sample 16 MiB with flags '-r', tinyxxd improved by 9.08% compared to the last run.
+- For sample 16 MiB with flags '-b', tinyxxd slowed down by 26.14% compared to the last run.
+- For sample 16 MiB with flags '-r_-b', tinyxxd slowed down by 1.66% compared to the last run.
+- For sample 16 MiB with flags '', tinyxxd improved by 1.81% compared to the last run.
+- For sample 16 MiB with flags '-p', tinyxxd slowed down by 4.24% compared to the last run.
+- For sample 16 MiB with flags '-i', tinyxxd slowed down by 1.01% compared to the last run.
+- For sample 16 MiB with flags '-e', tinyxxd slowed down by 0.32% compared to the last run.
+- For sample 16 MiB with flags '-b', tinyxxd improved by 0.63% compared to the last run.
+- For sample 16 MiB with flags '-u', tinyxxd slowed down by 0.76% compared to the last run.
+- For sample 16 MiB with flags '-E', tinyxxd improved by 2.24% compared to the last run.
+- For sample 16 MiB with flags '-b_-i', tinyxxd slowed down by 3.16% compared to the last run.
+- For sample 8 MiB with flags '', tinyxxd improved by 15.35% compared to the last run.
+- For sample 8 MiB with flags '-r', tinyxxd improved by 8.13% compared to the last run.
+- For sample 8 MiB with flags '-b', tinyxxd slowed down by 7.20% compared to the last run.
+- For sample 8 MiB with flags '-r_-b', tinyxxd slowed down by 1.57% compared to the last run.
+- For sample 8 MiB with flags '', tinyxxd slowed down by 1.54% compared to the last run.
+- For sample 8 MiB with flags '-p', tinyxxd slowed down by 3.78% compared to the last run.
+- For sample 8 MiB with flags '-i', tinyxxd improved by 1.78% compared to the last run.
+- For sample 8 MiB with flags '-e', tinyxxd slowed down by 0.14% compared to the last run.
+- For sample 8 MiB with flags '-b', tinyxxd improved by 0.21% compared to the last run.
+- For sample 8 MiB with flags '-u', tinyxxd slowed down by 0.01% compared to the last run.
+- For sample 8 MiB with flags '-E', tinyxxd improved by 3.54% compared to the last run.
+- For sample 8 MiB with flags '-b_-i', tinyxxd improved by 0.77% compared to the last run.
+- For sample 8 MiB with flags '', xxd improved by 11.78% compared to the last run.
+- For sample 8 MiB with flags '-r', xxd improved by 0.02% compared to the last run.
+- For sample 8 MiB with flags '-b', xxd slowed down by 6.45% compared to the last run.
+- For sample 8 MiB with flags '-r_-b', xxd improved by 4.25% compared to the last run.
+- For sample 8 MiB with flags '', xxd slowed down by 0.25% compared to the last run.
+- For sample 8 MiB with flags '-p', xxd slowed down by 2.64% compared to the last run.
+- For sample 8 MiB with flags '-i', xxd slowed down by 0.75% compared to the last run.
+- For sample 8 MiB with flags '-e', xxd improved by 1.78% compared to the last run.
+- For sample 8 MiB with flags '-b', xxd improved by 1.50% compared to the last run.
+- For sample 8 MiB with flags '-u', xxd improved by 1.93% compared to the last run.
+- For sample 8 MiB with flags '-E', xxd slowed down by 0.16% compared to the last run.
+- For sample 8 MiB with flags '-b_-i', xxd improved by 1.78% compared to the last run.
+- For sample 4 MiB with flags '', tinyxxd improved by 14.53% compared to the last run.
+- For sample 4 MiB with flags '-r', tinyxxd improved by 9.79% compared to the last run.
+- For sample 4 MiB with flags '-b', tinyxxd slowed down by 5.00% compared to the last run.
+- For sample 4 MiB with flags '-r_-b', tinyxxd slowed down by 2.59% compared to the last run.
+- For sample 4 MiB with flags '', tinyxxd slowed down by 0.21% compared to the last run.
+- For sample 4 MiB with flags '-p', tinyxxd slowed down by 5.00% compared to the last run.
+- For sample 4 MiB with flags '-i', tinyxxd improved by 0.77% compared to the last run.
+- For sample 4 MiB with flags '-e', tinyxxd slowed down by 1.51% compared to the last run.
+- For sample 4 MiB with flags '-b', tinyxxd improved by 1.04% compared to the last run.
+- For sample 4 MiB with flags '-u', tinyxxd improved by 1.43% compared to the last run.
+- For sample 4 MiB with flags '-E', tinyxxd improved by 3.59% compared to the last run.
+- For sample 4 MiB with flags '-b_-i', tinyxxd improved by 0.79% compared to the last run.
+- For sample 4 MiB with flags '', xxd improved by 11.97% compared to the last run.
+- For sample 4 MiB with flags '-r', xxd slowed down by 1.31% compared to the last run.
+- For sample 4 MiB with flags '-b', xxd slowed down by 5.91% compared to the last run.
+- For sample 4 MiB with flags '-r_-b', xxd slowed down by 15.62% compared to the last run.
+- For sample 4 MiB with flags '', xxd slowed down by 2.92% compared to the last run.
+- For sample 4 MiB with flags '-p', xxd improved by 1.20% compared to the last run.
+- For sample 4 MiB with flags '-i', xxd improved by 0.15% compared to the last run.
+- For sample 4 MiB with flags '-e', xxd improved by 1.10% compared to the last run.
+- For sample 4 MiB with flags '-b', xxd improved by 0.66% compared to the last run.
+- For sample 4 MiB with flags '-u', xxd improved by 0.01% compared to the last run.
+- For sample 4 MiB with flags '-E', xxd improved by 0.79% compared to the last run.
+- For sample 4 MiB with flags '-b_-i', xxd improved by 0.81% compared to the last run.
+- For sample 2 MiB with flags '', tinyxxd improved by 10.58% compared to the last run.
+- For sample 2 MiB with flags '-r', tinyxxd improved by 7.53% compared to the last run.
+- For sample 2 MiB with flags '-b', tinyxxd slowed down by 3.50% compared to the last run.
+- For sample 2 MiB with flags '-r_-b', tinyxxd slowed down by 2.49% compared to the last run.
+- For sample 2 MiB with flags '', tinyxxd slowed down by 0.81% compared to the last run.
+- For sample 2 MiB with flags '-p', tinyxxd slowed down by 4.46% compared to the last run.
+- For sample 2 MiB with flags '-i', tinyxxd slowed down by 0.64% compared to the last run.
+- For sample 2 MiB with flags '-e', tinyxxd improved by 1.15% compared to the last run.
+- For sample 2 MiB with flags '-b', tinyxxd improved by 1.68% compared to the last run.
+- For sample 2 MiB with flags '-u', tinyxxd improved by 0.11% compared to the last run.
+- For sample 2 MiB with flags '-E', tinyxxd improved by 2.27% compared to the last run.
+- For sample 2 MiB with flags '-b_-i', tinyxxd slowed down by 0.31% compared to the last run.
+- For sample 2 MiB with flags '', xxd improved by 10.76% compared to the last run.
+- For sample 2 MiB with flags '-r', xxd improved by 0.54% compared to the last run.
+- For sample 2 MiB with flags '-b', xxd slowed down by 7.60% compared to the last run.
+- For sample 2 MiB with flags '-r_-b', xxd slowed down by 0.96% compared to the last run.
+- For sample 2 MiB with flags '', xxd slowed down by 1.32% compared to the last run.
+- For sample 2 MiB with flags '-p', xxd improved by 1.70% compared to the last run.
+- For sample 2 MiB with flags '-i', xxd improved by 0.93% compared to the last run.
+- For sample 2 MiB with flags '-e', xxd slowed down by 1.56% compared to the last run.
+- For sample 2 MiB with flags '-b', xxd slowed down by 0.54% compared to the last run.
+- For sample 2 MiB with flags '-u', xxd improved by 0.84% compared to the last run.
+- For sample 2 MiB with flags '-E', xxd improved by 0.18% compared to the last run.
+- For sample 2 MiB with flags '-b_-i', xxd improved by 1.95% compared to the last run.
+- For sample 1 MiB with flags '', xxd improved by 8.09% compared to the last run.
+- For sample 1 MiB with flags '-r', xxd slowed down by 0.83% compared to the last run.
+- For sample 1 MiB with flags '-b', xxd slowed down by 8.11% compared to the last run.
+- For sample 1 MiB with flags '-r_-b', xxd slowed down by 1.02% compared to the last run.
+- For sample 1 MiB with flags '', xxd slowed down by 3.53% compared to the last run.
+- For sample 1 MiB with flags '-p', xxd slowed down by 1.94% compared to the last run.
+- For sample 1 MiB with flags '-i', xxd slowed down by 1.08% compared to the last run.
+- For sample 1 MiB with flags '-e', xxd slowed down by 0.25% compared to the last run.
+- For sample 1 MiB with flags '-b', xxd slowed down by 1.13% compared to the last run.
+- For sample 1 MiB with flags '-u', xxd slowed down by 1.51% compared to the last run.
+- For sample 1 MiB with flags '-E', xxd slowed down by 3.12% compared to the last run.
+- For sample 1 MiB with flags '-b_-i', xxd slowed down by 3.04% compared to the last run.
+- For sample 1 MiB with flags '', tinyxxd improved by 11.72% compared to the last run.
+- For sample 1 MiB with flags '-r', tinyxxd improved by 7.30% compared to the last run.
+- For sample 1 MiB with flags '-b', tinyxxd slowed down by 4.57% compared to the last run.
+- For sample 1 MiB with flags '-r_-b', tinyxxd slowed down by 2.78% compared to the last run.
+- For sample 1 MiB with flags '', tinyxxd slowed down by 1.91% compared to the last run.
+- For sample 1 MiB with flags '-p', tinyxxd slowed down by 4.70% compared to the last run.
+- For sample 1 MiB with flags '-i', tinyxxd improved by 0.63% compared to the last run.
+- For sample 1 MiB with flags '-e', tinyxxd slowed down by 0.60% compared to the last run.
+- For sample 1 MiB with flags '-b', tinyxxd improved by 1.15% compared to the last run.
+- For sample 1 MiB with flags '-u', tinyxxd improved by 0.29% compared to the last run.
+- For sample 1 MiB with flags '-E', tinyxxd improved by 2.23% compared to the last run.
+- For sample 1 MiB with flags '-b_-i', tinyxxd improved by 3.24% compared to the last run.
 ---
-Report generated on: 2026-01-29T00:22:32.798422
+Report generated on: 2026-01-29T10:41:58.556210
