@@ -652,11 +652,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
     getc_or_die(&e, xxd);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         line_data[p] = (uint8_t)e;
-        if (xxd->ascii) {
-            if (e) {
-                nonzero++;
-            }
-        } else {
+        if (e) {
             nonzero++;
         }
         n++;
