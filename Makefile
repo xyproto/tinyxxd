@@ -6,7 +6,7 @@ CFLAGS ?= -std=c11 -pipe -fPIC $(OPTFLAGS) $(WARNFLAGS)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt
+	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE
 else ifeq ($(OS),Windows_NT)
 	CFLAGS += -D_WIN32
 else
