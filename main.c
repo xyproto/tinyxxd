@@ -43,7 +43,6 @@ typedef struct {
     bool uppercase_hex;
     bool negseek;
     bool relative_seek;
-
     uint8_t input_buffer[INPUT_BUFFER_SIZE];
     size_t input_buffer_pos;
     size_t input_buffer_len;
@@ -942,7 +941,7 @@ static const char* base_name(const char* path)
 
 int main(int argc, char* argv[])
 {
-    const char* version = "tinyxxd 1.3.8";
+    const char* version = "tinyxxd 1.3.9";
     Xxd xxd = {
         .input = stdin,
         .output = stdout,

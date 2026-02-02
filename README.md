@@ -68,4 +68,4 @@ In connection with packaging, letting this utility provide and replace `xxd`, po
 ### General info
 
 * License: `GPL-2.0-only` and/or `MIT`. See the [`LICENSE`](LICENSE) file for more information.
-* Version: 1.3.8
+* Version: 1.3.9
