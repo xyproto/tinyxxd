@@ -704,7 +704,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                     pval = (val < 64) ? '.' : etoa64[val - 64];
                 }
                 char new_color = 0;
-                if (xxd->color && xxd->ascii) { // Only colorize if color is enabled AND in ASCII mode
+                if (xxd->color) {
                     if (xxd->ascii) {
                         new_color = (char)ascii_char_color((uint8_t)val);
                     } else {
@@ -804,8 +804,12 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 pval = (val < 64) ? '.' : etoa64[val - 64];
             }
             char new_color = 0;
-            if (xxd->color && xxd->ascii) {
-                new_color = (char)ascii_char_color((uint8_t)val);
+            if (xxd->color) {
+                if (xxd->ascii) {
+                    new_color = (char)ascii_char_color((uint8_t)val);
+                } else {
+                    new_color = (char)ebcdic_char_color((uint8_t)val);
+                }
             }
             if (new_color != current_color) {
                 if (current_color != 0) {
