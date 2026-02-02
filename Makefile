@@ -51,12 +51,9 @@ fmt: main.c
 test: xxd tinyxxd_asan
 	@echo 'Preparing tests...'
 	@echo -n 'This is a test file' > sample.bin
+	@printf '\x00\x09\x0a\x0d\x20\x41\x7e\x7f\x80\xff' > colorbytes.bin
+	@printf '\x00\x05\x0d\x25\x40\x4b\x5a\x81\xc0\xff' > ebcdicbytes.bin
 	@echo 'Running tests...'
-	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
-	@$(MAKE) run_test CMD='-Ralways -g1 -c256 -d -o 9223372036854775808 testfiles/somezeros.bin' DESC='Test for buffer overflow'
-	@$(MAKE) run_test CMD='-s +5 sample.bin' DESC='Seek +5'
-	@$(MAKE) run_test CMD='-s -5 sample.bin' DESC='Seek -5'
-	@$(MAKE) run_test CMD='-l 7 sample.bin' DESC='Stop after len=7'
 	@$(MAKE) run_test CMD='-a testfiles/somezeros.bin' DESC='Show nul-lines as single asterisk'
 	@$(MAKE) run_test CMD='-Ralways -g1 -c256 -d -o 9223372036854775808 testfiles/somezeros.bin' DESC='Test for buffer overflow'
 	@$(MAKE) run_test CMD='-s +5 sample.bin' DESC='Seek +5'
@@ -69,8 +66,19 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-b sample.bin' DESC='Binary digit dump'
 	@$(MAKE) run_test CMD='-u sample.bin' DESC='Capitalized hex output'
 	@$(MAKE) run_test CMD='-E sample.bin' DESC='Show EBCDIC'
+	@$(MAKE) run_test CMD='-R always colorbytes.bin' DESC='ASCII color output (all color categories)'
+	@$(MAKE) run_test CMD='-R never colorbytes.bin' DESC='ASCII no-color output'
+	@$(MAKE) run_test CMD='-R always -E ebcdicbytes.bin' DESC='EBCDIC color output'
+	@$(MAKE) run_test CMD='-R never -E ebcdicbytes.bin' DESC='EBCDIC no-color output'
+	@$(MAKE) run_test CMD='-g 1 sample.bin' DESC='Group bytes in 1s'
+	@$(MAKE) run_test CMD='-g 4 sample.bin' DESC='Group bytes in 4s'
+	@$(MAKE) run_test CMD='-d sample.bin' DESC='Decimal offset'
+	@$(MAKE) run_test CMD='-o 0x100 sample.bin' DESC='Display offset +0x100'
+	@$(MAKE) run_test CMD='-i -C sample.bin' DESC='C include capitalized'
+	@$(MAKE) run_test CMD='-i -n myvar sample.bin' DESC='C include custom name'
+	@$(MAKE) run_test CMD='-i -b sample.bin' DESC='C include binary format'
 	@$(MAKE) verify_conversion_test
-	@rm -f -- *.hex sample.bin tinyxxd_output.txt xxd_output.txt
+	@rm -f -- *.hex sample.bin colorbytes.bin ebcdicbytes.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
 
 run_test:
