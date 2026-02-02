@@ -106,11 +106,6 @@ static const int8_t hex_digit_table[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 // 0xF0-0xFF
 };
 
-static inline int parse_hex_digit(int c)
-{
-    return hex_digit_table[(uint8_t)c];
-}
-
 static inline int parse_binary_digit(int c)
 {
     return (c == '0' || c == '1') ? c - '0' : -1;
@@ -224,7 +219,7 @@ static int decode_hex_stream_postscript(const long base_off, const Xxd* xxd)
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
-        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
+        if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -256,7 +251,7 @@ static int decode_hex_stream_normal(const int cols, const long base_off, const X
     ((Xxd*)xxd)->input_buffer_pos = 0;
     ((Xxd*)xxd)->input_buffer_len = 0;
     while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
-        if ((tmp = parse_hex_digit(c)) == -1 && ignore) {
+        if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
@@ -306,7 +301,7 @@ static int decode_hex_stream_bits(const int cols, const Xxd* xxd)
     ((Xxd*)xxd)->input_buffer_pos = 0;
     ((Xxd*)xxd)->input_buffer_len = 0;
     while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
-        if ((n1 = parse_hex_digit(c)) == -1 && ignore) {
+        if ((n1 = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
         bit = parse_binary_digit(c);
