@@ -437,6 +437,23 @@ static inline enum ColorDigit ascii_char_color(const uint8_t e)
     return (enum ColorDigit)ascii_color_table[e];
 }
 
+static inline void update_color_state(char* buffer, int* buf_idx, char* current_color, uint8_t byte_val, const Xxd* xxd)
+{
+    if (!xxd->color) {
+        return;
+    }
+    char new_color = (char)(xxd->ascii ? ascii_char_color(byte_val) : ebcdic_char_color(byte_val));
+    if (new_color != *current_color) {
+        if (*current_color != 0) {
+            clear_color(buffer, buf_idx);
+        }
+        if (new_color != 0) {
+            set_color(buffer, buf_idx, (enum ColorDigit)new_color);
+        }
+        *current_color = new_color;
+    }
+}
+
 static int hex_postscript(const Xxd* xxd, int e)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
@@ -668,23 +685,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                     buffer[buf_idx++] = ' ';
                 }
                 int val = line_data[i];
-                char new_color = 0;
-                if (xxd->color) {
-                    if (xxd->ascii) {
-                        new_color = (char)ascii_char_color((uint8_t)val);
-                    } else {
-                        new_color = (char)ebcdic_char_color((uint8_t)val);
-                    }
-                }
-                if (new_color != current_color) {
-                    if (current_color != 0) {
-                        clear_color(buffer, &buf_idx);
-                    }
-                    if (new_color != 0) {
-                        set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
-                    }
-                    current_color = new_color;
-                }
+                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
                 buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
                 buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
             }
@@ -700,23 +701,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 if (!xxd->ascii) { // If EBCDIC mode
                     pval = (val < 64) ? '.' : etoa64[val - 64];
                 }
-                char new_color = 0;
-                if (xxd->color) {
-                    if (xxd->ascii) {
-                        new_color = (char)ascii_char_color((uint8_t)val);
-                    } else {
-                        new_color = (char)ebcdic_char_color((uint8_t)val);
-                    }
-                }
-                if (new_color != current_color) {
-                    if (current_color != 0) {
-                        clear_color(buffer, &buf_idx);
-                    }
-                    if (new_color != 0) {
-                        set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
-                    }
-                    current_color = new_color;
-                }
+                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
                 buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
             }
             if (current_color != 0) {
@@ -746,21 +731,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 buffer[buf_idx++] = ' ';
             }
             int val = line_data[i];
-            char new_color = 0;
-            if (xxd->color) {
-                if (xxd->ascii) {
-                    new_color = (char)ascii_char_color((uint8_t)val);
-                } else {
-                    new_color = (char)ebcdic_char_color((uint8_t)val);
-                }
-            }
-            if (new_color != current_color) {
-                if (current_color != 0)
-                    clear_color(buffer, &buf_idx);
-                if (new_color != 0)
-                    set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
-                current_color = new_color;
-            }
+            update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
             buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
             buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
         }
@@ -800,23 +771,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
             if (!xxd->ascii) {
                 pval = (val < 64) ? '.' : etoa64[val - 64];
             }
-            char new_color = 0;
-            if (xxd->color) {
-                if (xxd->ascii) {
-                    new_color = (char)ascii_char_color((uint8_t)val);
-                } else {
-                    new_color = (char)ebcdic_char_color((uint8_t)val);
-                }
-            }
-            if (new_color != current_color) {
-                if (current_color != 0) {
-                    clear_color(buffer, &buf_idx);
-                }
-                if (new_color != 0) {
-                    set_color(buffer, &buf_idx, (enum ColorDigit)new_color);
-                }
-                current_color = new_color;
-            }
+            update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
             buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
         }
         if (current_color != 0) {
