@@ -19,7 +19,7 @@ enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume
         + 2 // "\n\0"
 };
 
-#define INPUT_BUFFER_SIZE 4096
+enum { INPUT_BUFFER_SIZE = 131072 }; // 128 KB, measured to give good performance
 
 typedef struct {
     FILE* input;
@@ -44,6 +44,7 @@ typedef struct {
     bool negseek;
     bool relative_seek;
     uint8_t input_buffer[INPUT_BUFFER_SIZE];
+    size_t input_buffer_size;
     size_t input_buffer_pos;
     size_t input_buffer_len;
 } Xxd;
@@ -142,7 +143,7 @@ static inline int getc_or_die(int* ch, const Xxd* xxd_config)
 {
     Xxd* xxd = (Xxd*)xxd_config;
     if (xxd->input_buffer_pos >= xxd->input_buffer_len) {
-        xxd->input_buffer_len = fread(xxd->input_buffer, 1, INPUT_BUFFER_SIZE, xxd->input);
+        xxd->input_buffer_len = fread(xxd->input_buffer, 1, xxd->input_buffer_size, xxd->input);
         xxd->input_buffer_pos = 0;
         if (xxd->input_buffer_len == 0) { // EOF or error
             *ch = EOF;
@@ -615,9 +616,9 @@ static int hex_bits(char* buffer, char* z, const Xxd* xxd, int e)
         for (int i = 7; i >= 0; i--) {
             buffer[c++] = ((e >> i) & 1) + '0';
         }
-        if (c > max_idx)
+        if (c > max_idx) {
             max_idx = c;
-
+        }
         // Binary mode (-b) does not colorize output, matching xxd behavior
         c = (grplen * xxd->cols - 1) / octspergrp;
         nonzero += e ? 1 : 0;
@@ -935,6 +936,7 @@ int main(int argc, char* argv[])
         .capitalize = false,
         .uppercase_hex = false,
         .negseek = 0,
+        .input_buffer_size = 0,
         .input_buffer_pos = 0,
         .input_buffer_len = 0
     };
@@ -1176,6 +1178,7 @@ int main(int argc, char* argv[])
     } else {
         xxd.input_filename = argv[1];
     }
+    xxd.input_buffer_size = INPUT_BUFFER_SIZE;
     if (argc < 3 || (argv[2][0] == '-' && !argv[2][1])) {
         xxd.output = stdout;
     } else {
