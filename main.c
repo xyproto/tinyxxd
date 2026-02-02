@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 enum { COLS = 256 };
+
 enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
         + 2 // ": "
         + 13 * COLS // hex dump with colors
@@ -520,7 +521,8 @@ static int hex_cinclude(const Xxd* xxd, int e)
     if (xxd->revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
-    const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
+    const char* varname = xxd->varname ? xxd->varname
+                                       : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -559,7 +561,8 @@ static int hex_cinclude_bits(const Xxd* xxd, int e)
     if (xxd->revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
-    const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
+    const char* varname = xxd->varname ? xxd->varname
+                                       : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
