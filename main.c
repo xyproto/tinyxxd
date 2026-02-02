@@ -595,28 +595,16 @@ static int hex_bits(char* buffer, char* z, const Xxd* xxd, int e)
         if (c > max_idx)
             max_idx = c;
 
-        if (xxd->color) {
-            c = (grplen * xxd->cols - 1) / octspergrp + addrlen + 3 + p * 12;
-            nonzero += e ? 1 : 0;
-            set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
-            if (!xxd->ascii) {
-                e = (e < 64) ? '.' : etoa64[e - 64];
-            }
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
-            clear_color(buffer, &c);
-            if (c > max_idx)
-                max_idx = c;
-        } else {
-            c = (grplen * xxd->cols - 1) / octspergrp;
-            nonzero += e ? 1 : 0;
-            if (!xxd->ascii) {
-                e = (e < 64) ? '.' : etoa64[e - 64];
-            }
-            c += addrlen + 3 + p;
-            buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
-            if (c > max_idx)
-                max_idx = c;
+        // Binary mode (-b) does not colorize output, matching xxd behavior
+        c = (grplen * xxd->cols - 1) / octspergrp;
+        nonzero += e ? 1 : 0;
+        if (!xxd->ascii) {
+            e = (e < 64) ? '.' : etoa64[e - 64];
         }
+        c += addrlen + 3 + p;
+        buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+        if (c > max_idx)
+            max_idx = c;
         n++;
         if (++p == xxd->cols) {
             buffer[max_idx] = '\n';
@@ -864,6 +852,7 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
         exit_with_error(1, "number of octets per group must be a power of 2 with -e.", xxd->program_name);
     }
     getc_or_die(&e, xxd);
+    // grplen includes color overhead when colors are enabled
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
@@ -882,7 +871,11 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             if (c > max_idx) {
                 max_idx = c;
             }
-            c = addrlen + 3 + (grplen * xxd->cols - 1) / octspergrp + p * 12 + 1;
+            // ASCII column position: same logic as non-color path but with color overhead
+            // Non-color ASCII position = grplen_nocolor * num_groups + addrlen + 2 + p
+            // With color, hex area is grplen * num_groups, and each prior ASCII char adds 12 chars
+            const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
+            c = grplen * num_groups + addrlen + 2 + p * 12;
             nonzero += e ? 1 : 0;
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
             if (!xxd->ascii) {
@@ -893,7 +886,7 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             if (c > max_idx) {
                 max_idx = c;
             }
-        } else { // no color
+        } else {
             buffer[c] = xxd->hex_digits[(e >> 4) & 0xf];
             buffer[++c] = xxd->hex_digits[e & 0xf];
             if (c + 1 > max_idx) {
@@ -930,19 +923,24 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
             for (int i = 0; i < fill; i++) {
                 set_color(buffer, &c, COLOR_RED);
                 buffer[c++] = ' ';
+                buffer[c++] = ' ';
                 clear_color(buffer, &c);
                 x++;
                 p++;
             }
-            c = addrlen + 1 + (grplen * x) / octspergrp + (xxd->cols - p) + (xxd->cols - p) / octspergrp;
+            c = addrlen + 1 + (grplen * x) / octspergrp + (xxd->cols - p) * 2 + (xxd->cols - p) / octspergrp;
             for (int i = xxd->cols - p; i > 0; i--) {
                 set_color(buffer, &c, COLOR_RED);
                 buffer[c++] = ' ';
+                buffer[c++] = ' ';
                 clear_color(buffer, &c);
             }
+            if (c > max_idx) {
+                max_idx = c;
+            }
         }
-        buffer[c++] = '\n';
-        buffer[c] = '\0';
+        buffer[max_idx] = '\n';
+        buffer[max_idx + 1] = '\0';
         print_or_suppress_zero_line(buffer, z, 1, xxd);
     } else if (xxd->autoskip) {
         print_or_suppress_zero_line(buffer, z, -1, xxd);
