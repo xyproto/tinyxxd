@@ -456,6 +456,26 @@ static inline void write_hex_byte(char* buffer, int* idx, uint8_t byte, const ch
     buffer[(*idx)++] = hex_digits[byte & 0xf];
 }
 
+// Fast hex address formatter for common case (8-digit hex addresses)
+static inline int format_hex_address(char* buffer, uint64_t addr, bool use_fast_path)
+{
+    if (use_fast_path && addr <= 0xFFFFFFFF) {
+        // Fast path: directly format 8-digit hex address
+        static const char hex_lower[] = "0123456789abcdef";
+        buffer[0] = hex_lower[(addr >> 28) & 0xf];
+        buffer[1] = hex_lower[(addr >> 24) & 0xf];
+        buffer[2] = hex_lower[(addr >> 20) & 0xf];
+        buffer[3] = hex_lower[(addr >> 16) & 0xf];
+        buffer[4] = hex_lower[(addr >> 12) & 0xf];
+        buffer[5] = hex_lower[(addr >> 8) & 0xf];
+        buffer[6] = hex_lower[(addr >> 4) & 0xf];
+        buffer[7] = hex_lower[addr & 0xf];
+        buffer[8] = ':';
+        return 9;
+    }
+    return -1; // Fall back to snprintf
+}
+
 static int hex_postscript(const Xxd* xxd, int e)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
@@ -673,7 +693,13 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
         n++;
         p++;
         if (p == xxd->cols) {
-            int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff));
+            uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+            bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+            int buf_idx = format_hex_address(buffer, addr, use_fast);
+            if (buf_idx < 0) {
+                // Fall back to snprintf for decimal mode or large addresses
+                buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
+            }
             while (buf_idx < 9) {
                 buffer[buf_idx++] = ' ';
             }
@@ -718,7 +744,12 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
         getc_or_die(&e, xxd);
     }
     if (p) {
-        int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff));
+        uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+        int buf_idx = format_hex_address(buffer, addr, use_fast);
+        if (buf_idx < 0) {
+            buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
+        }
         while (buf_idx < 9) {
             buffer[buf_idx++] = ' ';
         }
