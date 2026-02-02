@@ -451,6 +451,17 @@ static int hex_postscript(const Xxd* xxd, int e)
     return 0;
 }
 
+static inline void print_varname(const char* varname, const Xxd* xxd)
+{
+    for (int i = 0, c; (c = varname[i]); i++) {
+        if (!xxd->capitalize) {
+            putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
+        } else {
+            putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)c) : '_', xxd);
+        }
+    }
+}
+
 static int hex_cinclude(const Xxd* xxd, int e)
 {
     long p = 0;
@@ -458,18 +469,11 @@ static int hex_cinclude(const Xxd* xxd, int e)
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
     const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
-    int c;
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
-        for (int i = 0; (c = varname[i]); i++) {
-            if (!xxd->capitalize) {
-                putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
-            } else {
-                putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)(c)) : '_', xxd);
-            }
-        }
+        print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
     }
     getc_or_die(&e, xxd);
@@ -489,13 +493,7 @@ static int hex_cinclude(const Xxd* xxd, int e)
         if (fprintf(xxd->output, "unsigned int %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
-        for (int i = 0; (c = varname[i]); i++) {
-            if (!xxd->capitalize) {
-                putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
-            } else {
-                putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)(c)) : '_', xxd);
-            }
-        }
+        print_varname(varname, xxd);
         if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
@@ -510,18 +508,11 @@ static int hex_cinclude_bits(const Xxd* xxd, int e)
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
     const char* varname = xxd->varname ? xxd->varname : xxd->input_filename;
-    int c;
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
-        for (int i = 0; (c = varname[i]); i++) {
-            if (!xxd->capitalize) {
-                putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
-            } else {
-                putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)(c)) : '_', xxd);
-            }
-        }
+        print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
     }
     getc_or_die(&e, xxd);
@@ -548,13 +539,7 @@ static int hex_cinclude_bits(const Xxd* xxd, int e)
         if (fprintf(xxd->output, "unsigned int %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
-        for (int i = 0; (c = varname[i]); i++) {
-            if (!xxd->capitalize) {
-                putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
-            } else {
-                putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)(c)) : '_', xxd);
-            }
-        }
+        print_varname(varname, xxd);
         if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
