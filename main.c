@@ -454,6 +454,12 @@ static inline void update_color_state(char* buffer, int* buf_idx, char* current_
     }
 }
 
+static inline void write_hex_byte(char* buffer, int* idx, uint8_t byte, const char* hex_digits)
+{
+    buffer[(*idx)++] = hex_digits[(byte >> 4) & 0xf];
+    buffer[(*idx)++] = hex_digits[byte & 0xf];
+}
+
 static int hex_postscript(const Xxd* xxd, int e)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
@@ -686,8 +692,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                 }
                 int val = line_data[i];
                 update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
-                buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
-                buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
+                write_hex_byte(buffer, &buf_idx, (uint8_t)val, xxd->hex_digits);
             }
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
@@ -732,8 +737,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
             }
             int val = line_data[i];
             update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
-            buffer[buf_idx++] = xxd->hex_digits[(val >> 4) & 0xf];
-            buffer[buf_idx++] = xxd->hex_digits[val & 0xf];
+            write_hex_byte(buffer, &buf_idx, (uint8_t)val, xxd->hex_digits);
         }
         if (current_color != 0) {
             clear_color(buffer, &buf_idx);
@@ -820,8 +824,7 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
         int c = addrlen + 1 + (grplen * x) / octspergrp;
         if (xxd->color) {
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
-            buffer[c++] = xxd->hex_digits[(e >> 4) & 0xf];
-            buffer[c++] = xxd->hex_digits[e & 0xf];
+            write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
             clear_color(buffer, &c);
             if (c > max_idx) {
                 max_idx = c;
@@ -842,10 +845,9 @@ static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
                 max_idx = c;
             }
         } else {
-            buffer[c] = xxd->hex_digits[(e >> 4) & 0xf];
-            buffer[++c] = xxd->hex_digits[e & 0xf];
-            if (c + 1 > max_idx) {
-                max_idx = c + 1;
+            write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
+            if (c > max_idx) {
+                max_idx = c;
             }
             c = grplen * ((xxd->cols + octspergrp - 1) / octspergrp);
             nonzero += e ? 1 : 0;
