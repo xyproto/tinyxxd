@@ -705,12 +705,8 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
                     pval = (val < 64) ? '.' : etoa64[val - 64];
                 }
                 char new_color = 0;
-                if (xxd->color && xxd->ascii) { // Only colorize if color is enabled AND in ASCII mode
-                    if (xxd->ascii) {
-                        new_color = (char)ascii_char_color((uint8_t)val);
-                    } else {
-                        new_color = (char)ebcdic_char_color((uint8_t)val);
-                    }
+                if (xxd->color && xxd->ascii) {
+                    new_color = (char)ascii_char_color((uint8_t)val);
                 }
                 if (new_color != current_color) {
                     if (current_color != 0) {
@@ -800,17 +796,13 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
         buffer[buf_idx++] = ' ';
         for (int i = 0; i < p; i++) {
             int val = line_data[i];
-            int pval = val; // Initialize pval
-            if (!xxd->ascii) { // If EBCDIC mode
+            int pval = val;
+            if (!xxd->ascii) {
                 pval = (val < 64) ? '.' : etoa64[val - 64];
             }
             char new_color = 0;
             if (xxd->color && xxd->ascii) {
-                if (xxd->ascii) {
-                    new_color = (char)ascii_char_color((uint8_t)val);
-                } else {
-                    new_color = (char)ebcdic_char_color((uint8_t)val);
-                }
+                new_color = (char)ascii_char_color((uint8_t)val);
             }
             if (new_color != current_color) {
                 if (current_color != 0) {
@@ -988,7 +980,6 @@ int main(int argc, char* argv[])
     xxd.color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
     errno = 0;
     char* pp = NULL;
-    int relseek = 0;
     while (argc >= 2) {
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
@@ -1227,13 +1218,13 @@ int main(int argc, char* argv[])
         rewind(xxd.output);
     }
     int e = 0;
-    if (xxd.seekoff || xxd.negseek || !relseek) {
+    if (xxd.seekoff || xxd.negseek || !xxd.relative_seek) {
         if (xxd.negseek) {
-            if ((e = fseek(xxd.input, -xxd.seekoff, relseek ? SEEK_CUR : SEEK_END)) < 0) {
+            if ((e = fseek(xxd.input, -xxd.seekoff, xxd.relative_seek ? SEEK_CUR : SEEK_END)) < 0) {
                 exit_with_error(4, "Sorry, cannot seek.", xxd.program_name);
             }
         } else {
-            e = fseek(xxd.input, xxd.seekoff, relseek ? SEEK_CUR : SEEK_SET);
+            e = fseek(xxd.input, xxd.seekoff, xxd.relative_seek ? SEEK_CUR : SEEK_SET);
         }
         if (e >= 0) {
             xxd.seekoff = ftell(xxd.input);
