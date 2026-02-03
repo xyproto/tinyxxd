@@ -23,4 +23,5 @@
 * Oliver Webb <aquahobbyist@proton.me>
 * Andre Chang <andre@augmentcode.com>
 * Aapo Rantalainen <aapo.rantalainen@gmail.com>
+* Randy Eckenrode <randy@largeandhighquality.com>
 * Alexander F. Rødseth <xyproto@archlinux.org>
