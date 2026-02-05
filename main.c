@@ -146,11 +146,6 @@ static const uint8_t ascii_color_table[256] = {
     '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '4' // 0xF0-0xFF: 255=BLUE
 };
 
-static inline int parse_binary_digit(int c)
-{
-    return (c == '0' || c == '1') ? c - '0' : -1;
-}
-
 static void exit_with_usage(const char* program_name, const char* version)
 {
     fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h          print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n", program_name, program_name, version);
@@ -335,7 +330,7 @@ static int decode_hex_stream_normal(const int cols, const long base_off, const C
 static int decode_hex_stream_bits(const int cols, const Config* xxd)
 {
     bool ignore = true;
-    int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
+    int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(xxd->input);
     ((Config*)xxd)->input_buffer_pos = 0;
@@ -344,9 +339,9 @@ static int decode_hex_stream_bits(const int cols, const Config* xxd)
         if ((n1 = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
-        bit = parse_binary_digit(c);
-        if (bit != -1) {
-            bit_buffer = ((bit_buffer << 1) | bit);
+        if (c == '0' || c == '1') {
+            // c-'0' parses c from '0' to 0 and from '1' to 1
+            bit_buffer = ((bit_buffer << 1) | (c - '0'));
             bit_count++;
         }
         ignore = false;
