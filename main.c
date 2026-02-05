@@ -48,7 +48,7 @@ typedef struct {
     size_t input_buffer_size;
     size_t input_buffer_pos;
     size_t input_buffer_len;
-} Xxd;
+} Config;
 
 // ColorDigit is the second digit for a terminal color code that starts with '3'
 enum ColorDigit {
@@ -174,9 +174,9 @@ static void exit_with_col_error(const char* program_name)
     exit(EXIT_FAILURE);
 }
 
-static inline int getc_or_die(int* ch, const Xxd* xxd_config)
+static inline int getc_or_die(int* ch, const Config* xxd_config)
 {
-    Xxd* xxd = (Xxd*)xxd_config;
+    Config* xxd = (Config*)xxd_config;
     if (xxd->input_buffer_pos >= xxd->input_buffer_len) {
         xxd->input_buffer_len = fread(xxd->input_buffer, 1, xxd->input_buffer_size, xxd->input);
         xxd->input_buffer_pos = 0;
@@ -192,28 +192,28 @@ static inline int getc_or_die(int* ch, const Xxd* xxd_config)
     return *ch;
 }
 
-static inline void putc_or_die(int ch, const Xxd* xxd)
+static inline void putc_or_die(int ch, const Config* xxd)
 {
     if (putc(ch, xxd->output) == EOF) {
         exit_with_error(3, NULL, xxd->program_name);
     }
 }
 
-static inline void fputs_or_die(const char* s, const Xxd* xxd)
+static inline void fputs_or_die(const char* s, const Config* xxd)
 {
     if (fputs(s, xxd->output) == EOF) {
         exit_with_error(3, NULL, xxd->program_name);
     }
 }
 
-static inline void fflush_or_die(const Xxd* xxd)
+static inline void fflush_or_die(const Config* xxd)
 {
     if (fflush(xxd->output)) {
         exit_with_error(3, NULL, xxd->program_name);
     }
 }
 
-static void fclose_or_die(const Xxd* xxd)
+static void fclose_or_die(const Config* xxd)
 {
     if (fclose(xxd->output)) {
         exit_with_error(3, NULL, xxd->program_name);
@@ -222,14 +222,14 @@ static void fclose_or_die(const Xxd* xxd)
     }
 }
 
-static inline void skip_to_eol_or_die(int* ch, const Xxd* xxd)
+static inline void skip_to_eol_or_die(int* ch, const Config* xxd)
 {
     while (*ch != '\n' && *ch != EOF) {
         getc_or_die(ch, xxd);
     }
 }
 
-static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* want_off, uint64_t* have_off, const Xxd* xxd)
+static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* want_off, uint64_t* have_off, const Config* xxd)
 {
     const uint64_t target_offset = (uint64_t)*base_off + *want_off;
     if (target_offset == *have_off) {
@@ -247,14 +247,14 @@ static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* w
     }
 }
 
-static int decode_hex_stream_postscript(const long base_off, const Xxd* xxd)
+static int decode_hex_stream_postscript(const long base_off, const Config* xxd)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
-    ((Xxd*)xxd)->input_buffer_pos = 0;
-    ((Xxd*)xxd)->input_buffer_len = 0;
+    ((Config*)xxd)->input_buffer_pos = 0;
+    ((Config*)xxd)->input_buffer_len = 0;
     while (((c = getc_or_die(&c, xxd)) != EOF)) {
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
@@ -282,14 +282,14 @@ static int decode_hex_stream_postscript(const long base_off, const Xxd* xxd)
     return 0;
 }
 
-static int decode_hex_stream_normal(const int cols, const long base_off, const Xxd* xxd)
+static int decode_hex_stream_normal(const int cols, const long base_off, const Config* xxd)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
-    ((Xxd*)xxd)->input_buffer_pos = 0;
-    ((Xxd*)xxd)->input_buffer_len = 0;
+    ((Config*)xxd)->input_buffer_pos = 0;
+    ((Config*)xxd)->input_buffer_len = 0;
     while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
         if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
@@ -332,14 +332,14 @@ static int decode_hex_stream_normal(const int cols, const long base_off, const X
     return 0;
 }
 
-static int decode_hex_stream_bits(const int cols, const Xxd* xxd)
+static int decode_hex_stream_bits(const int cols, const Config* xxd)
 {
     bool ignore = true;
     int bit = 0, bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(xxd->input);
-    ((Xxd*)xxd)->input_buffer_pos = 0;
-    ((Xxd*)xxd)->input_buffer_len = 0;
+    ((Config*)xxd)->input_buffer_pos = 0;
+    ((Config*)xxd)->input_buffer_len = 0;
     while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
         if ((n1 = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
@@ -378,7 +378,7 @@ static int decode_hex_stream_bits(const int cols, const Xxd* xxd)
     return 0;
 }
 
-static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const Xxd* xxd)
+static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const Config* xxd)
 {
     static int zero_seen = 0;
     if (nz) {
@@ -434,7 +434,7 @@ static inline enum ColorDigit ascii_char_color(const uint8_t e)
     return (enum ColorDigit)ascii_color_table[e];
 }
 
-static inline void update_color_state(char* buffer, int* buf_idx, char* current_color, uint8_t byte_val, const Xxd* xxd)
+static inline void update_color_state(char* buffer, int* buf_idx, char* current_color, uint8_t byte_val, const Config* xxd)
 {
     if (!xxd->color) {
         return;
@@ -477,7 +477,7 @@ static inline int format_hex_address(char* buffer, uint64_t addr, bool use_fast_
     return -1; // Fall back to snprintf
 }
 
-static int hex_postscript(const Xxd* xxd, int e)
+static int hex_postscript(const Config* xxd, int e)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
         exit_with_col_error(xxd->program_name);
@@ -504,7 +504,7 @@ static int hex_postscript(const Xxd* xxd, int e)
     return 0;
 }
 
-static inline void print_varname(const char* varname, const Xxd* xxd)
+static inline void print_varname(const char* varname, const Config* xxd)
 {
     for (int i = 0, c; (c = varname[i]); i++) {
         if (!xxd->capitalize) {
@@ -515,7 +515,7 @@ static inline void print_varname(const char* varname, const Xxd* xxd)
     }
 }
 
-static int hex_cinclude(const Xxd* xxd, int e)
+static int hex_cinclude(const Config* xxd, int e)
 {
     long p = 0;
     if (xxd->revert) {
@@ -555,7 +555,7 @@ static int hex_cinclude(const Xxd* xxd, int e)
     return 0;
 }
 
-static int hex_cinclude_bits(const Xxd* xxd, int e)
+static int hex_cinclude_bits(const Config* xxd, int e)
 {
     long p = 0;
     if (xxd->revert) {
@@ -602,7 +602,7 @@ static int hex_cinclude_bits(const Xxd* xxd, int e)
     return 0;
 }
 
-static int hex_bits(char* buffer, char* z, const Xxd* xxd, int e)
+static int hex_bits(char* buffer, char* z, const Config* xxd, int e)
 {
     long n = 0;
     int nonzero = 0, p = 0, addrlen = 9;
@@ -669,7 +669,7 @@ static int hex_bits(char* buffer, char* z, const Xxd* xxd, int e)
     return 0;
 }
 
-static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
+static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
 {
     char current_color = 0;
     long n = 0;
@@ -821,7 +821,7 @@ static int hex_normal(char* buffer, char* z, const Xxd* xxd, int e)
     return 0;
 }
 
-static int hex_littleendian(char* buffer, char* z, const Xxd* xxd, int e)
+static int hex_littleendian(char* buffer, char* z, const Config* xxd, int e)
 {
     int nonzero = 0, addrlen = 9, p = 0, x = 0;
     int max_idx = 0;
@@ -944,7 +944,7 @@ static const char* base_name(const char* path)
 int main(int argc, char* argv[])
 {
     const char* version = "tinyxxd 1.3.10";
-    Xxd xxd = {
+    Config xxd = {
         .input = stdin,
         .output = stdout,
         .program_name = base_name(argv[0]),
