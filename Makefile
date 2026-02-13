@@ -60,6 +60,7 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-s -5 sample.bin' DESC='Seek -5'
 	@$(MAKE) run_test CMD='-l 7 sample.bin' DESC='Stop after len=7'
 	@$(MAKE) run_test CMD='-c 8 sample.bin' DESC='Hex dump with 8 columns'
+	@$(MAKE) run_test CMD='-c 0 -ps sample.bin' DESC='PostScript with no line wrapping (-c 0)'
 	@$(MAKE) run_test CMD='-p sample.bin' DESC='Plain hex dump (PostScript style)'
 	@$(MAKE) run_test CMD='-i sample.bin' DESC='C include file style'
 	@$(MAKE) run_test CMD='-e sample.bin' DESC='Little-endian hex dump'
