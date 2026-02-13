@@ -1146,8 +1146,9 @@ int main(int argc, char* argv[])
     if (xxd.uppercase_hex) {
         xxd.hex_digits = "0123456789ABCDEF";
     }
-    // Default cols logic
-    if (!xxd.colsgiven || !xxd.cols) {
+    // Default cols logic: use defaults if -c not given, or if -c 0 for non-PostScript modes
+    // (PostScript with -c 0 means no line wrapping)
+    if (!xxd.colsgiven || (!xxd.cols && hextype != HEX_POSTSCRIPT)) {
         switch (hextype) {
         case HEX_POSTSCRIPT:
             xxd.cols = 30;
