@@ -938,7 +938,7 @@ static const char* base_name(const char* path)
 
 int main(int argc, char* argv[])
 {
-    const char* version = "tinyxxd 1.3.10";
+    const char* version = "tinyxxd 1.3.11";
     Config xxd = {
         .input = stdin,
         .output = stdout,
