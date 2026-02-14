@@ -10,8 +10,8 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 enum { COLS = 256 };
@@ -944,7 +944,7 @@ static const char* base_name(const char* path)
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
-    //Enable ANSI mode
+    // Enable ANSI mode
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);
