@@ -9,6 +9,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#endif
+
 enum { COLS = 256 };
 
 enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
@@ -938,6 +943,17 @@ static const char* base_name(const char* path)
 
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+    //Enable ANSI mode
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    if (!(dwMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(hOut, dwMode);
+    }
+#endif
+
     const char* version = "tinyxxd 1.3.11";
     Config xxd = {
         .input = stdin,
@@ -1196,7 +1212,11 @@ int main(int argc, char* argv[])
     } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         xxd.input = stdin;
         xxd.input_filename = "stdin";
+#ifndef _WIN32
     } else if (!(xxd.input = fopen(argv[1], "r"))) {
+#else
+    } else if (!(xxd.input = fopen(argv[1], "rb"))) {
+#endif
         fprintf(stderr, "%s: ", xxd.program_name);
         perror(argv[1]);
         return 2;
