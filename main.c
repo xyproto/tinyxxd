@@ -65,7 +65,7 @@ enum ColorDigit {
 };
 
 // This is an EBCDIC to ASCII conversion table from a proposed BTL standard, 16th of April 1979
-const uint8_t etoa64[] = {
+static const uint8_t etoa64[] = {
     0040, 0240, 0241, 0242, 0243, 0244, 0245, 0246,
     0247, 0250, 0325, 0056, 0074, 0050, 0053, 0174,
     0046, 0251, 0252, 0253, 0254, 0255, 0256, 0257,
