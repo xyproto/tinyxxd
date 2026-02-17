@@ -1212,11 +1212,7 @@ int main(int argc, char* argv[])
     } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         xxd.input = stdin;
         xxd.input_filename = "stdin";
-#ifndef _WIN32
-    } else if (!(xxd.input = fopen(argv[1], "r"))) {
-#else
     } else if (!(xxd.input = fopen(argv[1], "rb"))) {
-#endif
         fprintf(stderr, "%s: ", xxd.program_name);
         perror(argv[1]);
         return 2;
