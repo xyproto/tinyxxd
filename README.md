@@ -33,7 +33,7 @@ For more details, take a look at the latest [benchmark results](benchmark_result
 
 ## Packaging status
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/tinyxxd.svg)](https://repology.org/project/tinyxxd/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/tinyxxd.svg?columns=3)](https://repology.org/project/tinyxxd/versions)
 
 ## Source code
 
