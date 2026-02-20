@@ -8,7 +8,7 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE
 else ifeq ($(OS),Windows_NT)
-	CFLAGS += -D_WIN32
+	CFLAGS += -D_WIN32 -s
 else
 	CFLAGS += -fstack-protector-strong -D_GNU_SOURCE -fno-plt -Wl,-z,now -D_FORTIFY_SOURCE=3
 endif
