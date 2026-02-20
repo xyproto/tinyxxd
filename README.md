@@ -45,7 +45,7 @@ Some of the code has been neatly refactored into separate functions, and a coupl
 
 Tested on Arch Linux, where it builds, runs and all tests passes.
 
-`make test` can be used to run simple tests, and `python bench.py` can run additional tests while benchmarking.
+`make test` can be used to run simple tests, and `make bench` can run additional tests while benchmarking.
 
 ## Platforms
 
