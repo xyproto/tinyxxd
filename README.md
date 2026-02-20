@@ -49,7 +49,7 @@ Tested on Arch Linux, where it builds, runs and all tests passes.
 
 ## Platforms
 
-`tinyxxd` also builds for macOS and Windows (using Mingw), but it has not been tested properly on those platforms yet, and there might be variations on how it behaves compared to Linux.
+`tinyxxd` also builds for macOS and Windows. There might be small variations of how `tinyxxd` behaves compared the `xxd` that comes with macOS.
 
 ## Benchmarking
 
