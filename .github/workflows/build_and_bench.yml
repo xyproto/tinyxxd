@@ -125,6 +125,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Rebase on latest main
+        run: |
+          git pull --rebase origin "${GITHUB_REF_NAME}"
 
       - name: Download benchmark results
         uses: actions/download-artifact@v4
@@ -151,5 +157,10 @@ jobs:
       - name: Commit benchmark updates
         if: env.changes == 'true'
         run: |
+          set -euo pipefail
           git commit -m "Update benchmarks and images" -a
-          git push
+          if ! git push origin "HEAD:${GITHUB_REF_NAME}"; then
+            echo "Initial push failed, rebasing and retrying once..."
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
