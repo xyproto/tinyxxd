@@ -8,7 +8,7 @@
 
 `tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is slightly faster.
 
-`tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms, and also on Windows.
+`tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms and on Windows.
 
 ## Performance
 
