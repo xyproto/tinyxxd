@@ -151,10 +151,18 @@ static const uint8_t ascii_color_table[256] = {
     '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '4' // 0xF0-0xFF: 255=BLUE
 };
 
+static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h          print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
+
+static void exit_with_usage_error(const char* program_name, const char* version)
+{
+    fprintf(stderr, USAGE, program_name, program_name, version);
+    exit(EXIT_FAILURE);
+}
+
 static void exit_with_usage(const char* program_name, const char* version)
 {
-    fprintf(stderr, "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h          print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n", program_name, program_name, version);
-    exit(EXIT_FAILURE);
+    fprintf(stdout, USAGE, program_name, program_name, version);
+    exit(EXIT_SUCCESS);
 }
 
 static void exit_with_error(const int exit_code, const char* message, const char* program_name)
@@ -994,6 +1002,8 @@ int main(int argc, char* argv[])
     errno = 0;
     char* pp = NULL;
     while (argc >= 2) {
+		if (!strncmp(argv[1], "-h", 2)) 
+			exit_with_usage(xxd.program_name, version);
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
             xxd.autoskip = !xxd.autoskip;
@@ -1034,7 +1044,7 @@ int main(int argc, char* argv[])
                 xxd.cols = (int)strtol(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 xxd.colsgiven = true;
                 xxd.cols = (int)strtol(argv[2], NULL, 0);
@@ -1046,7 +1056,7 @@ int main(int argc, char* argv[])
                 xxd.octspergrp = (int)strtol(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 xxd.octspergrp = (int)strtol(argv[2], NULL, 0);
                 argv++;
@@ -1058,7 +1068,7 @@ int main(int argc, char* argv[])
                 xxd.displayoff = strtoul(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 if (argv[2][0] == '+') {
                     reloffset++;
@@ -1090,7 +1100,7 @@ int main(int argc, char* argv[])
             if (!pp[2]) { // This means -s was given without an argument following immediately
                 // Handle case where argument is in argv[2]
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 seek_arg_ptr = argv[2];
                 if (*seek_arg_ptr == '+') {
@@ -1110,7 +1120,7 @@ int main(int argc, char* argv[])
                 xxd.length = strtol(pp + 2, (char**)NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 xxd.length = strtol(argv[2], (char**)NULL, 0);
                 argv++;
@@ -1121,7 +1131,7 @@ int main(int argc, char* argv[])
                 xxd.varname = pp + 2;
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version);
+                    exit_with_usage_error(xxd.program_name, version);
                 }
                 xxd.varname = argv[2];
                 argv++;
@@ -1135,7 +1145,7 @@ int main(int argc, char* argv[])
                 argc--;
             }
             if (!pw) {
-                exit_with_usage(xxd.program_name, version);
+                exit_with_usage_error(xxd.program_name, version);
             }
             if (!strncmp(pw, "always", 6)) {
                 xxd.color = true;
@@ -1145,14 +1155,14 @@ int main(int argc, char* argv[])
                 xxd.color = isatty(STDOUT_FILENO);
                 errno = 0;
             } else {
-                exit_with_usage(xxd.program_name, version);
+                exit_with_usage_error(xxd.program_name, version);
             }
         } else if (!strcmp(pp, "--")) { // end of options
             argv++;
             argc--;
             break;
         } else if (pp[0] == '-' && pp[1]) { // unknown option
-            exit_with_usage(xxd.program_name, version);
+            exit_with_usage_error(xxd.program_name, version);
         } else {
             break; // not an option
         }
@@ -1208,7 +1218,7 @@ int main(int argc, char* argv[])
         xxd.octspergrp = xxd.cols; // fallback if 0
     }
     if (argc > 3) {
-        exit_with_usage(xxd.program_name, version);
+        exit_with_usage_error(xxd.program_name, version);
     } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         xxd.input = stdin;
         xxd.input_filename = "stdin";
