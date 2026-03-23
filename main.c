@@ -47,6 +47,7 @@ typedef struct {
     bool ascii;
     bool capitalize;
     bool uppercase_hex;
+    bool terminate_nul;
     bool negseek;
     bool relative_seek;
     uint8_t input_buffer[INPUT_BUFFER_SIZE];
@@ -151,7 +152,7 @@ static const uint8_t ascii_color_table[256] = {
     '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '4' // 0xF0-0xFF: 255=BLUE
 };
 
-static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h/--help   print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
+static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h/--help   print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -t          append a terminating NUL to C include output (-i).\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
 
 static void exit_with_usage_error(const char* program_name, const char* version)
 {
@@ -547,7 +548,12 @@ static int hex_cinclude(const Config* xxd, int e)
         p++;
         getc_or_die(&e, xxd);
     }
-    if (p) {
+    if (xxd->terminate_nul) {
+        if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), 0) < 0) {
+            exit_with_error(3, NULL, xxd->program_name);
+        }
+    }
+    if (p || xxd->terminate_nul) {
         putc_or_die('\n', xxd);
     }
     if (varname) {
@@ -594,7 +600,17 @@ static int hex_cinclude_bits(const Config* xxd, int e)
         p++;
         getc_or_die(&e, xxd);
     }
-    if (p) {
+    if (xxd->terminate_nul) {
+        if (p == 0) {
+            fputs_or_die("  ", xxd);
+        } else if (p % xxd->cols == 0) {
+            fputs_or_die(",\n  ", xxd);
+        } else {
+            fputs_or_die(", ", xxd);
+        }
+        fputs_or_die("0b00000000", xxd);
+    }
+    if (p || xxd->terminate_nul) {
         putc_or_die('\n', xxd);
     }
     if (varname) {
@@ -983,6 +999,7 @@ int main(int argc, char* argv[])
         .ascii = true,
         .capitalize = false,
         .uppercase_hex = false,
+        .terminate_nul = false,
         .negseek = 0,
         .input_buffer_size = 0,
         .input_buffer_pos = 0,
@@ -1002,8 +1019,8 @@ int main(int argc, char* argv[])
     errno = 0;
     char* pp = NULL;
     while (argc >= 2) {
-		if (!strncmp(argv[1], "-h", 2) || !strncmp(argv[1], "--help", 6)) 
-			exit_with_usage(xxd.program_name, version);
+        if (!strncmp(argv[1], "-h", 2) || !strncmp(argv[1], "--help", 6))
+            exit_with_usage(xxd.program_name, version);
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
             xxd.autoskip = !xxd.autoskip;
@@ -1015,6 +1032,8 @@ int main(int argc, char* argv[])
             }
         } else if (!strncmp(pp, "-e", 2)) {
             hextype = HEX_LITTLEENDIAN;
+        } else if (!strncmp(pp, "-t", 2)) {
+            xxd.terminate_nul = true;
         } else if (!strncmp(pp, "-u", 2)) {
             xxd.uppercase_hex = true;
         } else if (!strncmp(pp, "-p", 2)) {

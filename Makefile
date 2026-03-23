@@ -78,6 +78,8 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-i -C sample.bin' DESC='C include capitalized'
 	@$(MAKE) run_test CMD='-i -n myvar sample.bin' DESC='C include custom name'
 	@$(MAKE) run_test CMD='-i -b sample.bin' DESC='C include binary format'
+	@$(MAKE) run_test CMD='-i -t sample.bin' DESC='C include with terminating NUL'
+	@$(MAKE) run_test CMD='-i -b -t sample.bin' DESC='C include binary with terminating NUL'
 	@$(MAKE) verify_conversion_test
 	@rm -f -- *.hex sample.bin colorbytes.bin ebcdicbytes.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
