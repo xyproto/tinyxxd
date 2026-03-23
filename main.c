@@ -177,22 +177,20 @@ static void exit_with_col_error(const char* program_name)
     exit(EXIT_FAILURE);
 }
 
-static inline int getc_or_die(int* ch, const Config* xxd_config)
+static inline int getc_or_die(const Config* xxd_config)
 {
     Config* xxd = (Config*)xxd_config;
     if (xxd->input_buffer_pos >= xxd->input_buffer_len) {
         xxd->input_buffer_len = fread(xxd->input_buffer, 1, xxd->input_buffer_size, xxd->input);
         xxd->input_buffer_pos = 0;
         if (xxd->input_buffer_len == 0) { // EOF or error
-            *ch = EOF;
             if (ferror(xxd->input)) {
                 exit_with_error(2, NULL, xxd->program_name);
             }
             return EOF;
         }
     }
-    *ch = xxd->input_buffer[xxd->input_buffer_pos++];
-    return *ch;
+    return xxd->input_buffer[xxd->input_buffer_pos++];
 }
 
 static inline void putc_or_die(int ch, const Config* xxd)
@@ -228,7 +226,7 @@ static void fclose_or_die(const Config* xxd)
 static inline void skip_to_eol_or_die(int* ch, const Config* xxd)
 {
     while (*ch != '\n' && *ch != EOF) {
-        getc_or_die(ch, xxd);
+        *ch = getc_or_die(xxd);
     }
 }
 
@@ -258,7 +256,7 @@ static int decode_hex_stream_postscript(const long base_off, const Config* xxd)
     rewind(xxd->input);
     ((Config*)xxd)->input_buffer_pos = 0;
     ((Config*)xxd)->input_buffer_len = 0;
-    while (((c = getc_or_die(&c, xxd)) != EOF)) {
+    while (((c = getc_or_die(xxd)) != EOF)) {
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
@@ -293,7 +291,7 @@ static int decode_hex_stream_normal(const int cols, const long base_off, const C
     rewind(xxd->input);
     ((Config*)xxd)->input_buffer_pos = 0;
     ((Config*)xxd)->input_buffer_len = 0;
-    while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
+    while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
         if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
@@ -343,7 +341,7 @@ static int decode_hex_stream_bits(const int cols, const Config* xxd)
     rewind(xxd->input);
     ((Config*)xxd)->input_buffer_pos = 0;
     ((Config*)xxd)->input_buffer_len = 0;
-    while (((c = getc_or_die(&c, xxd)) != EOF) && c != '\r') {
+    while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
         if ((n1 = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
@@ -490,7 +488,7 @@ static int hex_postscript(const Config* xxd, int e)
     }
     long n = 0;
     int p = xxd->cols;
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
         putc_or_die(xxd->hex_digits[e & 0xf], xxd);
@@ -499,7 +497,7 @@ static int hex_postscript(const Config* xxd, int e)
             putc_or_die('\n', xxd);
             p = xxd->cols;
         }
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (!xxd->cols || p < xxd->cols) {
         putc_or_die('\n', xxd);
@@ -533,14 +531,14 @@ static int hex_cinclude(const Config* xxd, int e)
         print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
     }
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     const char* hex_format_string = xxd->uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
         if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), e) < 0) {
             exit_with_error(3, NULL, xxd->program_name);
         }
         p++;
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (xxd->terminate_nul) {
         if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), 0) < 0) {
@@ -578,7 +576,7 @@ static int hex_cinclude_bits(const Config* xxd, int e)
         print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
     }
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
         if (p == 0) {
             fputs_or_die("  ", xxd);
@@ -592,7 +590,7 @@ static int hex_cinclude_bits(const Config* xxd, int e)
             putc_or_die(((e >> bit) & 1) + '0', xxd);
         }
         p++;
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (xxd->terminate_nul) {
         if (p == 0) {
@@ -639,7 +637,7 @@ static int hex_bits(char* buffer, char* z, const Config* xxd, int e)
     } else if (octspergrp < 1 || octspergrp > xxd->cols) {
         octspergrp = xxd->cols;
     }
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     const int grplen = 8 * octspergrp + 1;
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
@@ -674,7 +672,7 @@ static int hex_bits(char* buffer, char* z, const Config* xxd, int e)
             p = 0;
             max_idx = 0;
         }
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (p) {
         int c = max_idx;
@@ -705,7 +703,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
     } else if (octspergrp < 1 || octspergrp > xxd->cols) {
         octspergrp = xxd->cols;
     }
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         line_data[p] = (uint8_t)e;
         if (e) {
@@ -762,7 +760,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
             p = 0;
             nonzero = 0;
         }
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (p) {
         uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
@@ -858,7 +856,7 @@ static int hex_littleendian(char* buffer, char* z, const Config* xxd, int e)
     } else if (octspergrp & (octspergrp - 1)) {
         exit_with_error(1, "number of octets per group must be a power of 2 with -e.", xxd->program_name);
     }
-    getc_or_die(&e, xxd);
+    e = getc_or_die(xxd);
     // grplen includes color overhead when colors are enabled
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
@@ -917,7 +915,7 @@ static int hex_littleendian(char* buffer, char* z, const Config* xxd, int e)
             p = 0;
             max_idx = 0;
         }
-        getc_or_die(&e, xxd);
+        e = getc_or_die(xxd);
     }
     if (p) {
         int c = max_idx;
@@ -1269,7 +1267,7 @@ int main(int argc, char* argv[])
         } else {
             int ch;
             for (long s = xxd.seekoff; s > 0; s--) {
-                getc_or_die(&ch, &xxd);
+                ch = getc_or_die(&xxd);
                 if (ch == EOF) {
                     exit_with_error(4, "Sorry, cannot seek.", xxd.program_name);
                 }
