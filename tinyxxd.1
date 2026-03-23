@@ -42,7 +42,7 @@ Group output into octets of bytes size in the normal output mode. Default is 2 (
 .B \-E | \-EBCDIC
 Display the characters in EBCDIC encoding instead of ASCII.
 .TP
-.B \-h | \-help
+.B \-h | \-help | \-\-help
 Print a summary of the options.
 .TP
 .B \-i | \-include
@@ -66,11 +66,11 @@ Reverse operation: convert (or patch) hexdump into binary.
 .B \-R when
 Colorize the output. when can be 'always', 'auto', or 'never'. Default: 'auto'.
 .TP
-.B \-seek offset
-When used after \-r: revert with offset added to file positions found in hex dump.
-.TP
 .B \-s [+][-]seek
-Start at seek bytes absolute or relative (with \\+ for relative offset).
+Start at seek bytes absolute (or relative, with + prefix) in the input file. When used with \-r, the offset is added to file positions found in the hex dump.
+.TP
+.B \-t
+Append a terminating NUL byte to the array in C include file style (\-i).
 .TP
 .B \-u
 Use uppercase letters for hexadecimal output. Default is lowercase.
