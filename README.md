@@ -54,7 +54,7 @@ Tested on Arch Linux, where it builds, runs and all tests passes.
 
 ## Benchmarking
 
-`tinyxxd` can be benchmarked by running `python bench.py` (or `python3 bench.py`).
+`tinyxxd` can be benchmarked by running `make bench` (or `python bench.py`/`python3 bench.py`).
 
 The performance is mostly IO bound, which is reflected in the [benchmark graphs](benchmark_results.md).
 
