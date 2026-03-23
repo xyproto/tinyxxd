@@ -13,6 +13,8 @@ on:
       - '**/*.sh'
       - '**/tinyxxd*.png'
       - '**/tinyxxd*.svg'
+      - '**/*.1'
+      - '**/*.1.gz'
   pull_request:
     branches-ignore:
       - 'src-*-update*'
@@ -25,6 +27,8 @@ on:
       - '**/*.sh'
       - '**/tinyxxd*.png'
       - '**/tinyxxd*.svg'
+      - '**/*.1'
+      - '**/*.1.gz'
 
 jobs:
   build-linux:
