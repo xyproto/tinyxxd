@@ -25,3 +25,5 @@
 * Aapo Rantalainen <aapo.rantalainen@gmail.com>
 * Randy Eckenrode <randy@largeandhighquality.com>
 * Alexander F. Rødseth <xyproto@archlinux.org>
+* Noah Gitsham <me@noahgitsham.com>
+* Lukáš Jiřiště <kyci@ljiriste.work>
