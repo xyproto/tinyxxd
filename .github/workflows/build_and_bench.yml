@@ -94,7 +94,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm && \
-          pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python && \
+          pacman -S --noconfirm --needed curl diffutils gcc git gnuplot make python qt6 && \
           pacman -Scc --noconfirm
 
       - name: Check for cached results
