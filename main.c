@@ -1253,6 +1253,7 @@ int main(int argc, char* argv[])
         }
         rewind(xxd.output);
     }
+    setvbuf(xxd.output, NULL, _IOFBF, 65536);
     int e = 0;
     if (xxd.seekoff || xxd.negseek || !xxd.relative_seek) {
         if (xxd.negseek) {
