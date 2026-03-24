@@ -1,6 +1,6 @@
 #!/bin/sh -e
 # The current version goes here, as the default value
-VERSION=${1:-'1.3.12'}
+VERSION=${1:-'1.3.13'}
 
 if [ -z "$1" ]; then
   echo "The current version is $VERSION, pass the new version as the first argument if you wish to change it"
