@@ -1,6 +1,6 @@
 #!/bin/sh -e
 # The current version goes here, as the default value
-VERSION=${1:-'1.3.13'}
+VERSION=${1:-'1.3.14'}
 
 if [ -z "$1" ]; then
   echo "The current version is $VERSION, pass the new version as the first argument if you wish to change it"
@@ -11,3 +11,4 @@ echo "Setting the version to $VERSION"
 sed -i "s/tinyxxd [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/tinyxxd $VERSION/g" main.c
 sed -i "s/VERSION ?= [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/VERSION ?= $VERSION/g" Makefile
 sed -i "s/tinyxxd [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/tinyxxd $VERSION/g" tinyxxd.1
+sed -i "s/\* Version: [[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*/\* Version: $VERSION/g" README.md

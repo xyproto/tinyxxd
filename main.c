@@ -970,7 +970,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    const char* version = "tinyxxd 1.3.13";
+    const char* version = "tinyxxd 1.3.14";
     Config xxd = {
         .input = stdin,
         .output = stdout,
