@@ -250,7 +250,7 @@ static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* w
 static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, digit = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
@@ -259,12 +259,12 @@ static int decode_hex_stream_postscript(const long base_off, Config* xxd)
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
-        if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
+        if ((digit = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
         n2 = n1;
-        n1 = tmp;
+        n1 = digit;
         fflush_fseek_and_putc(&base_off, &want_off, &have_off, xxd);
         if (n2 >= 0 && n1 >= 0) {
             putc_or_die((n2 << 4) | n1, xxd);
@@ -285,18 +285,18 @@ static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 static int decode_hex_stream_normal(const int cols, const long base_off, Config* xxd)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, digit = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
     while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
-        if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
+        if ((digit = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
         }
         n3 = n2;
         n2 = n1;
-        n1 = tmp;
+        n1 = digit;
         if (p >= cols) {
             if (n1 < 0) {
                 p = 0;
