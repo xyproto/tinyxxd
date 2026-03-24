@@ -177,9 +177,8 @@ static void exit_with_col_error(const char* program_name)
     exit(EXIT_FAILURE);
 }
 
-static inline int getc_or_die(const Config* xxd_config)
+static inline int getc_or_die(Config* xxd)
 {
-    Config* xxd = (Config*)xxd_config;
     if (xxd->input_buffer_pos >= xxd->input_buffer_len) {
         xxd->input_buffer_len = fread(xxd->input_buffer, 1, xxd->input_buffer_size, xxd->input);
         xxd->input_buffer_pos = 0;
@@ -223,7 +222,7 @@ static void fclose_or_die(const Config* xxd)
     }
 }
 
-static inline void skip_to_eol_or_die(int* ch, const Config* xxd)
+static inline void skip_to_eol_or_die(int* ch, Config* xxd)
 {
     while (*ch != '\n' && *ch != EOF) {
         *ch = getc_or_die(xxd);
@@ -248,14 +247,14 @@ static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* w
     }
 }
 
-static int decode_hex_stream_postscript(const long base_off, const Config* xxd)
+static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, tmp = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
-    ((Config*)xxd)->input_buffer_pos = 0;
-    ((Config*)xxd)->input_buffer_len = 0;
+    xxd->input_buffer_pos = 0;
+    xxd->input_buffer_len = 0;
     while (((c = getc_or_die(xxd)) != EOF)) {
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
@@ -283,14 +282,14 @@ static int decode_hex_stream_postscript(const long base_off, const Config* xxd)
     return 0;
 }
 
-static int decode_hex_stream_normal(const int cols, const long base_off, const Config* xxd)
+static int decode_hex_stream_normal(const int cols, const long base_off, Config* xxd)
 {
     bool ignore = true;
     int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, tmp = -1;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
-    ((Config*)xxd)->input_buffer_pos = 0;
-    ((Config*)xxd)->input_buffer_len = 0;
+    xxd->input_buffer_pos = 0;
+    xxd->input_buffer_len = 0;
     while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
         if ((tmp = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
@@ -333,14 +332,14 @@ static int decode_hex_stream_normal(const int cols, const long base_off, const C
     return 0;
 }
 
-static int decode_hex_stream_bits(const int cols, const Config* xxd)
+static int decode_hex_stream_bits(const int cols, Config* xxd)
 {
     bool ignore = true;
     int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
     long want_off = 0;
     rewind(xxd->input);
-    ((Config*)xxd)->input_buffer_pos = 0;
-    ((Config*)xxd)->input_buffer_len = 0;
+    xxd->input_buffer_pos = 0;
+    xxd->input_buffer_len = 0;
     while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
         if ((n1 = hex_digit_table[(uint8_t)c]) == -1 && ignore) {
             continue;
@@ -406,7 +405,7 @@ static inline void print_or_suppress_zero_line(const char* buffer, char* z, cons
     }
 }
 
-static inline void set_color(char* buffer, int* c, const enum ColorDigit color_digit)
+static inline void set_color(char* const buffer, int* const c, const enum ColorDigit color_digit)
 {
     buffer[(*c)++] = '\033';
     buffer[(*c)++] = '[';
@@ -417,7 +416,7 @@ static inline void set_color(char* buffer, int* c, const enum ColorDigit color_d
     buffer[(*c)++] = 'm';
 }
 
-static inline void clear_color(char* buffer, int* c)
+static inline void clear_color(char* const buffer, int* const c)
 {
     buffer[(*c)++] = '\033';
     buffer[(*c)++] = '[';
@@ -435,12 +434,12 @@ static inline enum ColorDigit ascii_char_color(const uint8_t e)
     return (enum ColorDigit)ascii_color_table[e];
 }
 
-static inline void update_color_state(char* buffer, int* buf_idx, char* current_color, uint8_t byte_val, const Config* xxd)
+static inline void update_color_state(char* const buffer, int* const buf_idx, char* const current_color, const uint8_t byte_val, const Config* const xxd)
 {
     if (!xxd->color) {
         return;
     }
-    char new_color = (char)(xxd->ascii ? ascii_char_color(byte_val) : ebcdic_char_color(byte_val));
+    const char new_color = (char)(xxd->ascii ? ascii_char_color(byte_val) : ebcdic_char_color(byte_val));
     if (new_color != *current_color) {
         if (*current_color != 0) {
             clear_color(buffer, buf_idx);
@@ -452,14 +451,14 @@ static inline void update_color_state(char* buffer, int* buf_idx, char* current_
     }
 }
 
-static inline void write_hex_byte(char* buffer, int* idx, uint8_t byte, const char* hex_digits)
+static inline void write_hex_byte(char* const buffer, int* const idx, const uint8_t byte, const char* const hex_digits)
 {
     buffer[(*idx)++] = hex_digits[(byte >> 4) & 0xf];
     buffer[(*idx)++] = hex_digits[byte & 0xf];
 }
 
 // Fast hex address formatter for common case (8-digit hex addresses)
-static inline int format_hex_address(char* buffer, uint64_t addr, bool use_fast_path)
+static inline int format_hex_address(char* const buffer, const uint64_t addr, const bool use_fast_path)
 {
     if (use_fast_path && addr <= 0xFFFFFFFF) {
         // Fast path: directly format 8-digit hex address
@@ -478,7 +477,7 @@ static inline int format_hex_address(char* buffer, uint64_t addr, bool use_fast_
     return -1; // Fall back to snprintf
 }
 
-static int hex_postscript(const Config* xxd, int e)
+static int hex_postscript(Config* xxd, int e)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
         exit_with_col_error(xxd->program_name);
@@ -516,14 +515,14 @@ static inline void print_varname(const char* varname, const Config* xxd)
     }
 }
 
-static int hex_cinclude(const Config* xxd, int e)
+static int hex_cinclude(Config* xxd, int e)
 {
     long p = 0;
     if (xxd->revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
-    const char* varname = xxd->varname ? xxd->varname
-                                       : (xxd->input != stdin ? xxd->input_filename : NULL);
+    const char* const varname = xxd->varname ? xxd->varname
+                                             : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -532,7 +531,7 @@ static int hex_cinclude(const Config* xxd, int e)
         fputs_or_die("[] = {\n", xxd);
     }
     e = getc_or_die(xxd);
-    const char* hex_format_string = xxd->uppercase_hex ? "%s0X%02X" : "%s0x%02x";
+    const char* const hex_format_string = xxd->uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
         if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), e) < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -561,14 +560,14 @@ static int hex_cinclude(const Config* xxd, int e)
     return 0;
 }
 
-static int hex_cinclude_bits(const Config* xxd, int e)
+static int hex_cinclude_bits(Config* xxd, int e)
 {
     long p = 0;
     if (xxd->revert) {
         exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
     }
-    const char* varname = xxd->varname ? xxd->varname
-                                       : (xxd->input != stdin ? xxd->input_filename : NULL);
+    const char* const varname = xxd->varname ? xxd->varname
+                                             : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
             exit_with_error(3, NULL, xxd->program_name);
@@ -618,7 +617,7 @@ static int hex_cinclude_bits(const Config* xxd, int e)
     return 0;
 }
 
-static int hex_bits(char* buffer, char* z, const Config* xxd, int e)
+static int hex_bits(char* buffer, char* z, Config* xxd, int e)
 {
     long n = 0;
     int nonzero = 0, p = 0, addrlen = 9;
@@ -685,7 +684,7 @@ static int hex_bits(char* buffer, char* z, const Config* xxd, int e)
     return 0;
 }
 
-static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
+static int hex_normal(char* buffer, char* z, Config* xxd, int e)
 {
     char current_color = 0;
     long n = 0;
@@ -712,8 +711,8 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
         n++;
         p++;
         if (p == xxd->cols) {
-            uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
-            bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+            const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+            const bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
             int buf_idx = format_hex_address(buffer, addr, use_fast);
             if (buf_idx < 0) {
                 // Fall back to snprintf for decimal mode or large addresses
@@ -731,7 +730,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
                     }
                     buffer[buf_idx++] = ' ';
                 }
-                int val = line_data[i];
+                const int val = line_data[i];
                 update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
                 write_hex_byte(buffer, &buf_idx, (uint8_t)val, xxd->hex_digits);
             }
@@ -742,7 +741,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
             for (int i = 0; i < p; i++) {
-                int val = line_data[i];
+                const int val = line_data[i];
                 int pval = val;
                 if (!xxd->ascii) { // If EBCDIC mode
                     pval = (val < 64) ? '.' : etoa64[val - 64];
@@ -763,8 +762,8 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
         e = getc_or_die(xxd);
     }
     if (p) {
-        uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
-        bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+        const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        const bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
         int buf_idx = format_hex_address(buffer, addr, use_fast);
         if (buf_idx < 0) {
             buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
@@ -781,7 +780,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
                 }
                 buffer[buf_idx++] = ' ';
             }
-            int val = line_data[i];
+            const int val = line_data[i];
             update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
             write_hex_byte(buffer, &buf_idx, (uint8_t)val, xxd->hex_digits);
         }
@@ -789,8 +788,8 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
             clear_color(buffer, &buf_idx);
             current_color = 0;
         }
-        int hex_pad_count = (xxd->cols - p);
-        int hex_pad_seps = hex_pad_count / octspergrp;
+        const int hex_pad_count = (xxd->cols - p);
+        const int hex_pad_seps = hex_pad_count / octspergrp;
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
         }
@@ -816,7 +815,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
         }
         buffer[buf_idx++] = ' ';
         for (int i = 0; i < p; i++) {
-            int val = line_data[i];
+            const int val = line_data[i];
             int pval = val;
             if (!xxd->ascii) {
                 pval = (val < 64) ? '.' : etoa64[val - 64];
@@ -837,7 +836,7 @@ static int hex_normal(char* buffer, char* z, const Config* xxd, int e)
     return 0;
 }
 
-static int hex_littleendian(char* buffer, char* z, const Config* xxd, int e)
+static int hex_littleendian(char* buffer, char* z, Config* xxd, int e)
 {
     int nonzero = 0, addrlen = 9, p = 0, x = 0;
     int max_idx = 0;
