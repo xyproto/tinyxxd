@@ -249,14 +249,14 @@
 	</g>
 </g>
 <g fill="none" color="black" stroke="currentColor" stroke-width="1.00" stroke-linecap="butt" stroke-linejoin="miter">
-	<path stroke='rgb(148,   0, 211)'  d='M740.65,63.01 L783.21,63.01 M537.64,115.72 L305.08,323.37 L188.81,432.57 L130.67,485.19 L101.60,512.52 L87.06,526.72
-		L79.80,533.87  '/>	<use xlink:href='#gpPt0' transform='translate(537.64,115.72) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(305.08,323.37) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(188.81,432.57) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(130.67,485.19) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(101.60,512.52) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(87.06,526.72) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(79.80,533.87) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<path stroke='rgb(148,   0, 211)'  d='M740.65,63.01 L783.21,63.01 M537.64,96.46 L305.08,315.11 L188.81,427.77 L130.67,484.06 L101.60,512.35 L87.06,526.73
+		L79.80,533.67  '/>	<use xlink:href='#gpPt0' transform='translate(537.64,96.46) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(305.08,315.11) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(188.81,427.77) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(130.67,484.06) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(101.60,512.35) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(87.06,526.73) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(79.80,533.67) scale(4.50)' color='rgb(148,   0, 211)'/>
 	<use xlink:href='#gpPt0' transform='translate(761.93,63.01) scale(4.50)' color='rgb(148,   0, 211)'/>
 </g>
 	</g>
@@ -267,14 +267,14 @@
 	</g>
 </g>
 <g fill="none" color="black" stroke="currentColor" stroke-width="1.00" stroke-linecap="butt" stroke-linejoin="miter">
-	<path stroke='rgb(  0, 158, 115)'  d='M740.65,81.01 L783.21,81.01 M537.64,174.66 L305.08,358.35 L188.81,449.50 L130.67,495.03 L101.60,517.92 L87.06,529.28
-		L79.80,535.08  '/>	<use xlink:href='#gpPt1' transform='translate(537.64,174.66) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(305.08,358.35) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(188.81,449.50) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(130.67,495.03) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(101.60,517.92) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(87.06,529.28) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(79.80,535.08) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<path stroke='rgb(  0, 158, 115)'  d='M740.65,81.01 L783.21,81.01 M537.64,174.69 L305.08,353.98 L188.81,449.23 L130.67,494.99 L101.60,517.58 L87.06,529.25
+		L79.80,534.99  '/>	<use xlink:href='#gpPt1' transform='translate(537.64,174.69) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(305.08,353.98) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(188.81,449.23) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(130.67,494.99) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(101.60,517.58) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(87.06,529.25) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(79.80,534.99) scale(4.50)' color='rgb(  0, 158, 115)'/>
 	<use xlink:href='#gpPt1' transform='translate(761.93,81.01) scale(4.50)' color='rgb(  0, 158, 115)'/>
 </g>
 	</g>

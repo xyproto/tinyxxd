@@ -262,14 +262,14 @@
 	</g>
 </g>
 <g fill="none" color="black" stroke="currentColor" stroke-width="1.00" stroke-linecap="butt" stroke-linejoin="miter">
-	<path stroke='rgb(148,   0, 211)'  d='M740.65,63.01 L783.21,63.01 M537.64,77.45 L305.08,312.08 L188.81,425.59 L130.67,483.51 L101.60,512.40 L87.06,526.71
-		L79.80,533.91  '/>	<use xlink:href='#gpPt0' transform='translate(537.64,77.45) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(305.08,312.08) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(188.81,425.59) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(130.67,483.51) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(101.60,512.40) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(87.06,526.71) scale(4.50)' color='rgb(148,   0, 211)'/>
-	<use xlink:href='#gpPt0' transform='translate(79.80,533.91) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<path stroke='rgb(148,   0, 211)'  d='M740.65,63.01 L783.21,63.01 M537.64,73.18 L305.08,309.28 L188.81,425.19 L130.67,483.38 L101.60,511.75 L87.06,526.27
+		L79.80,533.69  '/>	<use xlink:href='#gpPt0' transform='translate(537.64,73.18) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(305.08,309.28) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(188.81,425.19) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(130.67,483.38) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(101.60,511.75) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(87.06,526.27) scale(4.50)' color='rgb(148,   0, 211)'/>
+	<use xlink:href='#gpPt0' transform='translate(79.80,533.69) scale(4.50)' color='rgb(148,   0, 211)'/>
 	<use xlink:href='#gpPt0' transform='translate(761.93,63.01) scale(4.50)' color='rgb(148,   0, 211)'/>
 </g>
 	</g>
@@ -280,14 +280,14 @@
 	</g>
 </g>
 <g fill="none" color="black" stroke="currentColor" stroke-width="1.00" stroke-linecap="butt" stroke-linejoin="miter">
-	<path stroke='rgb(  0, 158, 115)'  d='M740.65,81.01 L783.21,81.01 M537.64,249.73 L305.08,385.95 L188.81,466.78 L130.67,487.61 L101.60,522.50 L87.06,531.39
-		L79.80,536.21  '/>	<use xlink:href='#gpPt1' transform='translate(537.64,249.73) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(305.08,385.95) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(188.81,466.78) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(130.67,487.61) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(101.60,522.50) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(87.06,531.39) scale(4.50)' color='rgb(  0, 158, 115)'/>
-	<use xlink:href='#gpPt1' transform='translate(79.80,536.21) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<path stroke='rgb(  0, 158, 115)'  d='M740.65,81.01 L783.21,81.01 M537.64,234.42 L305.08,382.72 L188.81,465.36 L130.67,504.05 L101.60,521.82 L87.06,531.17
+		L79.80,536.20  '/>	<use xlink:href='#gpPt1' transform='translate(537.64,234.42) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(305.08,382.72) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(188.81,465.36) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(130.67,504.05) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(101.60,521.82) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(87.06,531.17) scale(4.50)' color='rgb(  0, 158, 115)'/>
+	<use xlink:href='#gpPt1' transform='translate(79.80,536.20) scale(4.50)' color='rgb(  0, 158, 115)'/>
 	<use xlink:href='#gpPt1' transform='translate(761.93,81.01) scale(4.50)' color='rgb(  0, 158, 115)'/>
 </g>
 	</g>
