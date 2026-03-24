@@ -156,7 +156,7 @@ static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    
 
 static void exit_with_usage_code(const char* program_name, const char* version, const int code)
 {
-    fprintf(stderr, USAGE, program_name, program_name, version);
+    fprintf(code == EXIT_SUCCESS ? stdout : stderr, USAGE, program_name, program_name, version);
     exit(code);
 }
 
