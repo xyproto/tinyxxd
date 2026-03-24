@@ -81,6 +81,8 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-i -t sample.bin' DESC='C include with terminating NUL'
 	@$(MAKE) run_test CMD='-i -b -t sample.bin' DESC='C include binary with terminating NUL'
 	@$(MAKE) verify_conversion_test
+	@$(MAKE) test_help_stdout
+	@$(MAKE) test_error_stderr
 	@rm -f -- *.hex sample.bin colorbytes.bin ebcdicbytes.bin tinyxxd_output.txt xxd_output.txt
 	@echo 'All tests complete.'
 
@@ -106,6 +108,24 @@ verify_conversion_test:
 		exit 1; \
 	fi
 	@rm -f sample_tinyxxd.bin sample_restored.bin
+
+test_help_stdout:
+	@echo "Running test: -h outputs to stdout"
+	@if ./tinyxxd_asan -h 2>/dev/null | grep -q 'Usage'; then \
+		echo 'Test passed'; \
+	else \
+		echo 'Test failed: -h should write to stdout'; \
+		exit 1; \
+	fi
+
+test_error_stderr:
+	@echo "Running test: bad option outputs to stderr"
+	@if ./tinyxxd_asan -Z 2>&1 >/dev/null | grep -q 'Usage'; then \
+		echo 'Test passed'; \
+	else \
+		echo 'Test failed: bad option should write to stderr'; \
+		exit 1; \
+	fi
 
 update-version:
 	@echo "Updating version in main.c to $(VERSION)"
