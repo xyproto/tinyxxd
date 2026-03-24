@@ -620,11 +620,8 @@ static int hex_cinclude_bits(Config* xxd, int e)
 static int hex_bits(char* buffer, char* z, Config* xxd, int e)
 {
     long n = 0;
-    int nonzero = 0, p = 0, addrlen = 9;
-    int max_idx = 0;
-    if (!xxd->colsgiven || !xxd->cols) {
-        // cols = 6;
-    } else if (xxd->cols < 1 || xxd->cols > COLS) {
+    int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
@@ -788,7 +785,7 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
             clear_color(buffer, &buf_idx);
             current_color = 0;
         }
-        const int hex_pad_count = (xxd->cols - p);
+        const int hex_pad_count = xxd->cols - p;
         const int hex_pad_seps = hex_pad_count / octspergrp;
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
