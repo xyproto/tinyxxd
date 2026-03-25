@@ -37,7 +37,7 @@ typedef struct {
     const char* input_filename;
     long seekoff;
     uint64_t displayoff;
-    long length;
+    int64_t length;
     int cols;
     int octspergrp;
     bool autoskip;
@@ -501,15 +501,25 @@ static int hex_postscript(Config* xxd, int e)
     long n = 0;
     int p = xxd->cols;
     e = getc_or_die(xxd);
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
-        putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
-        putc_or_die(xxd->hex_digits[e & 0xf], xxd);
-        n++;
-        if (xxd->cols > 0 && !--p) {
-            putc_or_die('\n', xxd);
-            p = xxd->cols;
+    if (xxd->cols > 0) {
+        while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+            putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
+            putc_or_die(xxd->hex_digits[e & 0xf], xxd);
+            n++;
+            p--;
+            if (!p) {
+                putc_or_die('\n', xxd);
+                p = xxd->cols;
+            }
+            e = getc_or_die(xxd);
         }
-        e = getc_or_die(xxd);
+    } else {
+        while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+            putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
+            putc_or_die(xxd->hex_digits[e & 0xf], xxd);
+            n++;
+            e = getc_or_die(xxd);
+        }
     }
     if (!xxd->cols || p < xxd->cols) {
         putc_or_die('\n', xxd);
@@ -654,9 +664,10 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd, int e)
     const int grplen = 8 * octspergrp + 1;
     const int start_index = (grplen * xxd->cols - 1) / octspergrp;
     int buf_idx = 0;
+    const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + (uint64_t)xxd->seekoff + xxd->displayoff));
+            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + offset));
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
             max_idx = addrlen;
@@ -719,9 +730,10 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd, int e)
     const int grplen = 8 * octspergrp + 1;
     const int start_idx = (grplen * xxd->cols - 1) / octspergrp;
     int buf_idx = 0;
+    const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + (uint64_t)xxd->seekoff + xxd->displayoff));
+            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + offset));
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
             max_idx = addrlen;
