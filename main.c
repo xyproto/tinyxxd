@@ -688,7 +688,7 @@ static int hex_bits(char* buffer, char* z, Config* xxd, int e)
     return 0;
 }
 
-static int hex_normal(char* buffer, char* z, Config* xxd, int e)
+static int hex_normal_color(char* buffer, char* z, Config* xxd, int e)
 {
     char current_color = 0;
     long n = 0;
@@ -726,30 +726,17 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
                 buffer[buf_idx++] = ' ';
             }
             buffer[buf_idx++] = ' ';
-            if (xxd->color) {
-                for (int i = 0; i < p; i++) {
-                    if (i > 0 && (i % octspergrp) == 0) {
-                        if (current_color != 0) {
-                            clear_color(buffer, &buf_idx);
-                            current_color = 0;
-                        }
-                        buffer[buf_idx++] = ' ';
+            for (int i = 0; i < p; i++) {
+                if (i > 0 && (i % octspergrp) == 0) {
+                    if (current_color != 0) {
+                        clear_color(buffer, &buf_idx);
+                        current_color = 0;
                     }
-                    const uint8_t val = line_data[i];
-                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
-                    write_hex_byte(buffer, &buf_idx, val, xxd->hex_digits);
+                    buffer[buf_idx++] = ' ';
                 }
-            } else {
-                for (int i = 0; i < p; i++) {
-                    if (i > 0 && (i % octspergrp) == 0) {
-                        if (current_color != 0) {
-                            clear_color(buffer, &buf_idx);
-                            current_color = 0;
-                        }
-                        buffer[buf_idx++] = ' ';
-                    }
-                    write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
-                }
+                const uint8_t val = line_data[i];
+                update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                write_hex_byte(buffer, &buf_idx, val, xxd->hex_digits);
             }
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
@@ -758,17 +745,10 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
             if (xxd->ascii) {
-                if (xxd->color) {
-                    for (int i = 0; i < p; i++) {
-                        const uint8_t val = line_data[i];
-                        update_color_state(buffer, &buf_idx, &current_color, val, xxd);
-                        buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
-                    }
-                } else {
-                    for (int i = 0; i < p; i++) {
-                        const uint8_t val = line_data[i];
-                        buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
-                    }
+                for (int i = 0; i < p; i++) {
+                    const uint8_t val = line_data[i];
+                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                    buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
                 }
             } else {
                 for (int i = 0; i < p; i++) {
@@ -803,30 +783,17 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
             buffer[buf_idx++] = ' ';
         }
         buffer[buf_idx++] = ' ';
-        if (xxd->color) {
-            for (int i = 0; i < p; i++) {
-                if (i > 0 && (i % octspergrp) == 0) {
-                    if (current_color != 0) {
-                        clear_color(buffer, &buf_idx);
-                        current_color = 0;
-                    }
-                    buffer[buf_idx++] = ' ';
+        for (int i = 0; i < p; i++) {
+            if (i > 0 && (i % octspergrp) == 0) {
+                if (current_color != 0) {
+                    clear_color(buffer, &buf_idx);
+                    current_color = 0;
                 }
-                const uint8_t val = line_data[i];
-                update_color_state(buffer, &buf_idx, &current_color, val, xxd);
-                write_hex_byte(buffer, &buf_idx, val, xxd->hex_digits);
+                buffer[buf_idx++] = ' ';
             }
-        } else {
-            for (int i = 0; i < p; i++) {
-                if (i > 0 && (i % octspergrp) == 0) {
-                    if (current_color != 0) {
-                        clear_color(buffer, &buf_idx);
-                        current_color = 0;
-                    }
-                    buffer[buf_idx++] = ' ';
-                }
-                write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
-            }
+            const uint8_t val = line_data[i];
+            update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+            write_hex_byte(buffer, &buf_idx, val, xxd->hex_digits);
         }
         if (current_color != 0) {
             clear_color(buffer, &buf_idx);
@@ -837,47 +804,169 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
         }
-        if (xxd->color) {
-            if (COLOR_RED != current_color) {
-                if (current_color != 0) {
-                    clear_color(buffer, &buf_idx);
-                }
-                set_color(buffer, &buf_idx, COLOR_RED);
-                current_color = COLOR_RED;
-            }
-            for (int i = 0; i < hex_pad_count; i++) {
-                buffer[buf_idx++] = ' ';
-            }
+        if (COLOR_RED != current_color) {
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
-                current_color = 0;
             }
-        } else {
-            for (int i = 0; i < hex_pad_count; i++) {
-                buffer[buf_idx++] = ' ';
-            }
+            set_color(buffer, &buf_idx, COLOR_RED);
+            current_color = COLOR_RED;
+        }
+        for (int i = 0; i < hex_pad_count; i++) {
+            buffer[buf_idx++] = ' ';
+        }
+        if (current_color != 0) {
+            clear_color(buffer, &buf_idx);
+            current_color = 0;
         }
         buffer[buf_idx++] = ' ';
         if (xxd->ascii) {
-            if (xxd->color) {
-                for (int i = 0; i < p; i++) {
-                    const uint8_t val = line_data[i];
-                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
-                    buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
-                }
-            } else {
-                for (int i = 0; i < p; i++) {
-                    const uint8_t val = line_data[i];
-                    buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
-                }
+            for (int i = 0; i < p; i++) {
+                const uint8_t val = line_data[i];
+                update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
             }
         } else {
             for (int i = 0; i < p; i++) {
                 const uint8_t val = line_data[i];
                 uint8_t pval = etoa64[val];
-                if (xxd->color) {
-                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+            }
+        }
+        if (current_color != 0) {
+            clear_color(buffer, &buf_idx);
+            current_color = 0;
+        }
+        buffer[buf_idx++] = '\n';
+        buffer[buf_idx] = '\0';
+        print_or_suppress_zero_line(buffer, z, 1, xxd);
+    } else if (xxd->autoskip) {
+        print_or_suppress_zero_line(buffer, z, -1, xxd);
+    }
+    return 0;
+}
+
+static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
+{
+    char current_color = 0;
+    long n = 0;
+    int nonzero = 0, p = 0;
+    uint8_t line_data[COLS];
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
+        exit_with_col_error(xxd->program_name);
+    }
+    if (xxd->revert) {
+        return decode_hex_stream_normal(xxd->cols, xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
+    }
+    int octspergrp = xxd->octspergrp;
+    if (octspergrp < 0) {
+        octspergrp = 2;
+    } else if (octspergrp < 1 || octspergrp > xxd->cols) {
+        octspergrp = xxd->cols;
+    }
+    e = getc_or_die(xxd);
+    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+        line_data[p] = (uint8_t)e;
+        if (e) {
+            nonzero++;
+        }
+        n++;
+        p++;
+        if (p == xxd->cols) {
+            const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+            const bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+            int buf_idx = format_hex_address(buffer, addr, use_fast);
+            if (buf_idx < 0) {
+                // Fall back to snprintf for decimal mode or large addresses
+                buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
+            }
+            while (buf_idx < 9) {
+                buffer[buf_idx++] = ' ';
+            }
+            buffer[buf_idx++] = ' ';
+            for (int i = 0; i < p; i++) {
+                if (i > 0 && (i % octspergrp) == 0) {
+                    if (current_color != 0) {
+                        clear_color(buffer, &buf_idx);
+                        current_color = 0;
+                    }
+                    buffer[buf_idx++] = ' ';
                 }
+                write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
+            }
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
+            }
+            buffer[buf_idx++] = ' ';
+            buffer[buf_idx++] = ' ';
+            if (xxd->ascii) {
+                for (int i = 0; i < p; i++) {
+                    const uint8_t val = line_data[i];
+                    buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
+                }
+            } else {
+                for (int i = 0; i < p; i++) {
+                    const uint8_t val = line_data[i];
+                    uint8_t pval = etoa64[val];
+                    buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+                }
+            }
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
+            }
+            buffer[buf_idx++] = '\n';
+            buffer[buf_idx] = '\0';
+            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
+            p = 0;
+            nonzero = 0;
+        }
+        e = getc_or_die(xxd);
+    }
+    if (p) {
+        const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        const bool use_fast = (xxd->decimal_format_string[3] == '8' && xxd->decimal_format_string[5] == 'l' && xxd->decimal_format_string[6] == 'x');
+        int buf_idx = format_hex_address(buffer, addr, use_fast);
+        if (buf_idx < 0) {
+            buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
+        }
+        while (buf_idx < 9) {
+            buffer[buf_idx++] = ' ';
+        }
+        buffer[buf_idx++] = ' ';
+        for (int i = 0; i < p; i++) {
+            if (i > 0 && (i % octspergrp) == 0) {
+                if (current_color != 0) {
+                    clear_color(buffer, &buf_idx);
+                    current_color = 0;
+                }
+                buffer[buf_idx++] = ' ';
+            }
+            write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
+        }
+        if (current_color != 0) {
+            clear_color(buffer, &buf_idx);
+            current_color = 0;
+        }
+        const int hex_pad_count = xxd->cols - p;
+        const int hex_pad_seps = hex_pad_count / octspergrp;
+        for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
+            buffer[buf_idx++] = ' ';
+        }
+        for (int i = 0; i < hex_pad_count; i++) {
+            buffer[buf_idx++] = ' ';
+        }
+        buffer[buf_idx++] = ' ';
+        if (xxd->ascii) {
+            for (int i = 0; i < p; i++) {
+                const uint8_t val = line_data[i];
+                buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
+            }
+        } else {
+            for (int i = 0; i < p; i++) {
+                const uint8_t val = line_data[i];
+                uint8_t pval = etoa64[val];
                 buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
             }
         }
@@ -1335,7 +1424,11 @@ int main(int argc, char* argv[])
     int status = 0;
     switch (hextype) {
     case HEX_NORMAL:
-        status = hex_normal(buffer, z, &xxd, e);
+        if (xxd.color) {
+            status = hex_normal_color(buffer, z, &xxd, e);
+        } else {
+            status = hex_normal_nocolor(buffer, z, &xxd, e);
+        }
         break;
     case HEX_BITS:
         status = hex_bits(buffer, z, &xxd, e);
