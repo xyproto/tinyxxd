@@ -39,7 +39,7 @@ typedef struct {
     uint64_t displayoff;
     int64_t length;
     int cols;
-    int octspergrp;
+    int32_t octspergrp;
     bool autoskip;
     bool colsgiven;
     bool revert;
@@ -1369,12 +1369,12 @@ int main(int argc, char* argv[])
             }
         } else if (!strncmp(pp, "-l", 2)) {
             if (pp[2] && strncmp("en", pp + 2, 2)) {
-                xxd.length = strtol(pp + 2, (char**)NULL, 0);
+                xxd.length = strtoll(pp + 2, (char**)NULL, 0);
             } else {
                 if (!argv[2]) {
                     exit_with_usage(xxd.program_name, version, false);
                 }
-                xxd.length = strtol(argv[2], (char**)NULL, 0);
+                xxd.length = strtoll(argv[2], (char**)NULL, 0);
                 argv++;
                 argc--;
             }
