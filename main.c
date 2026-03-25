@@ -318,7 +318,8 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
             have_off++;
             want_off++;
             n1 = -1;
-            if (++p >= cols) {
+            p++;
+            if (p >= cols) {
                 skip_to_eol_or_die(&c, xxd);
             }
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
@@ -373,7 +374,8 @@ static int decode_hex_stream_bits(const int cols, Config* xxd)
             want_off++;
             bit_buffer = 0;
             bit_count = 0;
-            if (++p >= cols) {
+            p++;
+            if (p >= cols) {
                 skip_to_eol_or_die(&c, xxd);
             }
         }
@@ -440,6 +442,7 @@ static inline enum ColorDigit ascii_char_color(const uint8_t e)
     return (enum ColorDigit)ascii_color_table[e];
 }
 
+// update_color_state assumes that xxd->color is true and has been checked first
 static inline void update_color_state(char* const buffer, int* const buf_idx, char* const current_color, const uint8_t byte_val, const Config* const xxd)
 {
     const char new_color = (char)(xxd->ascii ? ascii_char_color(byte_val) : ebcdic_char_color(byte_val));
@@ -460,7 +463,7 @@ static inline void write_hex_byte(char* const buffer, int* const idx, const uint
     buffer[(*idx)++] = hex_digits[byte & 0xf];
 }
 
-// Fast hex address formatter for common case (8-digit hex addresses)
+// format_hex_address formats the common case of hex addresses (8-digit hex)
 static inline int format_hex_address(char* const buffer, const uint64_t addr, const bool use_fast_path)
 {
     if (use_fast_path && addr <= 0xFFFFFFFF) {
@@ -624,7 +627,7 @@ static int hex_cinclude_bits(Config* xxd, int e)
     return 0;
 }
 
-static int hex_bits(char* buffer, char* z, Config* xxd, int e)
+static int hex_bits_ascii(char* buffer, char* z, Config* xxd, int e)
 {
     long n = 0;
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
@@ -642,32 +645,33 @@ static int hex_bits(char* buffer, char* z, Config* xxd, int e)
     }
     e = getc_or_die(xxd);
     const int grplen = 8 * octspergrp + 1;
+    const int start_index = (grplen * xxd->cols - 1) / octspergrp;
+    int buf_idx = 0;
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
             addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + (uint64_t)xxd->seekoff + xxd->displayoff));
-            for (int c = addrlen; c < LLENP1; buffer[c++] = ' ')
+            for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
             max_idx = addrlen;
         }
-        int c = addrlen + 1 + (grplen * p) / octspergrp;
+        buf_idx = 1 + addrlen + (grplen * p) / octspergrp;
         for (int i = 7; i >= 0; i--) {
-            buffer[c++] = ((e >> i) & 1) + '0';
+            buffer[buf_idx++] = ((e >> i) & 1) + '0';
         }
-        if (c > max_idx) {
-            max_idx = c;
+        if (buf_idx > max_idx) {
+            max_idx = buf_idx;
         }
         // Binary mode (-b) does not colorize output, matching xxd behavior
-        c = (grplen * xxd->cols - 1) / octspergrp;
+        buf_idx = start_index;
         nonzero += e ? 1 : 0;
-        if (!xxd->ascii) {
-            e = etoa64[e];
+        buf_idx += addrlen + 3 + p;
+        buffer[buf_idx++] = (e < ' ' || e >= 127) ? '.' : (char)e;
+        if (buf_idx > max_idx) {
+            max_idx = buf_idx;
         }
-        c += addrlen + 3 + p;
-        buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
-        if (c > max_idx)
-            max_idx = c;
         n++;
-        if (++p == xxd->cols) {
+        p++;
+        if (p == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
             print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
@@ -678,9 +682,74 @@ static int hex_bits(char* buffer, char* z, Config* xxd, int e)
         e = getc_or_die(xxd);
     }
     if (p) {
-        int c = max_idx;
-        buffer[c++] = '\n';
-        buffer[c] = '\0';
+        buf_idx = max_idx;
+        buffer[buf_idx++] = '\n';
+        buffer[buf_idx] = '\0';
+        print_or_suppress_zero_line(buffer, z, 1, xxd);
+    } else if (xxd->autoskip) {
+        print_or_suppress_zero_line(buffer, z, -1, xxd);
+    }
+    return 0;
+}
+
+static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd, int e)
+{
+    long n = 0;
+    int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
+        exit_with_col_error(xxd->program_name);
+    }
+    if (xxd->revert) {
+        return decode_hex_stream_bits(xxd->cols, xxd);
+    }
+    int octspergrp = xxd->octspergrp;
+    if (octspergrp < 0) {
+        octspergrp = 1;
+    } else if (octspergrp < 1 || octspergrp > xxd->cols) {
+        octspergrp = xxd->cols;
+    }
+    e = getc_or_die(xxd);
+    const int grplen = 8 * octspergrp + 1;
+    const int start_idx = (grplen * xxd->cols - 1) / octspergrp;
+    int buf_idx = 0;
+    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+        if (!p) {
+            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + (uint64_t)xxd->seekoff + xxd->displayoff));
+            for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
+                ;
+            max_idx = addrlen;
+        }
+        buf_idx = 1 + addrlen + (grplen * p) / octspergrp;
+        for (int i = 7; i >= 0; i--) {
+            buffer[buf_idx++] = ((e >> i) & 1) + '0';
+        }
+        if (buf_idx > max_idx) {
+            max_idx = buf_idx;
+        }
+        // Binary mode (-b) does not colorize output, matching xxd behavior
+        buf_idx = start_idx + addrlen + 3 + p;
+        nonzero += e ? 1 : 0;
+        const uint8_t pval = etoa64[e];
+        buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+        if (buf_idx > max_idx) {
+            max_idx = buf_idx;
+        }
+        n++;
+        p++;
+        if (p == xxd->cols) {
+            buffer[max_idx] = '\n';
+            buffer[max_idx + 1] = '\0';
+            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
+            nonzero = 0;
+            p = 0;
+            max_idx = 0;
+        }
+        e = getc_or_die(xxd);
+    }
+    if (p) {
+        buf_idx = max_idx;
+        buffer[buf_idx++] = '\n';
+        buffer[buf_idx] = '\0';
         print_or_suppress_zero_line(buffer, z, 1, xxd);
     } else if (xxd->autoskip) {
         print_or_suppress_zero_line(buffer, z, -1, xxd);
@@ -753,10 +822,8 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd, int e)
             } else {
                 for (int i = 0; i < p; i++) {
                     const uint8_t val = line_data[i];
-                    if (xxd->color) {
-                        update_color_state(buffer, &buf_idx, &current_color, val, xxd);
-                    }
-                    uint8_t pval = etoa64[val];
+                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                    const uint8_t pval = etoa64[val];
                     buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
                 }
             }
@@ -828,8 +895,8 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd, int e)
         } else {
             for (int i = 0; i < p; i++) {
                 const uint8_t val = line_data[i];
-                uint8_t pval = etoa64[val];
                 update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                const uint8_t pval = etoa64[val];
                 buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
             }
         }
@@ -907,8 +974,7 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
                 }
             } else {
                 for (int i = 0; i < p; i++) {
-                    const uint8_t val = line_data[i];
-                    uint8_t pval = etoa64[val];
+                    const uint8_t pval = etoa64[line_data[i]];
                     buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
                 }
             }
@@ -965,8 +1031,7 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
             }
         } else {
             for (int i = 0; i < p; i++) {
-                const uint8_t val = line_data[i];
-                uint8_t pval = etoa64[val];
+                const uint8_t pval = etoa64[line_data[i]];
                 buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
             }
         }
@@ -1053,7 +1118,8 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd, int e)
             }
         }
         n++;
-        if (++p == xxd->cols) {
+        p++;
+        if (p == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
             print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
@@ -1431,7 +1497,11 @@ int main(int argc, char* argv[])
         }
         break;
     case HEX_BITS:
-        status = hex_bits(buffer, z, &xxd, e);
+        if (xxd.ascii) {
+            status = hex_bits_ascii(buffer, z, &xxd, e);
+        } else {
+            status = hex_bits_ebcdic(buffer, z, &xxd, e);
+        }
         break;
     case HEX_CINCLUDE:
         status = hex_cinclude(&xxd, e);
