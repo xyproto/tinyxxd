@@ -1262,10 +1262,8 @@ int main(int argc, char* argv[])
         if (e >= 0) {
             xxd.seekoff = ftell(xxd.input);
         } else {
-            int ch;
             for (long s = xxd.seekoff; s > 0; s--) {
-                ch = getc_or_die(&xxd);
-                if (ch == EOF) {
+                if (getc_or_die(&xxd) == EOF) {
                     exit_with_error(4, "Sorry, cannot seek.", xxd.program_name);
                 }
             }
