@@ -581,15 +581,17 @@ static int hex_cinclude_bits(Config* xxd, int e)
         fputs_or_die("[] = {\n", xxd);
     }
     e = getc_or_die(xxd);
+    const char* const fmt1 = "  0b";
+    const char* const fmt2 = ",\n  0b";
+    const char* const fmt3 = ", 0b";
     while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
         if (p == 0) {
-            fputs_or_die("  ", xxd);
+            fputs_or_die(fmt1, xxd);
         } else if (p % xxd->cols == 0) {
-            fputs_or_die(",\n  ", xxd);
+            fputs_or_die(fmt2, xxd);
         } else {
-            fputs_or_die(", ", xxd);
+            fputs_or_die(fmt3, xxd);
         }
-        fputs_or_die("0b", xxd);
         for (int bit = 7; bit >= 0; bit--) {
             putc_or_die(((e >> bit) & 1) + '0', xxd);
         }
