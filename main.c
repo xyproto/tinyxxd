@@ -1220,7 +1220,7 @@ int main(int argc, char* argv[])
             } else if (!strncmp(pw, "never", 5)) {
                 xxd.color = false;
             } else if (!strncmp(pw, "auto", 4)) {
-                xxd.color = isatty(STDOUT_FILENO);
+                xxd.color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
                 errno = 0;
             } else {
                 exit_with_usage(xxd.program_name, version, false);
