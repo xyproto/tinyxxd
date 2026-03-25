@@ -506,10 +506,12 @@ static int hex_postscript(Config* xxd, int e)
 
 static inline void print_varname(const char* varname, const Config* xxd)
 {
-    for (int i = 0, c; (c = varname[i]); i++) {
-        if (!xxd->capitalize) {
+    if (!xxd->capitalize) {
+        for (int i = 0, c; (c = varname[i]); i++) {
             putc_or_die(isalnum((uint8_t)c) ? c : '_', xxd);
-        } else {
+        }
+    } else {
+        for (int i = 0, c; (c = varname[i]); i++) {
             putc_or_die(isalnum((uint8_t)c) ? toupper((uint8_t)c) : '_', xxd);
         }
     }
@@ -727,9 +729,9 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
                     }
                     buffer[buf_idx++] = ' ';
                 }
-                const int val = line_data[i];
-                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
-                write_hex_byte(buffer, &buf_idx, (uint8_t)val, xxd->hex_digits);
+                const uint8_t val = line_data[i];
+                update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                write_hex_byte(buffer, &buf_idx, val, xxd->hex_digits);
             }
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
@@ -737,14 +739,19 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
             }
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
-            for (int i = 0; i < p; i++) {
-                const int val = line_data[i];
-                int pval = val;
-                if (!xxd->ascii) { // If EBCDIC mode
-                    pval = (val < 64) ? '.' : etoa64[val - 64];
+            if (xxd->ascii) {
+                for (int i = 0; i < p; i++) {
+                    const int val = line_data[i];
+                    update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
+                    buffer[buf_idx++] = ((unsigned char)val < ' ' || (unsigned char)val >= 127) ? '.' : (char)val;
                 }
-                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
-                buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
+            } else {
+                for (int i = 0; i < p; i++) {
+                    const uint8_t val = line_data[i];
+                    int pval = (val < 64) ? '.' : etoa64[val - 64];
+                    update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+                    buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
+                }
             }
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
@@ -811,14 +818,19 @@ static int hex_normal(char* buffer, char* z, Config* xxd, int e)
             }
         }
         buffer[buf_idx++] = ' ';
-        for (int i = 0; i < p; i++) {
-            const int val = line_data[i];
-            int pval = val;
-            if (!xxd->ascii) {
-                pval = (val < 64) ? '.' : etoa64[val - 64];
+        if (xxd->ascii) {
+            for (int i = 0; i < p; i++) {
+                const int val = line_data[i];
+                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
+                buffer[buf_idx++] = ((unsigned char)val < ' ' || (unsigned char)val >= 127) ? '.' : (char)val;
             }
-            update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
-            buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
+        } else {
+            for (int i = 0; i < p; i++) {
+                const int val = line_data[i];
+                int pval = (val < 64) ? '.' : etoa64[val - 64];
+                update_color_state(buffer, &buf_idx, &current_color, (uint8_t)val, xxd);
+                buffer[buf_idx++] = ((unsigned char)pval < ' ' || (unsigned char)pval >= 127) ? '.' : (char)pval;
+            }
         }
         if (current_color != 0) {
             clear_color(buffer, &buf_idx);
