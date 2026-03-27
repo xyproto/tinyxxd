@@ -159,6 +159,24 @@ static const uint8_t ascii_color_table[256] = {
     '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '4' // 0xF0-0xFF: 255=BLUE
 };
 
+static bool should_use_color(void)
+{
+    const char* no_color = getenv("NO_COLOR");
+    if (no_color != NULL && no_color[0] != '\0') {
+        return false;
+    }
+    if (!isatty(STDOUT_FILENO)) {
+        return false;
+    }
+#ifndef _WIN32
+    const char* term = getenv("TERM");
+    if (term == NULL || *term == '\0' || strcmp(term, "dumb") == 0) {
+        return false;
+    }
+#endif
+    return true;
+}
+
 static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h/--help   print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -t          append a terminating NUL to C include output (-i).\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
 
 static void exit_with_usage(const char* program_name, const char* version, const bool success)
@@ -938,7 +956,6 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd, int e)
 
 static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
 {
-    char current_color = 0;
     long n = 0;
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
@@ -978,17 +995,9 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
             buffer[buf_idx++] = ' ';
             for (int i = 0; i < p; i++) {
                 if (i > 0 && (i % octspergrp) == 0) {
-                    if (current_color != 0) {
-                        clear_color(buffer, &buf_idx);
-                        current_color = 0;
-                    }
                     buffer[buf_idx++] = ' ';
                 }
                 write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
-            }
-            if (current_color != 0) {
-                clear_color(buffer, &buf_idx);
-                current_color = 0;
             }
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
@@ -1002,10 +1011,6 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
                     const uint8_t pval = etoa64[line_data[i]];
                     buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
                 }
-            }
-            if (current_color != 0) {
-                clear_color(buffer, &buf_idx);
-                current_color = 0;
             }
             buffer[buf_idx++] = '\n';
             buffer[buf_idx] = '\0';
@@ -1030,17 +1035,9 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
         buffer[buf_idx++] = ' ';
         for (int i = 0; i < p; i++) {
             if (i > 0 && (i % octspergrp) == 0) {
-                if (current_color != 0) {
-                    clear_color(buffer, &buf_idx);
-                    current_color = 0;
-                }
                 buffer[buf_idx++] = ' ';
             }
             write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
-        }
-        if (current_color != 0) {
-            clear_color(buffer, &buf_idx);
-            current_color = 0;
         }
         const int hex_pad_count = xxd->cols - p;
         const int hex_pad_seps = hex_pad_count / octspergrp;
@@ -1061,10 +1058,6 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd, int e)
                 const uint8_t pval = etoa64[line_data[i]];
                 buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
             }
-        }
-        if (current_color != 0) {
-            clear_color(buffer, &buf_idx);
-            current_color = 0;
         }
         buffer[buf_idx++] = '\n';
         buffer[buf_idx] = '\0';
@@ -1246,8 +1239,8 @@ int main(int argc, char* argv[])
         HEX_BITS_AND_CINCLUDE
     };
     enum HexType hextype = HEX_NORMAL;
-    const char* no_color = getenv("NO_COLOR");
-    xxd.color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
+    bool color_forced = false;
+    xxd.color = should_use_color();
     errno = 0;
     char* pp = NULL;
     while (argc >= 2) {
@@ -1401,10 +1394,12 @@ int main(int argc, char* argv[])
             }
             if (!strncmp(pw, "always", 6)) {
                 xxd.color = true;
+                color_forced = true;
             } else if (!strncmp(pw, "never", 5)) {
                 xxd.color = false;
             } else if (!strncmp(pw, "auto", 4)) {
-                xxd.color = (no_color == NULL || no_color[0] == '\0') && isatty(STDOUT_FILENO);
+                xxd.color = should_use_color();
+                color_forced = false;
                 errno = 0;
             } else {
                 exit_with_usage(xxd.program_name, version, false);
@@ -1493,6 +1488,10 @@ int main(int argc, char* argv[])
             return 3;
         }
         rewind(xxd.output);
+        // Disable auto color when writing to a file
+        if (!color_forced) {
+            xxd.color = false;
+        }
     }
     setvbuf(xxd.output, NULL, _IOFBF, 65536);
     int e = 0;
