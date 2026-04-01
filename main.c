@@ -68,7 +68,7 @@ enum ColorDigit {
 
 // This is an EBCDIC to ASCII conversion table from a proposed BTL standard, 16th of April 1979
 static const uint8_t etoa64[] = {
-    // 0x00..0x3F: below the EBCDIC printable range → '.'
+    // 0x00..0x3F: below the EBCDIC printable range, use '.'
     '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.',
     '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.',
     '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.',
