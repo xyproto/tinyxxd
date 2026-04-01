@@ -408,7 +408,7 @@ static int decode_hex_stream_bits(const int cols, Config* xxd)
 
 static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const Config* xxd)
 {
-    static int zero_seen = 0; // !!
+    static int zero_seen = 0; // note: static
     if (nz > 0) {
         if (zero_seen == 2) {
             fputs_or_die(z, xxd);
@@ -491,11 +491,9 @@ static inline void write_hex_byte(char* const buffer, int* const idx, const uint
     buffer[(*idx)++] = hex_digits[byte & 0xf];
 }
 
-// format_hex_address formats the common case of hex addresses (8-digit hex)
-// assumes that addr <= 0xFFFFFFFF
+// format_hex_address formats hex addresses (8-digit hex) for  addr <= 0xFFFFFFFF
 static inline void format_hex_address(char* const buffer, const uint64_t addr)
 {
-    // Directly format 8-digit hex address
     static const char hex_lower[] = "0123456789abcdef";
     buffer[0] = hex_lower[(addr >> 28) & 0xf];
     buffer[1] = hex_lower[(addr >> 24) & 0xf];
@@ -697,7 +695,6 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        // Binary mode (-b) does not colorize output, matching xxd behavior
         buf_idx = start_index;
         nonzero += e ? 1 : 0;
         buf_idx += addrlen + 3 + p;
@@ -763,7 +760,6 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        // Binary mode (-b) does not colorize output, matching xxd behavior
         buf_idx = start_idx + addrlen + 3 + p;
         nonzero += e ? 1 : 0;
         const uint8_t pval = etoa64[e];
@@ -827,7 +823,6 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
             } else {
-                // Fall back to snprintf for decimal mode or large addresses
                 buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
             }
             while (buf_idx < 9) {
@@ -884,7 +879,6 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
         } else {
-            // Fall back to snprintf for decimal mode or large addresses
             buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
         }
         while (buf_idx < 9) {
@@ -986,7 +980,6 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
             } else {
-                // Fall back to snprintf for decimal mode or large addresses
                 buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
             }
             while (buf_idx < 9) {
@@ -1026,7 +1019,6 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
         } else {
-            // Fall back to snprintf for decimal mode or large addresses
             buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
         }
         while (buf_idx < 9) {
@@ -1088,7 +1080,6 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
         exit_with_error(1, "number of octets per group must be a power of 2 with -e.", xxd->program_name);
     }
     int e = getc_or_die(xxd);
-    // grplen includes color overhead when colors are enabled
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
@@ -1106,9 +1097,6 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             if (c > max_idx) {
                 max_idx = c;
             }
-            // ASCII column position: same logic as non-color path but with color overhead
-            // Non-color ASCII position = grplen_nocolor * num_groups + addrlen + 2 + p
-            // With color, hex area is grplen * num_groups, and each prior ASCII char adds 12 chars
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
             c = grplen * num_groups + addrlen + 2 + p * 12;
             nonzero += e ? 1 : 0;
@@ -1206,7 +1194,6 @@ static const char* base_name(const char* path)
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
-    // Enable ANSI mode
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);
@@ -1215,7 +1202,6 @@ int main(int argc, char* argv[])
         SetConsoleMode(hOut, dwMode);
     }
 #endif
-
     const char* version = "tinyxxd 1.3.14";
     Config xxd = {
         .input = stdin,
@@ -1357,7 +1343,6 @@ int main(int argc, char* argv[])
             }
             xxd.seekoff = strtol(seek_arg_ptr, (char**)NULL, 0);
             if (!pp[2]) { // This means -s was given without an argument following immediately
-                // Handle case where argument is in argv[2]
                 if (!argv[2]) {
                     exit_with_usage(xxd.program_name, version, false);
                 }
@@ -1433,8 +1418,6 @@ int main(int argc, char* argv[])
     if (xxd.uppercase_hex) {
         xxd.hex_digits = "0123456789ABCDEF";
     }
-    // Default cols logic: use defaults if -c not given, or if -c 0 for non-PostScript modes
-    // (PostScript with -c 0 means no line wrapping)
     if (!xxd.colsgiven || (!xxd.cols && hextype != HEX_POSTSCRIPT)) {
         switch (hextype) {
         case HEX_POSTSCRIPT:
@@ -1458,7 +1441,6 @@ int main(int argc, char* argv[])
     } else if (hextype != HEX_POSTSCRIPT && xxd.cols < 1) {
         exit_with_col_error(xxd.program_name);
     }
-    // Default octspergrp logic
     if (xxd.octspergrp < 0) {
         switch (hextype) {
         case HEX_BITS:
@@ -1502,7 +1484,6 @@ int main(int argc, char* argv[])
             return 3;
         }
         rewind(xxd.output);
-        // Disable auto color when writing to a file
         if (!color_forced) {
             xxd.color = false;
         }
@@ -1527,7 +1508,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-
     static char buffer[LLENP1];
     static char z[LLENP1];
     int status = 0;
