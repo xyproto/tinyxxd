@@ -516,14 +516,14 @@ static int hex_postscript(Config* xxd)
     if (xxd->revert) {
         return decode_hex_stream_postscript(xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
     }
-    long n = 0;
+    long counter = 0;
     int p = xxd->cols;
     int e = getc_or_die(xxd);
     if (xxd->cols > 0) {
-        while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+        while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
             putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
             putc_or_die(xxd->hex_digits[e & 0xf], xxd);
-            n++;
+            counter++;
             p--;
             if (!p) {
                 putc_or_die('\n', xxd);
@@ -532,10 +532,10 @@ static int hex_postscript(Config* xxd)
             e = getc_or_die(xxd);
         }
     } else {
-        while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+        while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
             putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
             putc_or_die(xxd->hex_digits[e & 0xf], xxd);
-            n++;
+            counter++;
             e = getc_or_die(xxd);
         }
     }
@@ -664,7 +664,7 @@ static int hex_cinclude_bits(Config* xxd)
 
 static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
 {
-    long n = 0;
+    long counter = 0;
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
@@ -684,9 +684,9 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
     int buf_idx = 0;
     const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     const char* const xxd_decimal_format_string = xxd->decimal_format_string;
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, ((uint64_t)n + offset));
+            addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, ((uint64_t)counter + offset));
             max_idx = addrlen;
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
@@ -703,7 +703,7 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        n++;
+        counter++;
         p++;
         nonzero += e ? 1 : 0;
         if (p == xxd->cols) {
@@ -729,7 +729,7 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
 
 static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
 {
-    long n = 0;
+    long counter = 0;
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
@@ -748,9 +748,9 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
     const int start_idx = (grplen * xxd->cols - 1) / octspergrp;
     int buf_idx = 0;
     const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + offset));
+            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)counter + offset));
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
             max_idx = addrlen;
@@ -769,7 +769,7 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        n++;
+        counter++;
         p++;
         if (p == xxd->cols) {
             buffer[max_idx] = '\n';
@@ -795,7 +795,7 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
 static int hex_normal_color(char* buffer, char* z, Config* xxd)
 {
     char current_color = 0;
-    long n = 0;
+    long counter = 0;
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
@@ -812,15 +812,15 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
     }
     int e = getc_or_die(xxd);
     const bool fast_hex_path = xxd->fast_hex_path;
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
         line_data[p] = (uint8_t)e;
         if (e) {
             nonzero++;
         }
-        n++;
+        counter++;
         p++;
         if (p == xxd->cols) {
-            const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+            const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
             int buf_idx = 9;
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
@@ -876,7 +876,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
         e = getc_or_die(xxd);
     }
     if (p) {
-        const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
         int buf_idx = 9;
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
@@ -952,7 +952,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
 
 static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
 {
-    long n = 0;
+    long counter = 0;
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
@@ -969,15 +969,15 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
     }
     int e = getc_or_die(xxd);
     const bool fast_hex_path = xxd->fast_hex_path;
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
         line_data[p] = (uint8_t)e;
         if (e) {
             nonzero++;
         }
-        n++;
+        counter++;
         p++;
         if (p == xxd->cols) {
-            const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+            const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
             int buf_idx = 9;
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
@@ -1016,7 +1016,7 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
         e = getc_or_die(xxd);
     }
     if (p) {
-        const uint64_t addr = (uint64_t)(n - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
         int buf_idx = 9;
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
@@ -1066,7 +1066,7 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
 {
     int nonzero = 0, addrlen = 9, p = 0, x = 0;
     int max_idx = 0;
-    long n = 0;
+    long counter = 0;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
     }
@@ -1083,9 +1083,9 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
     }
     int e = getc_or_die(xxd);
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
-    while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + (uint64_t)xxd->seekoff + xxd->displayoff));
+            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)counter + (uint64_t)xxd->seekoff + xxd->displayoff));
             for (int c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
             max_idx = addrlen;
@@ -1127,7 +1127,7 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
                 max_idx = c;
             }
         }
-        n++;
+        counter++;
         p++;
         if (p == xxd->cols) {
             buffer[max_idx] = '\n';
