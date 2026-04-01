@@ -170,7 +170,7 @@ release: fmt test update-version
 	@echo "Release package created: $(RELEASE_TARBALL)"
 
 tinyxxd_fuzz: main.c
-	afl-gcc $(CFLAGS) -o $@ $<
+	afl-gcc-fast $(CFLAGS) -o $@ $<
 
 fuzz: tinyxxd_fuzz
 	export AFL_PATH=$(which afl-fuzz)
