@@ -681,12 +681,13 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
     const int start_index = (grplen * xxd->cols - 1) / octspergrp;
     int buf_idx = 0;
     const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
+    const char* const xxd_decimal_format_string = xxd->decimal_format_string;
     while ((xxd->length < 0 || n < xxd->length) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)n + offset));
+            addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, ((uint64_t)n + offset));
+            max_idx = addrlen;
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
-            max_idx = addrlen;
         }
         buf_idx = 1 + addrlen + (grplen * p) / octspergrp;
         for (int i = 7; i >= 0; i--) {
@@ -695,15 +696,14 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        buf_idx = start_index;
-        nonzero += e ? 1 : 0;
-        buf_idx += addrlen + 3 + p;
+        buf_idx = start_index + addrlen + 3 + p;
         buffer[buf_idx++] = (e < ' ' || e >= 127) ? '.' : (char)e;
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
         n++;
         p++;
+        nonzero += e ? 1 : 0;
         if (p == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
