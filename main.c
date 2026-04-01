@@ -316,7 +316,7 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
-    while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
+    while ((c = getc_or_die(xxd)) != EOF) {
         digit = hex_digit_table[(uint8_t)c];
         if ((digit == -1) && ignore) {
             continue;
@@ -366,7 +366,7 @@ static int decode_hex_stream_bits(const int cols, Config* xxd)
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
-    while (((c = getc_or_die(xxd)) != EOF) && c != '\r') {
+    while ((c = getc_or_die(xxd)) != EOF) {
         n1 = hex_digit_table[(uint8_t)c];
         if ((n1 == -1) && ignore) {
             continue;
