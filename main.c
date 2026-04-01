@@ -372,13 +372,16 @@ static int decode_hex_stream_bits(Config* xxd)
         n1 = hex_digit_table[(uint8_t)c];
         if ((n1 == -1) && ignore) {
             continue;
+        } else {
+            ignore = false;
         }
-        if (c == '0' || c == '1') {
-            // c-'0' parses c from '0' to 0 and from '1' to 1
-            bit_buffer = ((bit_buffer << 1) | (c - '0'));
+        if (c == '0') {
+            bit_buffer = ((bit_buffer << 1) | 0);
+            bit_count++;
+        } else if (c == '1') {
+            bit_buffer = ((bit_buffer << 1) | 1);
             bit_count++;
         }
-        ignore = false;
         if (p >= cols) {
             if (n1 < 0) {
                 p = 0;
