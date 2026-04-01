@@ -1126,12 +1126,12 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             if (c > max_idx) {
                 max_idx = c;
             }
-            c = grplen * ((xxd->cols + octspergrp - 1) / octspergrp);
+            const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
+            c = grplen * num_groups + addrlen + 2 + p;
             nonzero += e ? 1 : 0;
             if (!xxd->ascii) {
                 e = etoa64[e];
             }
-            c += addrlen + 2 + p;
             buffer[c++] = (e < ' ' || e >= 127) ? '.' : (char)e;
             if (c > max_idx) {
                 max_idx = c;
@@ -1172,6 +1172,20 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             }
             if (c > max_idx) {
                 max_idx = c;
+            }
+        } else {
+            const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
+            for (int i = 0; i < xxd->cols - p; i++) {
+                int hex_c = addrlen + 1 + (grplen * ((p + i) ^ (octspergrp - 1))) / octspergrp;
+                buffer[hex_c++] = ' ';
+                buffer[hex_c++] = ' ';
+                if (hex_c > max_idx) {
+                    max_idx = hex_c;
+                }
+            }
+            int ascii_c = grplen * num_groups + addrlen + 2 + p;
+            if (ascii_c > max_idx) {
+                max_idx = ascii_c;
             }
         }
         buffer[max_idx] = '\n';
