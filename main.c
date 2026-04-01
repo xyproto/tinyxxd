@@ -757,9 +757,6 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
         for (int i = 7; i >= 0; i--) {
             buffer[buf_idx++] = ((e >> i) & 1) + '0';
         }
-        if (buf_idx > max_idx) {
-            max_idx = buf_idx;
-        }
         buf_idx = start_idx + addrlen + 3 + p;
         nonzero += e ? 1 : 0;
         const uint8_t pval = etoa64[e];
@@ -1094,9 +1091,6 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
             write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
             clear_color(buffer, &c);
-            if (c > max_idx) {
-                max_idx = c;
-            }
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
             c = grplen * num_groups + addrlen + 2 + p * 12;
             nonzero += e ? 1 : 0;
@@ -1111,9 +1105,6 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             }
         } else {
             write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
-            if (c > max_idx) {
-                max_idx = c;
-            }
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
             c = grplen * num_groups + addrlen + 2 + p;
             nonzero += e ? 1 : 0;
