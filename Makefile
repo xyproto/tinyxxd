@@ -81,6 +81,8 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-i -t sample.bin' DESC='C include with terminating NUL'
 	@$(MAKE) run_test CMD='-i -b -t sample.bin' DESC='C include binary with terminating NUL'
 	@$(MAKE) verify_conversion_test
+	@$(MAKE) test_revert_crlf
+	@$(MAKE) test_le_padding
 	@$(MAKE) test_help_stdout
 	@$(MAKE) test_error_stderr
 	@rm -f -- *.hex sample.bin colorbytes.bin ebcdicbytes.bin tinyxxd_output.txt xxd_output.txt
@@ -108,6 +110,33 @@ verify_conversion_test:
 		exit 1; \
 	fi
 	@rm -f sample_tinyxxd.bin sample_restored.bin
+
+test_revert_crlf:
+	@echo "Running test: Revert hex dump with CRLF line endings"
+	@printf "00000000: 3132 3334\r\n00000004: 3536 3738\r\n" > repro_crlf.hex
+	@./tinyxxd_asan -r repro_crlf.hex > repro_crlf.bin
+	@printf "12345678" > expected_crlf.bin
+	@if diff -q repro_crlf.bin expected_crlf.bin > /dev/null; then \
+		echo 'Test passed'; \
+	else \
+		echo 'Test failed'; \
+		exit 1; \
+	fi
+	@rm -f repro_crlf.hex repro_crlf.bin expected_crlf.bin
+
+test_le_padding:
+	@echo "Running test: Little-endian hex dump with padding"
+	@printf "ABCDEFG" > 7.bin
+	@./tinyxxd_asan -e -c 8 7.bin > le_padding_output.txt
+	@printf "00000000: 44434241   474645  ABCDEFG\n" > le_padding_expected.txt
+	@if diff -q le_padding_output.txt le_padding_expected.txt > /dev/null; then \
+		echo 'Test passed'; \
+	else \
+		echo 'Test failed'; \
+		diff le_padding_output.txt le_padding_expected.txt; \
+		exit 1; \
+	fi
+	@rm -f 7.bin le_padding_output.txt le_padding_expected.txt
 
 test_help_stdout:
 	@echo "Running test: -h outputs to stdout"
