@@ -664,7 +664,6 @@ static int hex_cinclude_bits(Config* xxd)
 
 static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
 {
-    long counter = 0;
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd->program_name);
@@ -682,11 +681,13 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
     const int grplen = 8 * octspergrp + 1;
     const int start_index = (grplen * xxd->cols - 1) / octspergrp;
     int buf_idx = 0;
-    const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     const char* const xxd_decimal_format_string = xxd->decimal_format_string;
-    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
+    const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
+    const uint64_t length_plus_offset = offset + (uint64_t)xxd->length;
+    uint64_t offset_counter = offset;
+    while ((xxd->length < 0 || offset_counter > length_plus_offset) && e != EOF) {
         if (!p) {
-            addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, ((uint64_t)counter + offset));
+            addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, offset_counter);
             max_idx = addrlen;
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
@@ -695,15 +696,12 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
         for (int i = 7; i >= 0; i--) {
             buffer[buf_idx++] = ((e >> i) & 1) + '0';
         }
-        if (buf_idx > max_idx) {
-            max_idx = buf_idx;
-        }
         buf_idx = start_index + addrlen + 3 + p;
         buffer[buf_idx++] = (e < ' ' || e >= 127) ? '.' : (char)e;
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
-        counter++;
+        offset_counter++;
         p++;
         nonzero += e ? 1 : 0;
         if (p == xxd->cols) {
