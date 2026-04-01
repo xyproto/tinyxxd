@@ -275,7 +275,7 @@ static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* w
 static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, digit = -1;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
@@ -284,7 +284,7 @@ static int decode_hex_stream_postscript(const long base_off, Config* xxd)
         if (c == ' ' || c == '\n' || c == '\t' || c == '\r') {
             continue;
         }
-        digit = hex_digit_table[(uint8_t)c];
+        int digit = hex_digit_table[(uint8_t)c];
         if ((digit == -1) && ignore) {
             continue;
         }
@@ -311,13 +311,13 @@ static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 static int decode_hex_stream_normal(const int cols, const long base_off, Config* xxd)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols, digit = -1;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
     while ((c = getc_or_die(xxd)) != EOF) {
-        digit = hex_digit_table[(uint8_t)c];
+        int digit = hex_digit_table[(uint8_t)c];
         if ((digit == -1) && ignore) {
             continue;
         }
