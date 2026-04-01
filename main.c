@@ -358,11 +358,13 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
     return 0;
 }
 
-static int decode_hex_stream_bits(const int cols, Config* xxd)
+static int decode_hex_stream_bits(Config* xxd)
 {
     bool ignore = true;
-    int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1, p = cols;
+    int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1;
     long want_off = 0;
+    const int cols = xxd->cols;
+    int p = cols;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
@@ -668,7 +670,7 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
-        return decode_hex_stream_bits(xxd->cols, xxd);
+        return decode_hex_stream_bits(xxd);
     }
     int octspergrp = xxd->octspergrp;
     if (octspergrp < 0) {
@@ -733,7 +735,7 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
         exit_with_col_error(xxd->program_name);
     }
     if (xxd->revert) {
-        return decode_hex_stream_bits(xxd->cols, xxd);
+        return decode_hex_stream_bits(xxd);
     }
     int octspergrp = xxd->octspergrp;
     if (octspergrp < 0) {
