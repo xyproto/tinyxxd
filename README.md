@@ -5,7 +5,7 @@
 
 `xxd` is a utility that comes with ViM. It can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex, and also do the same thing in reverse: recreate files from hex codes.
 
-`tinyxxd` is a standalone fork of `xxd`, a slight modernization of the C code, a slight performance increase and a drop-in replacement for `xxd`. It contains the same logic and supports the exact same flags. It is also only licensed under MIT and/or GPL2 (dual license), and not under the ViM license.
+`tinyxxd` is a standalone fork of `xxd`, a slight modernization of the C code, a solid performance increase and a drop-in replacement for `xxd`. It contains the same logic and supports the exact same flags. It is also only licensed under MIT and/or GPL2 (dual license), and not under the ViM license.
 
 `tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is slightly faster.
 
