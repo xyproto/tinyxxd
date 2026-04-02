@@ -3,11 +3,11 @@
 [![Build & Benchmark](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml/badge.svg)](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml)
 [![Compiles with Orchideous](https://img.shields.io/badge/Compiles_with-Orchideous-2fc298)](https://github.com/xyproto/orchideous)
 
-`xxd` is a utility that comes with ViM. It can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex, and also do the same thing in reverse: recreate files from hex codes.
+`xxd` is a utility that comes with ViM. It can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex/binary, and also do the same thing in reverse: recreate files from hex/binary codes. There are also legacy and C include file conversions.
 
 `tinyxxd` is a standalone fork of `xxd`, a slight modernization of the C code, a solid performance increase and a drop-in replacement for `xxd`. It contains the same logic and supports the exact same flags. It is also only licensed under MIT and/or GPL2 (dual license), and not under the ViM license.
 
-`tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is slightly faster.
+`tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is twice as fast.
 
 `tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms and on Windows.
 
