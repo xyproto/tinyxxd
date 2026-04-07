@@ -496,7 +496,7 @@ static inline void write_hex_byte(char* const buffer, int* const idx, const uint
     buffer[(*idx)++] = hex_digits[byte & 0xf];
 }
 
-// format_hex_address formats hex addresses (8-digit hex) for  addr <= 0xFFFFFFFF
+// format_hex_address formats hex addresses (8-digit hex) when <= 0xFFFFFFFF
 static inline void format_hex_address(char* const buffer, const uint64_t addr)
 {
     static const char hex_lower[] = "0123456789abcdef";
