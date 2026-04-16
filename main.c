@@ -162,19 +162,14 @@ static const uint8_t ascii_color_table[256] = {
 static bool should_use_color(void)
 {
     const char* no_color = getenv("NO_COLOR");
-    if (no_color != NULL && no_color[0] != '\0') {
+    if ((no_color != NULL && no_color[0] != '\0') || (!isatty(STDOUT_FILENO))) {
         return false;
     }
-    if (!isatty(STDOUT_FILENO)) {
-        return false;
-    }
-#ifndef _WIN32
-    const char* term = getenv("TERM");
-    if (term == NULL || *term == '\0' || strcmp(term, "dumb") == 0) {
-        return false;
-    }
-#endif
+#ifdef _WIN32
     return true;
+#endif
+    const char* term = getenv("TERM");
+    return (term != NULL && *term != '\0' && strcmp(term, "dumb") != 0);
 }
 
 static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h/--help   print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -t          append a terminating NUL to C include output (-i).\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
