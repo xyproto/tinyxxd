@@ -1,7 +1,6 @@
 ## TinyXXD <img src="img/tinyxxd.svg" width="128" align="right">
 
 [![Build & Benchmark](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml/badge.svg)](https://github.com/xyproto/tinyxxd/actions/workflows/build_and_bench.yml)
-[![Compiles with Orchideous](https://img.shields.io/badge/Compiles_with-Orchideous-2fc298)](https://github.com/xyproto/orchideous)
 
 `xxd` is a utility that comes with ViM. It can be used to view binary or text files as hex codes. It is often installed on UNIX-like systems. It can dump files to hex/binary, and also do the same thing in reverse: recreate files from hex/binary codes. There are also legacy and C include file conversions.
 
@@ -70,3 +69,5 @@ In connection with packaging, letting this utility provide and replace `xxd`, po
 
 * License: `GPL-2.0-only` and/or `MIT`. See the [`LICENSE`](LICENSE) file for more information.
 * Version: 1.3.15
+
+[![Compiles with oh](https://img.shields.io/badge/Compiles_with-Orchideous-2fc298)](https://github.com/xyproto/orchideous)
