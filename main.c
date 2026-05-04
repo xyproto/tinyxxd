@@ -1261,7 +1261,7 @@ int main(int argc, char* argv[])
         } else if (!strncmp(pp, "-C", 2)) {
             xxd.capitalize = true;
         } else if (!strncmp(pp, "-d", 2)) {
-            xxd.decimal_format_string = "%08ld:";
+            xxd.decimal_format_string = "%08lu:";
             xxd.fast_hex_path = false;
         } else if (!strncmp(pp, "-r", 2)) {
             xxd.revert = true;
