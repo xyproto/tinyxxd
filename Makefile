@@ -169,15 +169,15 @@ release: fmt test update-version
 	rm -rf "$(RELEASE_DIR)/"
 	@echo "Release package created: $(RELEASE_TARBALL)"
 
+AFL_CC ?= $(shell command -v afl-clang-fast 2>/dev/null || command -v afl-gcc-fast 2>/dev/null)
+
 tinyxxd_fuzz: main.c
-	afl-gcc-fast $(CFLAGS) -o $@ $<
+	$(AFL_CC) $(CFLAGS) -o $@ $<
 
 fuzz: tinyxxd_fuzz
-	export AFL_PATH=$(which afl-fuzz)
-	export AFL_SKIP_CPUFREQ=1
 	@mkdir -p input_dir
 	@dd if=/dev/urandom of=input_dir/sample.bin count=1 bs=128
-	afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
+	AFL_SKIP_CPUFREQ=1 AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 afl-fuzz -i input_dir -o fuzz_output -- ./tinyxxd_fuzz @@
 
 testfiles/xxd.c:
 	cd testfiles && curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
