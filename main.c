@@ -1191,7 +1191,7 @@ int main(int argc, char* argv[])
         SetConsoleMode(hOut, dwMode);
     }
 #endif
-    const char* version = "tinyxxd 1.3.15";
+    const char* version = "tinyxxd 1.3.16";
     Config xxd = {
         .input = stdin,
         .output = stdout,
