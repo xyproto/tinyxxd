@@ -174,26 +174,26 @@ static bool should_use_color(void)
 
 static const char* USAGE = "Usage:\n       %s [options] [infile [outfile]]\n    or\n       %s -r [-s [-]offset] [-c cols] [-ps] [infile [outfile]]\nOptions:\n    -a          toggle autoskip: A single '*' replaces nul-lines. Default off.\n    -b          binary digit dump (incompatible with -ps). Default hex.\n    -C          capitalize variable names in C include file style (-i).\n    -c cols     format <cols> octets per line. Default 16 (-i: 12, -ps: 30).\n    -E          show characters in EBCDIC. Default ASCII.\n    -e          little-endian dump (incompatible with -ps,-i,-r).\n    -g bytes    number of octets per group in normal output. Default 2 (-e: 4).\n    -h/--help   print this summary.\n    -i          output in C include file style.\n    -l len      stop after <len> octets.\n    -n name     set the variable name used in C include output (-i).\n    -o off      add <off> to the displayed file position.\n    -ps         output in postscript plain hexdump style.\n    -r          reverse operation: convert (or patch) hexdump into binary.\n    -r -s off   revert with <off> added to file positions found in hexdump.\n    -d          show offset in decimal instead of hex.\n    -s [+][-]seek  start at <seek> bytes abs. (or +: rel.) infile offset.\n    -t          append a terminating NUL to C include output (-i).\n    -u          use upper case hex letters.\n    -R when     colorize the output; <when> can be 'always', 'auto' or 'never'. Default: 'auto'.\n    -v          show version: \"%s\".\n";
 
-static void exit_with_usage(const char* program_name, const char* version, const bool success)
+static void exit_with_usage(const Config* xxd, const char* version, const bool success)
 {
-    fprintf(success ? stdout : stderr, USAGE, program_name, program_name, version);
+    fprintf(success ? stdout : stderr, USAGE, xxd->program_name, xxd->program_name, version);
     exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-static void exit_with_error(const int exit_code, const char* message, const char* program_name)
+static void exit_with_error(const Config* xxd, const int exit_code, const char* message)
 {
     if (message) {
-        fprintf(stderr, "%s: %s\n", program_name, message);
+        fprintf(stderr, "%s: %s\n", xxd->program_name, message);
         exit(exit_code);
     }
-    fprintf(stderr, "%s: ", program_name);
+    fprintf(stderr, "%s: ", xxd->program_name);
     perror(NULL);
     exit(exit_code);
 }
 
-static void exit_with_col_error(const char* program_name)
+static void exit_with_col_error(const Config* xxd)
 {
-    fprintf(stderr, "%s: invalid number of columns (max. %d).\n", program_name, COLS);
+    fprintf(stderr, "%s: invalid number of columns (max. %d).\n", xxd->program_name, COLS);
     exit(EXIT_FAILURE);
 }
 
@@ -204,7 +204,7 @@ static inline int getc_or_die(Config* xxd)
         xxd->input_buffer_pos = 0;
         if (xxd->input_buffer_len == 0) { // EOF or error
             if (ferror(xxd->input)) {
-                exit_with_error(2, NULL, xxd->program_name);
+                exit_with_error(xxd, 2, NULL);
             }
             return EOF;
         }
@@ -215,30 +215,30 @@ static inline int getc_or_die(Config* xxd)
 static inline void putc_or_die(int ch, const Config* xxd)
 {
     if (putc(ch, xxd->output) == EOF) {
-        exit_with_error(3, NULL, xxd->program_name);
+        exit_with_error(xxd, 3, NULL);
     }
 }
 
 static inline void fputs_or_die(const char* s, const Config* xxd)
 {
     if (fputs(s, xxd->output) == EOF) {
-        exit_with_error(3, NULL, xxd->program_name);
+        exit_with_error(xxd, 3, NULL);
     }
 }
 
 static inline void fflush_or_die(const Config* xxd)
 {
     if (fflush(xxd->output)) {
-        exit_with_error(3, NULL, xxd->program_name);
+        exit_with_error(xxd, 3, NULL);
     }
 }
 
 static void fclose_or_die(const Config* xxd)
 {
     if (fclose(xxd->output)) {
-        exit_with_error(3, NULL, xxd->program_name);
+        exit_with_error(xxd, 3, NULL);
     } else if (fclose(xxd->input)) {
-        exit_with_error(2, NULL, xxd->program_name);
+        exit_with_error(xxd, 2, NULL);
     }
 }
 
@@ -259,7 +259,7 @@ static inline void fflush_fseek_and_putc(const long* base_off, const uint64_t* w
     if (fseek(xxd->output, (long)(target_offset - *have_off), SEEK_CUR) >= 0) {
         *have_off = target_offset;
     } else if (target_offset < *have_off) {
-        exit_with_error(5, "Sorry, cannot seek backwards.", xxd->program_name);
+        exit_with_error(xxd, 5, "Sorry, cannot seek backwards.");
     }
     while (*have_off < target_offset) {
         putc_or_die(0, xxd);
@@ -509,7 +509,7 @@ static inline void format_hex_address(char* const buffer, const uint64_t addr)
 static int hex_postscript(Config* xxd)
 {
     if (xxd->colsgiven && xxd->cols < 0) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
         return decode_hex_stream_postscript(xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
@@ -560,13 +560,13 @@ static int hex_cinclude(Config* xxd)
 {
     long p = 0;
     if (xxd->revert) {
-        exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
+        exit_with_error(xxd, -1, "Sorry, cannot revert this type of hexdump");
     }
     const char* const varname = xxd->varname ? xxd->varname
                                              : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
@@ -575,14 +575,14 @@ static int hex_cinclude(Config* xxd)
     const char* const hex_format_string = xxd->uppercase_hex ? "%s0X%02X" : "%s0x%02x";
     while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
         if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), e) < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
         p++;
         e = getc_or_die(xxd);
     }
     if (xxd->terminate_nul) {
         if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), 0) < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
     }
     if (p || xxd->terminate_nul) {
@@ -591,11 +591,11 @@ static int hex_cinclude(Config* xxd)
     if (varname) {
         fputs_or_die("};\n", xxd);
         if (fprintf(xxd->output, "unsigned int %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
         if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
     }
     return 0;
@@ -605,13 +605,13 @@ static int hex_cinclude_bits(Config* xxd)
 {
     long p = 0;
     if (xxd->revert) {
-        exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
+        exit_with_error(xxd, -1, "Sorry, cannot revert this type of hexdump");
     }
     const char* const varname = xxd->varname ? xxd->varname
                                              : (xxd->input != stdin ? xxd->input_filename : NULL);
     if (varname) {
         if (fprintf(xxd->output, "unsigned char %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
         fputs_or_die("[] = {\n", xxd);
@@ -650,11 +650,11 @@ static int hex_cinclude_bits(Config* xxd)
     if (varname) {
         fputs_or_die("};\n", xxd);
         if (fprintf(xxd->output, "unsigned int %s", isdigit((uint8_t)varname[0]) ? "__" : "") < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
         if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
-            exit_with_error(3, NULL, xxd->program_name);
+            exit_with_error(xxd, 3, NULL);
         }
     }
     return 0;
@@ -664,7 +664,7 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
 {
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
         return decode_hex_stream_bits(xxd);
@@ -728,7 +728,7 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
     long counter = 0;
     int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
         return decode_hex_stream_bits(xxd);
@@ -792,7 +792,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
         return decode_hex_stream_normal(xxd->cols, xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
@@ -949,7 +949,7 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
     int nonzero = 0, p = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
         return decode_hex_stream_normal(xxd->cols, xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
@@ -1061,10 +1061,10 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
     int max_idx = 0;
     long counter = 0;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
-        exit_with_col_error(xxd->program_name);
+        exit_with_col_error(xxd);
     }
     if (xxd->revert) {
-        exit_with_error(-1, "Sorry, cannot revert this type of hexdump", xxd->program_name);
+        exit_with_error(xxd, -1, "Sorry, cannot revert this type of hexdump");
     }
     int octspergrp = xxd->octspergrp;
     if (octspergrp < 0) {
@@ -1072,7 +1072,7 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
     } else if (octspergrp < 1 || octspergrp > xxd->cols) {
         octspergrp = xxd->cols;
     } else if (octspergrp & (octspergrp - 1)) {
-        exit_with_error(1, "number of octets per group must be a power of 2 with -e.", xxd->program_name);
+        exit_with_error(xxd, 1, "number of octets per group must be a power of 2 with -e.");
     }
     int e = getc_or_die(xxd);
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
@@ -1234,7 +1234,7 @@ int main(int argc, char* argv[])
     char* pp = NULL;
     while (argc >= 2) {
         if (!strncmp(argv[1], "-h", 2) || !strncmp(argv[1], "--help", 6))
-            exit_with_usage(xxd.program_name, version, true);
+            exit_with_usage(&xxd, version, true);
         pp = argv[1] + (!strncmp(argv[1], "--", 2) && argv[1][2]);
         if (!strncmp(pp, "-a", 2)) {
             xxd.autoskip = !xxd.autoskip;
@@ -1278,7 +1278,7 @@ int main(int argc, char* argv[])
                 xxd.cols = (int)strtol(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 xxd.colsgiven = true;
                 xxd.cols = (int)strtol(argv[2], NULL, 0);
@@ -1290,7 +1290,7 @@ int main(int argc, char* argv[])
                 xxd.octspergrp = (int)strtol(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 xxd.octspergrp = (int)strtol(argv[2], NULL, 0);
                 argv++;
@@ -1302,7 +1302,7 @@ int main(int argc, char* argv[])
                 xxd.displayoff = strtoul(pp + 2, NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 if (argv[2][0] == '+') {
                     reloffset++;
@@ -1333,7 +1333,7 @@ int main(int argc, char* argv[])
             xxd.seekoff = strtol(seek_arg_ptr, (char**)NULL, 0);
             if (!pp[2]) { // This means -s was given without an argument following immediately
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 seek_arg_ptr = argv[2];
                 if (*seek_arg_ptr == '+') {
@@ -1353,7 +1353,7 @@ int main(int argc, char* argv[])
                 xxd.length = strtoll(pp + 2, (char**)NULL, 0);
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 xxd.length = strtoll(argv[2], (char**)NULL, 0);
                 argv++;
@@ -1364,7 +1364,7 @@ int main(int argc, char* argv[])
                 xxd.varname = pp + 2;
             } else {
                 if (!argv[2]) {
-                    exit_with_usage(xxd.program_name, version, false);
+                    exit_with_usage(&xxd, version, false);
                 }
                 xxd.varname = argv[2];
                 argv++;
@@ -1378,7 +1378,7 @@ int main(int argc, char* argv[])
                 argc--;
             }
             if (!pw) {
-                exit_with_usage(xxd.program_name, version, false);
+                exit_with_usage(&xxd, version, false);
             }
             if (!strncmp(pw, "always", 6)) {
                 xxd.color = true;
@@ -1390,14 +1390,14 @@ int main(int argc, char* argv[])
                 color_forced = false;
                 errno = 0;
             } else {
-                exit_with_usage(xxd.program_name, version, false);
+                exit_with_usage(&xxd, version, false);
             }
         } else if (!strcmp(pp, "--")) { // end of options
             argv++;
             argc--;
             break;
         } else if (pp[0] == '-' && pp[1]) { // unknown option
-            exit_with_usage(xxd.program_name, version, false);
+            exit_with_usage(&xxd, version, false);
         } else {
             break; // not an option
         }
@@ -1428,7 +1428,7 @@ int main(int argc, char* argv[])
             break;
         }
     } else if (hextype != HEX_POSTSCRIPT && xxd.cols < 1) {
-        exit_with_col_error(xxd.program_name);
+        exit_with_col_error(&xxd);
     }
     if (xxd.octspergrp < 0) {
         switch (hextype) {
@@ -1450,7 +1450,7 @@ int main(int argc, char* argv[])
         xxd.octspergrp = xxd.cols; // fallback if 0
     }
     if (argc > 3) {
-        exit_with_usage(xxd.program_name, version, false);
+        exit_with_usage(&xxd, version, false);
     } else if (argc == 1 || (argv[1][0] == '-' && !argv[1][1])) {
         xxd.input = stdin;
         xxd.input_filename = "stdin";
@@ -1482,7 +1482,7 @@ int main(int argc, char* argv[])
     if (xxd.seekoff || xxd.negseek || !xxd.relative_seek) {
         if (xxd.negseek) {
             if ((e = fseek(xxd.input, -xxd.seekoff, xxd.relative_seek ? SEEK_CUR : SEEK_END)) < 0) {
-                exit_with_error(4, "Sorry, cannot seek.", xxd.program_name);
+                exit_with_error(&xxd, 4, "Sorry, cannot seek.");
             }
         } else {
             e = fseek(xxd.input, xxd.seekoff, xxd.relative_seek ? SEEK_CUR : SEEK_SET);
@@ -1492,7 +1492,7 @@ int main(int argc, char* argv[])
         } else {
             for (long s = xxd.seekoff; s > 0; s--) {
                 if (getc_or_die(&xxd) == EOF) {
-                    exit_with_error(4, "Sorry, cannot seek.", xxd.program_name);
+                    exit_with_error(&xxd, 4, "Sorry, cannot seek.");
                 }
             }
         }
