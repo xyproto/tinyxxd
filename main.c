@@ -819,9 +819,9 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
                 format_hex_address(buffer, addr);
             } else {
                 buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
-            }
-            while (buf_idx < 9) {
-                buffer[buf_idx++] = ' ';
+                while (buf_idx < 9) {
+                    buffer[buf_idx++] = ' ';
+                }
             }
             buffer[buf_idx++] = ' ';
             for (int i = 0; i < p; i++) {
@@ -875,9 +875,9 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             format_hex_address(buffer, addr);
         } else {
             buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
-        }
-        while (buf_idx < 9) {
-            buffer[buf_idx++] = ' ';
+            while (buf_idx < 9) {
+                buffer[buf_idx++] = ' ';
+            }
         }
         buffer[buf_idx++] = ' ';
         for (int i = 0; i < p; i++) {
@@ -976,9 +976,9 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
                 format_hex_address(buffer, addr);
             } else {
                 buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
-            }
-            while (buf_idx < 9) {
-                buffer[buf_idx++] = ' ';
+                while (buf_idx < 9) {
+                    buffer[buf_idx++] = ' ';
+                }
             }
             buffer[buf_idx++] = ' ';
             for (int i = 0; i < p; i++) {
@@ -1015,9 +1015,9 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
             format_hex_address(buffer, addr);
         } else {
             buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
-        }
-        while (buf_idx < 9) {
-            buffer[buf_idx++] = ' ';
+            while (buf_idx < 9) {
+                buffer[buf_idx++] = ' ';
+            }
         }
         buffer[buf_idx++] = ' ';
         for (int i = 0; i < p; i++) {
