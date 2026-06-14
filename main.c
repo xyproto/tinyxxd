@@ -18,7 +18,7 @@ enum { COLS = 256 };
 
 enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume ULONG_MAX = 2**128
         + 2 // ": "
-        + 13 * COLS // hex dump with colors
+        + 19 * COLS // data column with colors (-b: 8 digits, hex: 2)
         + (COLS - 1) // whitespace between groups if "-g1" option given and "-c" maxed out
         + 2 // whitespace
         + 12 * COLS // ASCII dump with colors
@@ -785,6 +785,99 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
     return 0;
 }
 
+// print_bits_line_color colors both the bits and character columns of one -b line
+static void print_bits_line_color(char* buffer, char* z, const uint8_t* line_data, const int p, const uint64_t addr, const int octspergrp, const int start_index, const int nz, Config* xxd)
+{
+    char current_color = 0;
+    int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
+    buffer[buf_idx++] = ' ';
+    int bits_drawn = 0;
+    for (int i = 0; i < p; i++) {
+        if (i > 0 && (i % octspergrp) == 0) {
+            if (current_color != 0) {
+                clear_color(buffer, &buf_idx);
+                current_color = 0;
+            }
+            buffer[buf_idx++] = ' ';
+            bits_drawn++;
+        }
+        const uint8_t val = line_data[i];
+        update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+        for (int b = 7; b >= 0; b--) {
+            buffer[buf_idx++] = ((val >> b) & 1) + '0';
+        }
+        bits_drawn += 8;
+    }
+    if (current_color != 0) {
+        clear_color(buffer, &buf_idx);
+        current_color = 0;
+    }
+    // pad a short final line to keep the character column aligned
+    for (; bits_drawn < start_index; bits_drawn++) {
+        buffer[buf_idx++] = ' ';
+    }
+    buffer[buf_idx++] = ' ';
+    buffer[buf_idx++] = ' ';
+    for (int i = 0; i < p; i++) {
+        const uint8_t val = line_data[i];
+        update_color_state(buffer, &buf_idx, &current_color, val, xxd);
+        const uint8_t pval = xxd->ascii ? val : etoa64[val];
+        buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
+    }
+    if (current_color != 0) {
+        clear_color(buffer, &buf_idx);
+        current_color = 0;
+    }
+    buffer[buf_idx++] = '\n';
+    buffer[buf_idx] = '\0';
+    print_or_suppress_zero_line(buffer, z, nz, xxd);
+}
+
+static int hex_bits_color(char* buffer, char* z, Config* xxd)
+{
+    long counter = 0;
+    int nonzero = 0, p = 0;
+    uint8_t line_data[COLS];
+    if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
+        exit_with_col_error(xxd);
+    }
+    if (xxd->revert) {
+        return decode_hex_stream_bits(xxd);
+    }
+    int octspergrp = xxd->octspergrp;
+    if (octspergrp < 0) {
+        octspergrp = 1;
+    } else if (octspergrp < 1 || octspergrp > xxd->cols) {
+        octspergrp = xxd->cols;
+    }
+    const int grplen = 8 * octspergrp + 1;
+    const int start_index = (grplen * xxd->cols - 1) / octspergrp;
+    const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
+    int e = getc_or_die(xxd);
+    while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
+        line_data[p] = (uint8_t)e;
+        if (e) {
+            nonzero++;
+        }
+        counter++;
+        p++;
+        if (p == xxd->cols) {
+            const uint64_t addr = (uint64_t)(counter - p) + offset;
+            print_bits_line_color(buffer, z, line_data, p, addr, octspergrp, start_index, xxd->autoskip ? nonzero : 1, xxd);
+            nonzero = 0;
+            p = 0;
+        }
+        e = getc_or_die(xxd);
+    }
+    if (p) {
+        const uint64_t addr = (uint64_t)(counter - p) + offset;
+        print_bits_line_color(buffer, z, line_data, p, addr, octspergrp, start_index, 1, xxd);
+    } else if (xxd->autoskip) {
+        print_or_suppress_zero_line(buffer, z, -1, xxd);
+    }
+    return 0;
+}
+
 static int hex_normal_color(char* buffer, char* z, Config* xxd)
 {
     char current_color = 0;
@@ -1509,7 +1602,9 @@ int main(int argc, char* argv[])
         }
         break;
     case HEX_BITS:
-        if (xxd.ascii) {
+        if (xxd.color) {
+            status = hex_bits_color(buffer, z, &xxd);
+        } else if (xxd.ascii) {
             status = hex_bits_ascii(buffer, z, &xxd);
         } else {
             status = hex_bits_ebcdic(buffer, z, &xxd);
