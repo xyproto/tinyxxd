@@ -25,7 +25,7 @@ enum { LLENP1 = 39 // addr: ⌈log10(ULONG_MAX)⌉ if "-d" flag given. We assume
         + 2 // "\n\0"
 };
 
-enum { INPUT_BUFFER_SIZE = 131072 }; // 128 KB, measured to give good performance
+enum { INPUT_BUFFER_SIZE = 131072 }; // 128 KiB, measured to give good performance
 
 typedef struct {
     FILE* input;
