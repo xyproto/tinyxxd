@@ -1,29 +1,30 @@
 # Contributors, in chronological order
 
-* Bram Moolenaar <Bram@vim.org>
-* Jürgen Weigert <jnweiger@gmail.com>
-* DungSaga <dungsaga@users.noreply.github.com>
-* Atsushi SUGAWARA <peanutsjamjam@gmail.com>
-* Yegappan Lakshmanan <yegappan@yahoo.com>
-* Erik Auerswald <auerswal@unix-ag.uni-kl.de>
-* David Gow <david@ingeniumdigital.com>
-* Philip H <47042125+pheiduck@users.noreply.github.com>
-* Aapo Rantalainen <aapo.rantalainen@gmail.com>
-* Christian Brabandt <cb@256bit.org>
-* Ken Takata <kentkt@csc.jp>
-* tristhaus <tristhaus@yahoo.de>
-* OldWorldOrdr <joey.t.reinhart@gmail.com>
-* Keith Thompson <Keith.S.Thompson@gmail.com>
-* Igor Todorovski <itodorov@ca.ibm.com>
-* Kuratius <Kuratius@gmx.net>
-* Goffredo Baroncelli <kreijack@inwind.it>
-* Lennard Hofmann <lennard.hofmann@web.de>
-* RestorerZ <restorer@mail2k.ru>
-* Husam Harazi <i@vimmer.dev>
-* Oliver Webb <aquahobbyist@proton.me>
-* Andre Chang <andre@augmentcode.com>
-* Aapo Rantalainen <aapo.rantalainen@gmail.com>
-* Randy Eckenrode <randy@largeandhighquality.com>
-* Alexander F. Rødseth <xyproto@archlinux.org>
-* Noah Gitsham <me@noahgitsham.com>
-* Lukáš Jiřiště <kyci@ljiriste.work>
+* Bram Moolenaar &lt;Bram@vim.org&gt;
+* Jürgen Weigert &lt;jnweiger@gmail.com&gt;
+* DungSaga &lt;dungsaga@users.noreply.github.com&gt;
+* Atsushi SUGAWARA &lt;peanutsjamjam@gmail.com&gt;
+* Yegappan Lakshmanan &lt;yegappan@yahoo.com&gt;
+* Erik Auerswald &lt;auerswal@unix-ag.uni-kl.de&gt;
+* David Gow &lt;david@ingeniumdigital.com&gt;
+* Philip H &lt;47042125+pheiduck@users.noreply.github.com&gt;
+* Aapo Rantalainen &lt;aapo.rantalainen@gmail.com&gt;
+* Christian Brabandt &lt;cb@256bit.org&gt;
+* Ken Takata &lt;kentkt@csc.jp&gt;
+* tristhaus &lt;tristhaus@yahoo.de&gt;
+* OldWorldOrdr &lt;joey.t.reinhart@gmail.com&gt;
+* Keith Thompson &lt;Keith.S.Thompson@gmail.com&gt;
+* Igor Todorovski &lt;itodorov@ca.ibm.com&gt;
+* Kuratius &lt;Kuratius@gmx.net&gt;
+* Goffredo Baroncelli &lt;kreijack@inwind.it&gt;
+* Lennard Hofmann &lt;lennard.hofmann@web.de&gt;
+* RestorerZ &lt;restorer@mail2k.ru&gt;
+* Husam Harazi &lt;i@vimmer.dev&gt;
+* Oliver Webb &lt;aquahobbyist@proton.me&gt;
+* Andre Chang &lt;andre@augmentcode.com&gt;
+* Aapo Rantalainen &lt;aapo.rantalainen@gmail.com&gt;
+* Randy Eckenrode &lt;randy@largeandhighquality.com&gt;
+* Noah Gitsham &lt;me@noahgitsham.com&gt;
+* Lukáš Jiřiště &lt;kyci@ljiriste.work&gt;
+* Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
+* Hirohito Higashi &lt;h.east.727@gmail.com&gt;
