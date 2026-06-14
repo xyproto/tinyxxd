@@ -71,6 +71,8 @@ test: xxd tinyxxd_asan
 	@$(MAKE) run_test CMD='-R never colorbytes.bin' DESC='ASCII no-color output'
 	@$(MAKE) run_test CMD='-R always -E ebcdicbytes.bin' DESC='EBCDIC color output'
 	@$(MAKE) run_test CMD='-R never -E ebcdicbytes.bin' DESC='EBCDIC no-color output'
+	@$(MAKE) run_test CMD='-b -R always colorbytes.bin' DESC='Binary color output (all color categories)'
+	@$(MAKE) run_test CMD='-b -R always -E ebcdicbytes.bin' DESC='Binary EBCDIC color output'
 	@$(MAKE) run_test CMD='-g 1 sample.bin' DESC='Group bytes in 1s'
 	@$(MAKE) run_test CMD='-g 4 sample.bin' DESC='Group bytes in 4s'
 	@$(MAKE) run_test CMD='-d sample.bin' DESC='Decimal offset'
