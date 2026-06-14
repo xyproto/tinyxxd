@@ -165,14 +165,29 @@ def print_formatted_columns(row):
     print(formatted_row)
 
 
+def flag_token(flags):
+    """Turns a flag string into a filename-safe token that stays unique on
+    case-insensitive filesystems (e.g. macOS), where "-e" and "-E" would
+    otherwise map to the same output file and clobber each other."""
+    token = []
+    for ch in flags:
+        if ch == "^":
+            token.append("^^")
+        elif ch.isupper():
+            token.append("^" + ch.lower())
+        else:
+            token.append(ch)
+    return "".join(token)
+
+
 def cleanup_files_for_size(size):
     """Removes sample and output files for a specific size."""
     global base_path
     file_patterns = [
         f"{size}mb.bin",
         f"{size}mb_recreated.bin",
-        *[f"{size}mb{flag}_xxd.hex" for flag in bench_flags],
-        *[f"{size}mb{flag}_tinyxxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag_token(flag)}_xxd.hex" for flag in bench_flags],
+        *[f"{size}mb{flag_token(flag)}_tinyxxd.hex" for flag in bench_flags],
     ]
     for pattern in file_patterns:
         file_path = os.path.join(base_path, pattern)
@@ -288,7 +303,7 @@ def perform_benchmarks():
 
             for flags in bench_flags:
                 current_benchmark += 1
-                output_file = os.path.join(base_path, f"{size}mb{flags}_{program}.hex")
+                output_file = os.path.join(base_path, f"{size}mb{flag_token(flags)}_{program}.hex")
                 conversion_time = benchmark_conversion(
                     program,
                     flags,
@@ -305,8 +320,8 @@ def perform_benchmarks():
                         "flags": flags,
                     }
                 )
-                xxd_hex = os.path.join(base_path, f"{size}mb{flags}_xxd.hex")
-                tinyxxd_hex = os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex")
+                xxd_hex = os.path.join(base_path, f"{size}mb{flag_token(flags)}_xxd.hex")
+                tinyxxd_hex = os.path.join(base_path, f"{size}mb{flag_token(flags)}_tinyxxd.hex")
                 if os.path.exists(xxd_hex) and os.path.exists(tinyxxd_hex):
                     if not verify_files(xxd_hex, tinyxxd_hex):
                         print_colored(
@@ -688,8 +703,8 @@ def cleanup_files():
             files_to_delete = [
                 os.path.join(base_path, f"{size}mb.bin"),
                 os.path.join(base_path, f"{size}mb_recreated.bin"),
-                os.path.join(base_path, f"{size}mb{flags}_xxd.hex"),
-                os.path.join(base_path, f"{size}mb{flags}_tinyxxd.hex"),
+                os.path.join(base_path, f"{size}mb{flag_token(flags)}_xxd.hex"),
+                os.path.join(base_path, f"{size}mb{flag_token(flags)}_tinyxxd.hex"),
             ]
             for file in files_to_delete:
                 try:
