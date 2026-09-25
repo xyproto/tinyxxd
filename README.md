@@ -70,4 +70,4 @@ In connection with packaging, letting this utility provide and replace `xxd`, po
 * License: `GPL-2.0-only` and/or `MIT`. See the [`LICENSE`](LICENSE) file for more information.
 * Version: 1.3.16
 
-[![Compiles with oh](https://img.shields.io/badge/Compiles_with-Orchideous-2fc298)](https://github.com/xyproto/orchideous)
+[![Compiles with Slay](https://img.shields.io/badge/Compiles_with-Slay-2fc298)](https://github.com/xyproto/slay)
