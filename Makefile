@@ -2,7 +2,7 @@
 
 OPTFLAGS ?= -O2 -finline-functions
 WARNFLAGS ?= -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
-CFLAGS ?= -std=c11 -pipe -fPIC $(OPTFLAGS) $(WARNFLAGS)
+CFLAGS ?= -std=c99 -pipe -fPIC $(OPTFLAGS) $(WARNFLAGS)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -185,7 +185,7 @@ testfiles/xxd.c:
 	cd testfiles && curl -sOL "https://raw.githubusercontent.com/vim/vim/master/src/xxd/xxd.c"
 
 xxd: testfiles/xxd.c
-	$(CC) -std=c11 -pipe -D_GNU_SOURCE $(OPTFLAGS) -o $@ $<
+	$(CC) -std=c99 -pipe -D_GNU_SOURCE $(OPTFLAGS) -o $@ $<
 
 install: tinyxxd
 	install -D -m 755 tinyxxd "$(DESTDIR)$(BINDIR)/tinyxxd"

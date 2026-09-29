@@ -6,7 +6,7 @@
 
 `tinyxxd` is a standalone fork of `xxd`, a slight modernization of the C code, a solid performance increase and a drop-in replacement for `xxd`. It contains the same logic and supports the exact same flags. It is also only licensed under MIT and/or GPL2 (dual license), and not under the ViM license.
 
-`tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C11 compiler and is twice as fast.
+`tinyxxd` can be useful in connection with building and packaging software, since it's a smaller dependency than `ViM`, only requires a C99 compiler and is twice as fast.
 
 `tinyxxd` only has the goal of supporting Linux, but it should also build and run on other UNIX-like platforms and on Windows.
 
@@ -26,7 +26,7 @@ For more details, take a look at the latest [benchmark results](benchmark_result
 
 ## Requirements
 
-* A C-compiler that supports C11.
+* A C-compiler that supports C99.
 * For profiling: `valgrind` and `kcachegrind`.
 * For benchmarking: `gcc`, `gnuplot` and `python3`.
 * For fuzzing: `afl-gcc` and `afl-fuzz`.
@@ -37,7 +37,7 @@ For more details, take a look at the latest [benchmark results](benchmark_result
 
 ## Source code
 
-The source code for the program is a single `main.c` source file, written in C11.
+The source code for the program is a single `main.c` source file, written in C99.
 
 Some of the code has been neatly refactored into separate functions, and a couple of enums have been introduced.
 
