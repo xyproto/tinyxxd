@@ -357,7 +357,7 @@ static int decode_hex_stream_bits(Config* xxd)
 {
     bool ignore = true;
     int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1;
-    long want_off = 0;
+    uint64_t want_off = 0;
     const int cols = xxd->cols;
     int col = cols;
     rewind(xxd->input);
@@ -382,7 +382,7 @@ static int decode_hex_stream_bits(Config* xxd)
                 col = 0;
                 bit_count = 0;
             } else {
-                want_off = (want_off << 4) | n1;
+                want_off = (want_off << 4) | (uint64_t)n1;
             }
             continue;
         }
