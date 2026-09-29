@@ -39,7 +39,7 @@ typedef struct {
     uint64_t displayoff;
     int64_t length;
     int cols;
-    int32_t octspergrp;
+    int octspergrp;
     bool autoskip;
     bool colsgiven;
     bool revert;
@@ -306,7 +306,7 @@ static int decode_hex_stream_postscript(const long base_off, Config* xxd)
 static int decode_hex_stream_normal(const int cols, const long base_off, Config* xxd)
 {
     bool ignore = true;
-    int c = 0, n1 = -1, n2 = 0, n3 = 0, p = cols;
+    int c = 0, n1 = -1, n2 = 0, n3 = 0, col = cols;
     uint64_t have_off = 0, want_off = 0;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
@@ -319,9 +319,9 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
         n3 = n2;
         n2 = n1;
         n1 = digit;
-        if (p >= cols) {
+        if (col >= cols) {
             if (n1 < 0) {
-                p = 0;
+                col = 0;
             } else {
                 want_off = (want_off << 4) | (uint64_t)n1;
             }
@@ -334,8 +334,8 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
             have_off++;
             want_off++;
             n1 = -1;
-            p++;
-            if (p >= cols) {
+            col++;
+            if (col >= cols) {
                 skip_to_eol_or_die(&c, xxd);
             }
         } else if (n1 < 0 && n2 < 0 && n3 < 0) {
@@ -344,7 +344,7 @@ static int decode_hex_stream_normal(const int cols, const long base_off, Config*
         ignore = c == '\n';
         if (ignore) {
             want_off = 0;
-            p = cols;
+            col = cols;
         }
     }
     fflush_or_die(xxd);
@@ -359,7 +359,7 @@ static int decode_hex_stream_bits(Config* xxd)
     int bit_buffer = 0, bit_count = 0, c = 0, n1 = -1;
     long want_off = 0;
     const int cols = xxd->cols;
-    int p = cols;
+    int col = cols;
     rewind(xxd->input);
     xxd->input_buffer_pos = 0;
     xxd->input_buffer_len = 0;
@@ -377,9 +377,9 @@ static int decode_hex_stream_bits(Config* xxd)
             bit_buffer = ((bit_buffer << 1) | 1);
             bit_count++;
         }
-        if (p >= cols) {
+        if (col >= cols) {
             if (n1 < 0) {
-                p = 0;
+                col = 0;
                 bit_count = 0;
             } else {
                 want_off = (want_off << 4) | n1;
@@ -394,8 +394,8 @@ static int decode_hex_stream_bits(Config* xxd)
             want_off++;
             bit_buffer = 0;
             bit_count = 0;
-            p++;
-            if (p >= cols) {
+            col++;
+            if (col >= cols) {
                 skip_to_eol_or_die(&c, xxd);
             }
         }
@@ -406,12 +406,12 @@ static int decode_hex_stream_bits(Config* xxd)
     return 0;
 }
 
-static inline void print_or_suppress_zero_line(const char* buffer, char* z, const int nz, const Config* xxd)
+static inline void print_or_suppress_zero_line(const char* buffer, char* zero_line, const int nz, const Config* xxd)
 {
     static int zero_seen = 0; // note: static
     if (nz > 0) {
         if (zero_seen == 2) {
-            fputs_or_die(z, xxd);
+            fputs_or_die(zero_line, xxd);
         } else if (zero_seen > 2) {
             putc_or_die('*', xxd);
             putc_or_die('\n', xxd);
@@ -423,12 +423,12 @@ static inline void print_or_suppress_zero_line(const char* buffer, char* z, cons
         if (zero_seen == 1) {
             fputs_or_die(buffer, xxd);
         } else if (zero_seen == 2) {
-            strcpy(z, buffer);
+            strcpy(zero_line, buffer);
         }
     } else { // nz < 0
         zero_seen--;
         if (zero_seen == 2) {
-            fputs_or_die(z, xxd);
+            fputs_or_die(zero_line, xxd);
             fputs_or_die(buffer, xxd);
         } else if (zero_seen > 2) {
             putc_or_die('*', xxd);
@@ -514,18 +514,18 @@ static int hex_postscript(Config* xxd)
     if (xxd->revert) {
         return decode_hex_stream_postscript(xxd->negseek ? -xxd->seekoff : xxd->seekoff, xxd);
     }
-    long counter = 0;
-    int p = xxd->cols;
+    int64_t counter = 0;
+    int cols_left = xxd->cols;
     int e = getc_or_die(xxd);
     if (xxd->cols > 0) {
         while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
             putc_or_die(xxd->hex_digits[(e >> 4) & 0xf], xxd);
             putc_or_die(xxd->hex_digits[e & 0xf], xxd);
             counter++;
-            p--;
-            if (!p) {
+            cols_left--;
+            if (!cols_left) {
                 putc_or_die('\n', xxd);
-                p = xxd->cols;
+                cols_left = xxd->cols;
             }
             e = getc_or_die(xxd);
         }
@@ -537,7 +537,7 @@ static int hex_postscript(Config* xxd)
             e = getc_or_die(xxd);
         }
     }
-    if (!xxd->cols || p < xxd->cols) {
+    if (!xxd->cols || cols_left < xxd->cols) {
         putc_or_die('\n', xxd);
     }
     return 0;
@@ -558,7 +558,7 @@ static inline void print_varname(const char* varname, const Config* xxd)
 
 static int hex_cinclude(Config* xxd)
 {
-    long p = 0;
+    int64_t count = 0;
     if (xxd->revert) {
         exit_with_error(xxd, -1, "Sorry, cannot revert this type of hexdump");
     }
@@ -573,19 +573,19 @@ static int hex_cinclude(Config* xxd)
     }
     int e = getc_or_die(xxd);
     const char* const hex_format_string = xxd->uppercase_hex ? "%s0X%02X" : "%s0x%02x";
-    while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
-        if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), e) < 0) {
+    while ((xxd->length < 0 || count < xxd->length) && e != EOF) {
+        if (fprintf(xxd->output, hex_format_string, (count % xxd->cols) ? ", " : (!count ? "  " : ",\n  "), e) < 0) {
             exit_with_error(xxd, 3, NULL);
         }
-        p++;
+        count++;
         e = getc_or_die(xxd);
     }
     if (xxd->terminate_nul) {
-        if (fprintf(xxd->output, hex_format_string, (p % xxd->cols) ? ", " : (!p ? "  " : ",\n  "), 0) < 0) {
+        if (fprintf(xxd->output, hex_format_string, (count % xxd->cols) ? ", " : (!count ? "  " : ",\n  "), 0) < 0) {
             exit_with_error(xxd, 3, NULL);
         }
     }
-    if (p || xxd->terminate_nul) {
+    if (count || xxd->terminate_nul) {
         putc_or_die('\n', xxd);
     }
     if (varname) {
@@ -594,7 +594,7 @@ static int hex_cinclude(Config* xxd)
             exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
-        if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
+        if (fprintf(xxd->output, "_%s = %lld;\n", xxd->capitalize ? "LEN" : "len", (long long)count) < 0) {
             exit_with_error(xxd, 3, NULL);
         }
     }
@@ -603,7 +603,7 @@ static int hex_cinclude(Config* xxd)
 
 static int hex_cinclude_bits(Config* xxd)
 {
-    long p = 0;
+    int64_t count = 0;
     if (xxd->revert) {
         exit_with_error(xxd, -1, "Sorry, cannot revert this type of hexdump");
     }
@@ -620,10 +620,10 @@ static int hex_cinclude_bits(Config* xxd)
     const char* const fmt1 = "  0b";
     const char* const fmt2 = ",\n  0b";
     const char* const fmt3 = ", 0b";
-    while ((xxd->length < 0 || p < xxd->length) && e != EOF) {
-        if (p == 0) {
+    while ((xxd->length < 0 || count < xxd->length) && e != EOF) {
+        if (count == 0) {
             fputs_or_die(fmt1, xxd);
-        } else if (p % xxd->cols == 0) {
+        } else if (count % xxd->cols == 0) {
             fputs_or_die(fmt2, xxd);
         } else {
             fputs_or_die(fmt3, xxd);
@@ -631,20 +631,20 @@ static int hex_cinclude_bits(Config* xxd)
         for (int bit = 7; bit >= 0; bit--) {
             putc_or_die(((e >> bit) & 1) + '0', xxd);
         }
-        p++;
+        count++;
         e = getc_or_die(xxd);
     }
     if (xxd->terminate_nul) {
-        if (p == 0) {
+        if (count == 0) {
             fputs_or_die("  ", xxd);
-        } else if (p % xxd->cols == 0) {
+        } else if (count % xxd->cols == 0) {
             fputs_or_die(",\n  ", xxd);
         } else {
             fputs_or_die(", ", xxd);
         }
         fputs_or_die("0b00000000", xxd);
     }
-    if (p || xxd->terminate_nul) {
+    if (count || xxd->terminate_nul) {
         putc_or_die('\n', xxd);
     }
     if (varname) {
@@ -653,16 +653,16 @@ static int hex_cinclude_bits(Config* xxd)
             exit_with_error(xxd, 3, NULL);
         }
         print_varname(varname, xxd);
-        if (fprintf(xxd->output, "_%s = %ld;\n", xxd->capitalize ? "LEN" : "len", p) < 0) {
+        if (fprintf(xxd->output, "_%s = %lld;\n", xxd->capitalize ? "LEN" : "len", (long long)count) < 0) {
             exit_with_error(xxd, 3, NULL);
         }
     }
     return 0;
 }
 
-static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
+static int hex_bits_ascii(char* buffer, char* zero_line, Config* xxd)
 {
-    int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
+    int nonzero = 0, col = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
     }
@@ -684,49 +684,49 @@ static int hex_bits_ascii(char* buffer, char* z, Config* xxd)
     const uint64_t length_plus_offset = offset + (uint64_t)xxd->length;
     uint64_t offset_counter = offset;
     while ((xxd->length < 0 || offset_counter > length_plus_offset) && e != EOF) {
-        if (!p) {
+        if (!col) {
             addrlen = snprintf(buffer, LLENP1, xxd_decimal_format_string, offset_counter);
             max_idx = addrlen;
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
         }
-        buf_idx = 1 + addrlen + (grplen * p) / octspergrp;
+        buf_idx = 1 + addrlen + (grplen * col) / octspergrp;
         for (int i = 7; i >= 0; i--) {
             buffer[buf_idx++] = ((e >> i) & 1) + '0';
         }
-        buf_idx = start_index + addrlen + 3 + p;
+        buf_idx = start_index + addrlen + 3 + col;
         buffer[buf_idx++] = (e < ' ' || e >= 127) ? '.' : (char)e;
         if (buf_idx > max_idx) {
             max_idx = buf_idx;
         }
         offset_counter++;
-        p++;
+        col++;
         nonzero += e ? 1 : 0;
-        if (p == xxd->cols) {
+        if (col == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
-            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
+            print_or_suppress_zero_line(buffer, zero_line, xxd->autoskip ? nonzero : 1, xxd);
             nonzero = 0;
-            p = 0;
+            col = 0;
             max_idx = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
+    if (col) {
         buf_idx = max_idx;
         buffer[buf_idx++] = '\n';
         buffer[buf_idx] = '\0';
-        print_or_suppress_zero_line(buffer, z, 1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
 
-static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
+static int hex_bits_ebcdic(char* buffer, char* zero_line, Config* xxd)
 {
-    long counter = 0;
-    int nonzero = 0, p = 0, max_idx = 0, addrlen = 9;
+    int64_t counter = 0;
+    int nonzero = 0, col = 0, max_idx = 0, addrlen = 9;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
     }
@@ -745,17 +745,17 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
     int buf_idx = 0;
     const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
-        if (!p) {
+        if (!col) {
             addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)counter + offset));
             for (buf_idx = addrlen; buf_idx < LLENP1; buffer[buf_idx++] = ' ')
                 ;
             max_idx = addrlen;
         }
-        buf_idx = 1 + addrlen + (grplen * p) / octspergrp;
+        buf_idx = 1 + addrlen + (grplen * col) / octspergrp;
         for (int i = 7; i >= 0; i--) {
             buffer[buf_idx++] = ((e >> i) & 1) + '0';
         }
-        buf_idx = start_idx + addrlen + 3 + p;
+        buf_idx = start_idx + addrlen + 3 + col;
         nonzero += e ? 1 : 0;
         const uint8_t pval = etoa64[e];
         buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
@@ -763,36 +763,36 @@ static int hex_bits_ebcdic(char* buffer, char* z, Config* xxd)
             max_idx = buf_idx;
         }
         counter++;
-        p++;
-        if (p == xxd->cols) {
+        col++;
+        if (col == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
-            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
+            print_or_suppress_zero_line(buffer, zero_line, xxd->autoskip ? nonzero : 1, xxd);
             nonzero = 0;
-            p = 0;
+            col = 0;
             max_idx = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
+    if (col) {
         buf_idx = max_idx;
         buffer[buf_idx++] = '\n';
         buffer[buf_idx] = '\0';
-        print_or_suppress_zero_line(buffer, z, 1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
 
 // print_bits_line_color colors both the bits and character columns of one -b line
-static void print_bits_line_color(char* buffer, char* z, const uint8_t* line_data, const int p, const uint64_t addr, const int octspergrp, const int start_index, const int nz, Config* xxd)
+static void print_bits_line_color(char* buffer, char* zero_line, const uint8_t* line_data, const int count, const uint64_t addr, const int octspergrp, const int start_index, const int nz, Config* xxd)
 {
     char current_color = 0;
     int buf_idx = snprintf(buffer, LLENP1, xxd->decimal_format_string, addr);
     buffer[buf_idx++] = ' ';
     int bits_drawn = 0;
-    for (int i = 0; i < p; i++) {
+    for (int i = 0; i < count; i++) {
         if (i > 0 && (i % octspergrp) == 0) {
             if (current_color != 0) {
                 clear_color(buffer, &buf_idx);
@@ -818,7 +818,7 @@ static void print_bits_line_color(char* buffer, char* z, const uint8_t* line_dat
     }
     buffer[buf_idx++] = ' ';
     buffer[buf_idx++] = ' ';
-    for (int i = 0; i < p; i++) {
+    for (int i = 0; i < count; i++) {
         const uint8_t val = line_data[i];
         update_color_state(buffer, &buf_idx, &current_color, val, xxd);
         const uint8_t pval = xxd->ascii ? val : etoa64[val];
@@ -830,13 +830,13 @@ static void print_bits_line_color(char* buffer, char* z, const uint8_t* line_dat
     }
     buffer[buf_idx++] = '\n';
     buffer[buf_idx] = '\0';
-    print_or_suppress_zero_line(buffer, z, nz, xxd);
+    print_or_suppress_zero_line(buffer, zero_line, nz, xxd);
 }
 
-static int hex_bits_color(char* buffer, char* z, Config* xxd)
+static int hex_bits_color(char* buffer, char* zero_line, Config* xxd)
 {
-    long counter = 0;
-    int nonzero = 0, p = 0;
+    int64_t counter = 0;
+    int nonzero = 0, col = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
@@ -855,34 +855,34 @@ static int hex_bits_color(char* buffer, char* z, Config* xxd)
     const uint64_t offset = (uint64_t)xxd->seekoff + xxd->displayoff;
     int e = getc_or_die(xxd);
     while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
-        line_data[p] = (uint8_t)e;
+        line_data[col] = (uint8_t)e;
         if (e) {
             nonzero++;
         }
         counter++;
-        p++;
-        if (p == xxd->cols) {
-            const uint64_t addr = (uint64_t)(counter - p) + offset;
-            print_bits_line_color(buffer, z, line_data, p, addr, octspergrp, start_index, xxd->autoskip ? nonzero : 1, xxd);
+        col++;
+        if (col == xxd->cols) {
+            const uint64_t addr = (uint64_t)(counter - col) + offset;
+            print_bits_line_color(buffer, zero_line, line_data, col, addr, octspergrp, start_index, xxd->autoskip ? nonzero : 1, xxd);
             nonzero = 0;
-            p = 0;
+            col = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
-        const uint64_t addr = (uint64_t)(counter - p) + offset;
-        print_bits_line_color(buffer, z, line_data, p, addr, octspergrp, start_index, 1, xxd);
+    if (col) {
+        const uint64_t addr = (uint64_t)(counter - col) + offset;
+        print_bits_line_color(buffer, zero_line, line_data, col, addr, octspergrp, start_index, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
 
-static int hex_normal_color(char* buffer, char* z, Config* xxd)
+static int hex_normal_color(char* buffer, char* zero_line, Config* xxd)
 {
     char current_color = 0;
-    long counter = 0;
-    int nonzero = 0, p = 0;
+    int64_t counter = 0;
+    int nonzero = 0, col = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
@@ -899,14 +899,14 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
     int e = getc_or_die(xxd);
     const bool fast_hex_path = xxd->fast_hex_path;
     while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
-        line_data[p] = (uint8_t)e;
+        line_data[col] = (uint8_t)e;
         if (e) {
             nonzero++;
         }
         counter++;
-        p++;
-        if (p == xxd->cols) {
-            const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        col++;
+        if (col == xxd->cols) {
+            const uint64_t addr = (uint64_t)(counter - col) + (uint64_t)xxd->seekoff + xxd->displayoff;
             int buf_idx = 9;
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
@@ -917,7 +917,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
                 }
             }
             buffer[buf_idx++] = ' ';
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 if (i > 0 && (i % octspergrp) == 0) {
                     if (current_color != 0) {
                         clear_color(buffer, &buf_idx);
@@ -936,13 +936,13 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
             if (xxd->ascii) {
-                for (int i = 0; i < p; i++) {
+                for (int i = 0; i < col; i++) {
                     const uint8_t val = line_data[i];
                     update_color_state(buffer, &buf_idx, &current_color, val, xxd);
                     buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
                 }
             } else {
-                for (int i = 0; i < p; i++) {
+                for (int i = 0; i < col; i++) {
                     const uint8_t val = line_data[i];
                     update_color_state(buffer, &buf_idx, &current_color, val, xxd);
                     const uint8_t pval = etoa64[val];
@@ -955,14 +955,14 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             }
             buffer[buf_idx++] = '\n';
             buffer[buf_idx] = '\0';
-            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
-            p = 0;
+            print_or_suppress_zero_line(buffer, zero_line, xxd->autoskip ? nonzero : 1, xxd);
+            col = 0;
             nonzero = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
-        const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+    if (col) {
+        const uint64_t addr = (uint64_t)(counter - col) + (uint64_t)xxd->seekoff + xxd->displayoff;
         int buf_idx = 9;
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
@@ -973,7 +973,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             }
         }
         buffer[buf_idx++] = ' ';
-        for (int i = 0; i < p; i++) {
+        for (int i = 0; i < col; i++) {
             if (i > 0 && (i % octspergrp) == 0) {
                 if (current_color != 0) {
                     clear_color(buffer, &buf_idx);
@@ -989,7 +989,7 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
             clear_color(buffer, &buf_idx);
             current_color = 0;
         }
-        const int hex_pad_count = xxd->cols - p;
+        const int hex_pad_count = xxd->cols - col;
         const int hex_pad_seps = hex_pad_count / octspergrp;
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
@@ -1010,13 +1010,13 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
         }
         buffer[buf_idx++] = ' ';
         if (xxd->ascii) {
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 const uint8_t val = line_data[i];
                 update_color_state(buffer, &buf_idx, &current_color, val, xxd);
                 buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
             }
         } else {
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 const uint8_t val = line_data[i];
                 update_color_state(buffer, &buf_idx, &current_color, val, xxd);
                 const uint8_t pval = etoa64[val];
@@ -1029,17 +1029,17 @@ static int hex_normal_color(char* buffer, char* z, Config* xxd)
         }
         buffer[buf_idx++] = '\n';
         buffer[buf_idx] = '\0';
-        print_or_suppress_zero_line(buffer, z, 1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
 
-static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
+static int hex_normal_nocolor(char* buffer, char* zero_line, Config* xxd)
 {
-    long counter = 0;
-    int nonzero = 0, p = 0;
+    int64_t counter = 0;
+    int nonzero = 0, col = 0;
     uint8_t line_data[COLS];
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
@@ -1056,14 +1056,14 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
     int e = getc_or_die(xxd);
     const bool fast_hex_path = xxd->fast_hex_path;
     while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
-        line_data[p] = (uint8_t)e;
+        line_data[col] = (uint8_t)e;
         if (e) {
             nonzero++;
         }
         counter++;
-        p++;
-        if (p == xxd->cols) {
-            const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+        col++;
+        if (col == xxd->cols) {
+            const uint64_t addr = (uint64_t)(counter - col) + (uint64_t)xxd->seekoff + xxd->displayoff;
             int buf_idx = 9;
             if (fast_hex_path && addr <= 0xFFFFFFFF) {
                 format_hex_address(buffer, addr);
@@ -1074,7 +1074,7 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
                 }
             }
             buffer[buf_idx++] = ' ';
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 if (i > 0 && (i % octspergrp) == 0) {
                     buffer[buf_idx++] = ' ';
                 }
@@ -1083,26 +1083,26 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
             buffer[buf_idx++] = ' ';
             buffer[buf_idx++] = ' ';
             if (xxd->ascii) {
-                for (int i = 0; i < p; i++) {
+                for (int i = 0; i < col; i++) {
                     const uint8_t val = line_data[i];
                     buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
                 }
             } else {
-                for (int i = 0; i < p; i++) {
+                for (int i = 0; i < col; i++) {
                     const uint8_t pval = etoa64[line_data[i]];
                     buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
                 }
             }
             buffer[buf_idx++] = '\n';
             buffer[buf_idx] = '\0';
-            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
-            p = 0;
+            print_or_suppress_zero_line(buffer, zero_line, xxd->autoskip ? nonzero : 1, xxd);
+            col = 0;
             nonzero = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
-        const uint64_t addr = (uint64_t)(counter - p) + (uint64_t)xxd->seekoff + xxd->displayoff;
+    if (col) {
+        const uint64_t addr = (uint64_t)(counter - col) + (uint64_t)xxd->seekoff + xxd->displayoff;
         int buf_idx = 9;
         if (fast_hex_path && addr <= 0xFFFFFFFF) {
             format_hex_address(buffer, addr);
@@ -1113,13 +1113,13 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
             }
         }
         buffer[buf_idx++] = ' ';
-        for (int i = 0; i < p; i++) {
+        for (int i = 0; i < col; i++) {
             if (i > 0 && (i % octspergrp) == 0) {
                 buffer[buf_idx++] = ' ';
             }
             write_hex_byte(buffer, &buf_idx, line_data[i], xxd->hex_digits);
         }
-        const int hex_pad_count = xxd->cols - p;
+        const int hex_pad_count = xxd->cols - col;
         const int hex_pad_seps = hex_pad_count / octspergrp;
         for (int i = 0; i < hex_pad_count + hex_pad_seps + 1; i++) {
             buffer[buf_idx++] = ' ';
@@ -1129,30 +1129,30 @@ static int hex_normal_nocolor(char* buffer, char* z, Config* xxd)
         }
         buffer[buf_idx++] = ' ';
         if (xxd->ascii) {
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 const uint8_t val = line_data[i];
                 buffer[buf_idx++] = (val < ' ' || val >= 127) ? '.' : (char)val;
             }
         } else {
-            for (int i = 0; i < p; i++) {
+            for (int i = 0; i < col; i++) {
                 const uint8_t pval = etoa64[line_data[i]];
                 buffer[buf_idx++] = (pval < ' ' || pval >= 127) ? '.' : (char)pval;
             }
         }
         buffer[buf_idx++] = '\n';
         buffer[buf_idx] = '\0';
-        print_or_suppress_zero_line(buffer, z, 1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
 
-static int hex_littleendian(char* buffer, char* z, Config* xxd)
+static int hex_littleendian(char* buffer, char* zero_line, Config* xxd)
 {
-    int nonzero = 0, addrlen = 9, p = 0, x = 0;
+    int nonzero = 0, addrlen = 9, col = 0, swapped_col = 0;
     int max_idx = 0;
-    long counter = 0;
+    int64_t counter = 0;
     if (xxd->colsgiven && xxd->cols && (xxd->cols < 1 || xxd->cols > COLS)) {
         exit_with_col_error(xxd);
     }
@@ -1170,20 +1170,20 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
     int e = getc_or_die(xxd);
     const int grplen = octspergrp + octspergrp + 1 + (xxd->color ? 11 * octspergrp : 0);
     while ((xxd->length < 0 || counter < xxd->length) && e != EOF) {
-        if (!p) {
+        if (!col) {
             addrlen = snprintf(buffer, LLENP1, xxd->decimal_format_string, ((uint64_t)counter + (uint64_t)xxd->seekoff + xxd->displayoff));
             for (int c = addrlen; c < LLENP1; buffer[c++] = ' ')
                 ;
             max_idx = addrlen;
         }
-        x = p ^ (octspergrp - 1);
-        int c = addrlen + 1 + (grplen * x) / octspergrp;
+        swapped_col = col ^ (octspergrp - 1);
+        int c = addrlen + 1 + (grplen * swapped_col) / octspergrp;
         if (xxd->color) {
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
             write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
             clear_color(buffer, &c);
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
-            c = grplen * num_groups + addrlen + 2 + p * 12;
+            c = grplen * num_groups + addrlen + 2 + col * 12;
             nonzero += e ? 1 : 0;
             set_color(buffer, &c, xxd->ascii ? ascii_char_color((uint8_t)e) : ebcdic_char_color((uint8_t)e));
             if (!xxd->ascii) {
@@ -1197,7 +1197,7 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
         } else {
             write_hex_byte(buffer, &c, (uint8_t)e, xxd->hex_digits);
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
-            c = grplen * num_groups + addrlen + 2 + p;
+            c = grplen * num_groups + addrlen + 2 + col;
             nonzero += e ? 1 : 0;
             if (!xxd->ascii) {
                 e = etoa64[e];
@@ -1208,33 +1208,33 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             }
         }
         counter++;
-        p++;
-        if (p == xxd->cols) {
+        col++;
+        if (col == xxd->cols) {
             buffer[max_idx] = '\n';
             buffer[max_idx + 1] = '\0';
-            print_or_suppress_zero_line(buffer, z, xxd->autoskip ? nonzero : 1, xxd);
+            print_or_suppress_zero_line(buffer, zero_line, xxd->autoskip ? nonzero : 1, xxd);
             nonzero = 0;
-            p = 0;
+            col = 0;
             max_idx = 0;
         }
         e = getc_or_die(xxd);
     }
-    if (p) {
+    if (col) {
         int c = max_idx;
         if (xxd->color) {
-            x = p;
-            const int fill = (p % octspergrp) == 0 ? 0 : octspergrp - (p % octspergrp);
-            c = addrlen + 1 + (grplen * (x - (octspergrp - fill))) / octspergrp;
+            swapped_col = col;
+            const int fill = (col % octspergrp) == 0 ? 0 : octspergrp - (col % octspergrp);
+            c = addrlen + 1 + (grplen * (swapped_col - (octspergrp - fill))) / octspergrp;
             for (int i = 0; i < fill; i++) {
                 set_color(buffer, &c, COLOR_RED);
                 buffer[c++] = ' ';
                 buffer[c++] = ' ';
                 clear_color(buffer, &c);
-                x++;
-                p++;
+                swapped_col++;
+                col++;
             }
-            c = addrlen + 1 + (grplen * x) / octspergrp + (xxd->cols - p) * 2 + (xxd->cols - p) / octspergrp;
-            for (int i = xxd->cols - p; i > 0; i--) {
+            c = addrlen + 1 + (grplen * swapped_col) / octspergrp + (xxd->cols - col) * 2 + (xxd->cols - col) / octspergrp;
+            for (int i = xxd->cols - col; i > 0; i--) {
                 set_color(buffer, &c, COLOR_RED);
                 buffer[c++] = ' ';
                 buffer[c++] = ' ';
@@ -1245,24 +1245,24 @@ static int hex_littleendian(char* buffer, char* z, Config* xxd)
             }
         } else {
             const int num_groups = (xxd->cols + octspergrp - 1) / octspergrp;
-            for (int i = 0; i < xxd->cols - p; i++) {
-                int hex_c = addrlen + 1 + (grplen * ((p + i) ^ (octspergrp - 1))) / octspergrp;
+            for (int i = 0; i < xxd->cols - col; i++) {
+                int hex_c = addrlen + 1 + (grplen * ((col + i) ^ (octspergrp - 1))) / octspergrp;
                 buffer[hex_c++] = ' ';
                 buffer[hex_c++] = ' ';
                 if (hex_c > max_idx) {
                     max_idx = hex_c;
                 }
             }
-            int ascii_c = grplen * num_groups + addrlen + 2 + p;
+            int ascii_c = grplen * num_groups + addrlen + 2 + col;
             if (ascii_c > max_idx) {
                 max_idx = ascii_c;
             }
         }
         buffer[max_idx] = '\n';
         buffer[max_idx + 1] = '\0';
-        print_or_suppress_zero_line(buffer, z, 1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, 1, xxd);
     } else if (xxd->autoskip) {
-        print_or_suppress_zero_line(buffer, z, -1, xxd);
+        print_or_suppress_zero_line(buffer, zero_line, -1, xxd);
     }
     return 0;
 }
@@ -1591,30 +1591,30 @@ int main(int argc, char* argv[])
         }
     }
     static char buffer[LLENP1];
-    static char z[LLENP1];
+    static char zero_line[LLENP1];
     int status = 0;
     switch (hextype) {
     case HEX_NORMAL:
         if (xxd.color) {
-            status = hex_normal_color(buffer, z, &xxd);
+            status = hex_normal_color(buffer, zero_line, &xxd);
         } else {
-            status = hex_normal_nocolor(buffer, z, &xxd);
+            status = hex_normal_nocolor(buffer, zero_line, &xxd);
         }
         break;
     case HEX_BITS:
         if (xxd.color) {
-            status = hex_bits_color(buffer, z, &xxd);
+            status = hex_bits_color(buffer, zero_line, &xxd);
         } else if (xxd.ascii) {
-            status = hex_bits_ascii(buffer, z, &xxd);
+            status = hex_bits_ascii(buffer, zero_line, &xxd);
         } else {
-            status = hex_bits_ebcdic(buffer, z, &xxd);
+            status = hex_bits_ebcdic(buffer, zero_line, &xxd);
         }
         break;
     case HEX_CINCLUDE:
         status = hex_cinclude(&xxd);
         break;
     case HEX_LITTLEENDIAN:
-        status = hex_littleendian(buffer, z, &xxd);
+        status = hex_littleendian(buffer, zero_line, &xxd);
         break;
     case HEX_POSTSCRIPT:
         status = hex_postscript(&xxd);
