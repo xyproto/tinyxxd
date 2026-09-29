@@ -1,7 +1,7 @@
-.PHONY: clean fmt install profile test uninstall
+.PHONY: clean fmt install linux_aarch64 profile test uninstall win64
 
 OPTFLAGS ?= -O2 -finline-functions
-WARNFLAGS ?= -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+WARNFLAGS ?= -Wall -Wextra -Wpedantic -Wshadow -Werror -Wfatal-errors -Wconversion -Wsign-conversion -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wno-c11-extensions
 CFLAGS ?= -std=c99 -pipe -fPIC $(OPTFLAGS) $(WARNFLAGS)
 
 UNAME_S := $(shell uname -s)
@@ -22,6 +22,9 @@ RELEASE_DIR := tinyxxd-$(VERSION)
 RELEASE_TARBALL := $(RELEASE_DIR).tar.gz
 RELEASE_FILES := main.c Makefile COPYING README.md
 
+ZIG ?= zig
+CROSS_CFLAGS := -std=c99 $(OPTFLAGS) $(WARNFLAGS) -fstack-protector-strong
+
 tinyxxd: main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -30,6 +33,12 @@ tinyxxd_debug: main.c
 
 tinyxxd_asan: main.c
 	$(CC) $(CFLAGS) -g -fsanitize=address,undefined -o $@ $<
+
+win64: main.c
+	$(ZIG) cc -target x86_64-windows-gnu $(CROSS_CFLAGS) -D_WIN32 -o tinyxxd.exe $<
+
+linux_aarch64: main.c
+	$(ZIG) cc -target aarch64-linux-musl $(CROSS_CFLAGS) -D_GNU_SOURCE -o tinyxxd-aarch64 $<
 
 profile: tinyxxd_debug
 	dd if=/dev/random of=sample.bin bs=1M count=1
@@ -194,4 +203,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/tinyxxd"
 
 clean:
-	rm -r -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd_* tinyxxd_debug xxd testfiles/xxd.c xxd_*
+	rm -r -f -- *.bin *.dat *.hex *.o *.pkl *.tar.gz callgrind.out.* og_xxd* output_* tinyxxd tinyxxd.exe tinyxxd-aarch64 tinyxxd_* tinyxxd_debug xxd testfiles/xxd.c xxd_*
